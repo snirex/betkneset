@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>כרטיס אדם - ניהול חשבונות</title>
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.rtl.min.css" rel="stylesheet" />
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <link href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css" rel="stylesheet" />
+  <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+  <style>
+    body { margin: 0; padding: 0; background: #f1f1f1; display: none; }
+    nav.navbar { margin: 0; border-radius: 0; position: fixed; top: 0; left: 0; right: 0; z-index: 1030; }
+    .container { padding-top: 70px; }
+    .bg-custom { background: linear-gradient(135deg, #72edf2 0%, #5151e5 100%); color: white; }
+    .table-responsive { overflow-x: auto; }
+    tfoot tr th { background: #f5f5f5; font-weight: bold; text-align: center; }
+  </style>
+</head>
+<body class="p-4">
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-custom mb-0">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="index.html">🏠 דף הבית</a>
+    <div class="collapse navbar-collapse">
+      <ul class="navbar-nav me-auto">
+        <li class="nav-item"><a class="nav-link active" href="person.html">כרטיס אדם</a></li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<div class="container">
+
+  <h1 id="title" class="mb-4 text-center">כרטיס אדם</h1>
+
+  <div class="mb-4 d-flex align-items-center gap-2 flex-wrap">
+    <label for="personSelect" class="mb-0">בחר שם:</label>
+    <select id="personSelect" class="form-select w-auto"></select>
+    <button id="loadPerson" class="btn btn-primary">טען</button>
+    <button id="generateFullInvoice" class="btn btn-success ms-3" style="display:none;">חשבונית כוללת</button>
+  </div>
+
+  <div class="mb-4 d-flex align-items-center gap-3 flex-wrap">
+    <div>
+      <label for="startDate" class="form-label mb-0">מתאריך:</label>
+      <input type="date" id="startDate" class="form-control" />
+    </div>
+    <div>
+      <label for="endDate" class="form-label mb-0">עד תאריך:</label>
+      <input type="date" id="endDate" class="form-control" />
+    </div>
+    <button id="filterDates" class="btn btn-info mt-4">סנן</button>
+    <button id="clearFilter" class="btn btn-secondary mt-4">נקה סינון</button>
+  </div>
+
+  <div class="mb-3">
+    <label class="form-label">🔍 חפש ברשומות:</label>
+    <input type="text" id="searchInput" class="form-control w-50" placeholder="הקלד לחיפוש..." />
+  </div>
+
+  <div id="summary" class="alert alert-info fw-bold" style="display:none;"></div>
+
+  <div class="table-responsive">
+    <table id="personTable" class="display table table-bordered table-striped w-100">
+      <thead class="table-dark text-center">
+        <tr>
+          <th>תאריך</th>
+          <th>פירוט מצווה</th>
+          <th>סוג תשלום</th>
+          <th>אסמכתא</th>
+          <th>סכום התחייבות</th>
+          <th>תשלום בפועל</th>
+          <th>פעולות</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+      <tfoot>
+        <tr>
+          <th colspan="4" style="text-align:right">סה"כ:</th>
+          <th id="totalAmount">0</th>
+          <th id="totalActualPayment">0</th>
+          <th id="netTotal">0</th>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
+  import { getFirestore, collection, query, where, orderBy, onSnapshot, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyB49uIy5xYqMrdmqea14aBoPVP5Lw24ggI",
+    authDomain: "snir-betkneset.firebaseapp.com",
+    projectId: "snir-betkneset",
+    storageBucket: "snir-betkneset.firebasestorage.app",
+    messagingSenderId: "453027350533",
+    appId: "1:453027350533:web:db26aa9d4af9fa92d7b46c",
+    measurementId: "G-JL634PFGP6"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  $(document).ready(function () {
+    let fadeSpeed = 200;
+    $('body').fadeIn(fadeSpeed);
+
+    $('a').click(function(e) {
+      const link = $(this).attr('href');
+      if (link && link !== '#' && !link.startsWith('http')) {
+        e.preventDefault();
+        $('body').fadeOut(fadeSpeed, function() { window.location.href = link; });
+      }
+    });
+
+    const params = new URLSearchParams(window.location.search);
+    let name = params.get('name') || '';
+    const $select = $('#personSelect');
+
+    let payments = [];
+
+    function populateNames() {
+      // נטען כל השמות שיש ב-Firestore (ייחודיים)
+      // לצורך הפשטות נטען את כל התשלומים ואז נחלץ שמות - אפשר גם לבצע שאילתה נפרדת למיוחדים
+      const paymentsCol = collection(db, "payments");
+      onSnapshot(paymentsCol, (querySnapshot) => {
+        payments = [];
+        querySnapshot.forEach(doc => {
+          payments.push({ id: doc.id, ...doc.data() });
+        });
+
+        // ייחוד שמות
+        const uniqueNames = [...new Set(payments.map(p => p.name))];
+        $select.empty().append('<option value="">בחר...</option>');
+        uniqueNames.forEach(n => {
+          $select.append(`<option value="${n}" ${n === name ? 'selected' : ''}>${n}</option>`);
+        });
+
+        if (name) {
+          renderPerson(name);
+        }
+      });
+    }
+
+    function renderPerson(name, startDate = null, endDate = null) {
+      if (!name) {
+        $('#generateFullInvoice').hide();
+        $('#title').text('כרטיס אדם');
+        if ($.fn.dataTable.isDataTable('#personTable')) $('#personTable').DataTable().clear().draw();
+        $('#summary').hide();
+        return;
+      }
+      $('#title').text(`כרטיס של: ${name}`);
+
+      let filteredPayments = payments.filter(p => p.name === name);
+      if (startDate) filteredPayments = filteredPayments.filter(p => p.date >= startDate);
+      if (endDate) filteredPayments = filteredPayments.filter(p => p.date <= endDate);
+
+      if (filteredPayments.length === 0) {
+        $('#summary').hide();
+        $('#generateFullInvoice').hide();
+        if ($.fn.dataTable.isDataTable('#personTable')) $('#personTable').DataTable().clear().draw();
+        return;
+      }
+
+      $('#generateFullInvoice').show();
+
+      const totalAmount = filteredPayments.reduce((sum, p) => sum + Number(p.amount || 0), 0);
+      const totalActualPayment = filteredPayments.reduce((sum, p) => sum + Number(p.actualPayment || 0), 0);
+      const netTotal = totalActualPayment - totalAmount;
+
+      $('#summary').text(`סה"כ התחייבויות: ${totalAmount.toFixed(2)} ש"ח, תשלום בפועל: ${totalActualPayment.toFixed(2)} ש"ח, נטו: ${netTotal.toFixed(2)} ש"ח`).show();
+
+      if ($.fn.dataTable.isDataTable('#personTable')) {
+        $('#personTable').DataTable().clear().rows.add(filteredPayments).draw();
+      } else {
+        $('#personTable').DataTable({
+          data: filteredPayments,
+          columns: [
+            { data: 'date', className: 'text-center' },
+            { data: 'mitzvah', className: 'text-center' },
+            { data: 'paymentType', className: 'text-center' },
+            { data: 'reference', className: 'text-center' },
+            { data: 'amount', className: 'text-center' },
+            { data: 'actualPayment', className: 'text-center' },
+            {
+              data: null,
+              orderable: false,
+              className: 'text-center',
+              render: (data, type, row, meta) => `
+                <button class="btn btn-success btn-sm generate" data-index="${meta.row}">חשבונית</button>
+                <button class="btn btn-danger btn-sm delete-btn" data-id="${row.id}">🗑️ מחק</button>`
+            }
+          ],
+          destroy: true,
+          searching: false,
+          order: [[0, 'desc']],
+          language: {
+            emptyTable: "אין נתונים להצגה",
+            paginate: { previous: "הקודם", next: "הבא" }
+          },
+          footerCallback: () => {
+            $('#totalAmount').html(totalAmount.toFixed(2));
+            $('#totalActualPayment').html(totalActualPayment.toFixed(2));
+            $('#netTotal').html(netTotal.toFixed(2));
+          }
+        });
+      }
+    }
+
+    $('#searchInput').on('input', function() {
+      const val = $(this).val();
+      if ($.fn.dataTable.isDataTable('#personTable')) {
+        $('#personTable').DataTable().search(val).draw();
+      }
+    });
+
+    // מחיקת תשלום
+    $('#personTable tbody').on('click', '.delete-btn', async function () {
+      const id = $(this).data('id');
+      if (!id) return;
+      const result = await Swal.fire({
+        title: 'בטוח למחוק?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'כן, מחק',
+        cancelButtonText: 'בטל'
+      });
+      if (result.isConfirmed) {
+        try {
+          await deleteDoc(doc(db, "payments", id));
+          Swal.fire('נמחק!', 'הרשומה נמחקה בהצלחה.', 'success');
+        } catch (error) {
+          Swal.fire('שגיאה', 'אירעה שגיאה במחיקה: ' + error.message, 'error');
+        }
+      }
+    });
+
+    // יצירת חשבונית פרטנית
+    $('#personTable tbody').on('click', '.generate', function () {
+      const idx = $(this).data('index');
+      const table = $('#personTable').DataTable();
+      const payment = table.row(idx).data();
+      if (!payment) return;
+      const params = new URLSearchParams(payment).toString();
+      window.open(`invoice.html?name=${encodeURIComponent(payment.name)}&${params}`, '_blank');
+    });
+
+    // חשבונית כוללת לכל התשלומים של אותו אדם (עם סינון תאריכים)
+    $('#generateFullInvoice').click(() => {
+      let filteredPayments = payments.filter(p => p.name === name);
+      const startDate = $('#startDate').val();
+      const endDate = $('#endDate').val();
+      if (startDate) filteredPayments = filteredPayments.filter(p => p.date >= startDate);
+      if (endDate) filteredPayments = filteredPayments.filter(p => p.date <= endDate);
+      if (filteredPayments.length === 0) return;
+      const encodedData = encodeURIComponent(JSON.stringify(filteredPayments));
+      window.open(`invoice.html?batch=${encodedData}`, '_blank');
+    });
+
+    // טעינת אדם לפי בחירה
+    $('#loadPerson').click(() => {
+      const selected = $select.val();
+      if (selected) {
+        window.location.href = `person.html?name=${encodeURIComponent(selected)}`;
+      }
+    });
+
+    // סינון תאריכים
+    $('#filterDates').click(() => renderPerson(name, $('#startDate').val(), $('#endDate').val()));
+
+    // ניקוי סינון
+    $('#clearFilter').click(() => {
+      $('#startDate').val('');
+      $('#endDate').val('');
+      renderPerson(name);
+    });
+
+    populateNames();
+  });
+</script>
+
+</body>
+</html>

@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>חשבונית תשלום</title>
+
+  <!-- Bootstrap RTL -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.rtl.min.css" rel="stylesheet" />
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Rubik&display=swap" rel="stylesheet" />
+
+  <style>
+    body {
+      font-family: 'Rubik', sans-serif;
+      background: #f9f9f9;
+      margin: 0; padding: 2rem;
+      color: #333;
+    }
+    .invoice-container {
+      max-width: 900px;
+      margin: auto;
+      background: white;
+      padding: 3rem;
+      border-radius: 10px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.1);
+    }
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 3px solid #5151e5;
+      padding-bottom: 1rem;
+      margin-bottom: 2rem;
+    }
+    header img {
+      height: 60px;
+    }
+    header h1 {
+      color: #5151e5;
+      font-weight: 700;
+      margin: 0;
+      font-size: 2rem;
+    }
+    .org-info {
+      font-size: 0.9rem;
+      color: #555;
+      margin-top: 0.5rem;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+    }
+    table thead th {
+      background: #5151e5;
+      color: white;
+    }
+    th, td {
+      padding: 0.8rem;
+      text-align: center;
+      border: 1px solid #ddd;
+    }
+    tbody tr:nth-child(even) {
+      background: #f9f9f9;
+    }
+    tfoot td {
+      font-weight: 700;
+      background: #f0f0f0;
+    }
+    .total-row td {
+      background: #d1d1ff;
+    }
+    .footer-note {
+      margin-top: 2rem;
+      font-size: 0.85rem;
+      color: #666;
+      border-top: 1px solid #ddd;
+      padding-top: 1rem;
+    }
+    .signature {
+      margin-top: 3rem;
+      text-align: left;
+    }
+    .signature p {
+      margin: 0;
+      font-size: 0.9rem;
+    }
+    .btn-download, .btn-print {
+      margin-top: 2rem;
+      background: #5151e5;
+      color: white;
+      border: none;
+      padding: 0.75rem 1.5rem;
+      font-size: 1.1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      display: inline-block;
+      margin-inline-end: 1rem;
+    }
+    .btn-download:hover, .btn-print:hover {
+      background: #3a3acc;
+    }
+    @media print {
+      .btn-download, .btn-print {
+        display: none !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="invoice-container" id="invoiceContent">
+
+    <header>
+      <div>
+        <h1>חשבונית לבית הכנסת</h1>
+        <div class="org-info">
+          ביתה הכנסת המרכזי מושב תלמים<br>
+          טלפון: 08-1234567 | דוא"ל: info@example.org
+        </div>
+      </div>
+      <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/7/72/Temple_Icon.svg/1200px-Temple_Icon.svg.png" alt="לוגו בית הכנסת">
+    </header>
+
+    <div id="invoiceDetails"></div>
+
+    <div class="signature">
+      <p>______________________</p>
+      <p>חתימת מורשה חתימה</p>
+    </div>
+
+    <div class="footer-note">
+      שים לב: תוקף מסמך זה מותנה בקבלת התשלום במלואו בהתאם לתנאים. אין לראות במסמך זה קבלה.
+    </div>
+
+    <button class="btn-download" id="downloadPdfBtn">⬇️ הורד PDF</button>
+    <button class="btn-print" id="printBtn">🖨️ הדפס</button>
+
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+  <script>
+    (() => {
+      const params = new URLSearchParams(window.location.search);
+
+      const invoiceDetailsDiv = document.getElementById('invoiceDetails');
+      const invoiceContentDiv = document.getElementById('invoiceContent');
+      const downloadBtn = document.getElementById('downloadPdfBtn');
+      const printBtn = document.getElementById('printBtn');
+
+      function formatDate(dateStr) {
+        if (!dateStr) return '-';
+        const d = new Date(dateStr);
+        if (isNaN(d)) return dateStr;
+        return d.toLocaleDateString('he-IL');
+      }
+
+      function formatCurrency(num) {
+        return num != null ? Number(num).toFixed(2) + ' ₪' : '-';
+      }
+
+      function createTable(payments) {
+        if (!payments.length) {
+          invoiceDetailsDiv.innerHTML = `<p class="no-data">אין תשלומים להצגה.</p>`;
+          downloadBtn.style.display = 'none';
+          printBtn.style.display = 'none';
+          return;
+        }
+
+        const totalAmount = payments.reduce((sum, p) => sum + Number(p.amount || 0), 0);
+        const totalActualPayment = payments.reduce((sum, p) => sum + Number(p.actualPayment || 0), 0);
+        const netTotal = totalActualPayment - totalAmount;
+
+        let html = `
+          <p><strong>שם:</strong> ${payments[0].name || '-'}</p>
+          <table>
+            <thead>
+              <tr>
+                <th>תאריך</th>
+                <th>פירוט מצווה</th>
+                <th>סוג תשלום</th>
+                <th>אסמכתא</th>
+                <th>סכום התחייבות</th>
+                <th>תשלום בפועל</th>
+              </tr>
+            </thead>
+            <tbody>
+        `;
+
+        payments.forEach(p => {
+          html += `
+            <tr>
+              <td>${formatDate(p.date)}</td>
+              <td>${p.mitzvah || '-'}</td>
+              <td>${p.paymentType || '-'}</td>
+              <td>${p.reference || '-'}</td>
+              <td>${formatCurrency(p.amount)}</td>
+              <td>${formatCurrency(p.actualPayment)}</td>
+            </tr>
+          `;
+        });
+
+        html += `
+            </tbody>
+            <tfoot>
+              <tr class="total-row">
+                <td colspan="4" style="text-align:right;">סה"כ:</td>
+                <td>${formatCurrency(totalAmount)}</td>
+                <td>${formatCurrency(totalActualPayment)}</td>
+              </tr>
+              <tr>
+                <td colspan="5" style="text-align:right;">נטו (תשלום בפועל פחות התחייבות):</td>
+                <td><strong>${formatCurrency(netTotal)}</strong></td>
+              </tr>
+            </tfoot>
+          </table>
+        `;
+
+        invoiceDetailsDiv.innerHTML = html;
+      }
+
+      function createSingleInvoice() {
+        const payment = {
+          name: params.get('name') || '-',
+          date: params.get('date') || '-',
+          mitzvah: params.get('mitzvah') || '-',
+          paymentType: params.get('paymentType') || '-',
+          reference: params.get('reference') || '-',
+          amount: parseFloat(params.get('amount')) || 0,
+          actualPayment: parseFloat(params.get('actualPayment')) || 0,
+        };
+        createTable([payment]);
+      }
+
+      function createBatchInvoice() {
+        try {
+          const batchEncoded = params.get('batch');
+          if (!batchEncoded) return;
+          const batchJson = decodeURIComponent(batchEncoded);
+          const payments = JSON.parse(batchJson);
+          if (!Array.isArray(payments)) return;
+          createTable(payments);
+        } catch (e) {
+          console.error(e);
+        }
+      }
+
+      if (params.has('batch')) {
+        createBatchInvoice();
+      } else {
+        createSingleInvoice();
+      }
+
+      downloadBtn.addEventListener('click', () => {
+        html2pdf().from(invoiceContentDiv).set({
+          margin: 0.5,
+          filename: `חשבונית_${params.get('name') || 'אדם'}.pdf`,
+          image: { type: 'jpeg', quality: 0.98 },
+          html2canvas: { scale: 2 },
+          jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+        }).save();
+      });
+
+      printBtn.addEventListener('click', () => window.print());
+    })();
+  </script>
+
+</body>
+</html>
