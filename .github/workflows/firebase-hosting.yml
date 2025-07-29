@@ -15,6 +15,6 @@ jobs:
       - uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: "${{ secrets.GITHUB_TOKEN }}"
-          firebaseServiceAccount: "${{ secrets.FIREBASE_SERVICE_ACCOUNT }}"
+          firebaseServiceAccount: "${{ secrets.BETKNESET_SECRET_NAME }}"
           channelId: live
           projectId: snir-betkneset # 👈 החלף לשם הפרויקט שלך בדיוק!
