@@ -3,7 +3,7 @@ name: Deploy to Firebase Hosting
 on:
   push:
     branches:
-      - main # או master, תלוי בשם ה-branch שלך
+      - main  # או master, תלוי בשם ה-branch שלך
 
 jobs:
   deploy:
@@ -17,4 +17,5 @@ jobs:
           repoToken: "${{ secrets.GITHUB_TOKEN }}"
           firebaseServiceAccount: "${{ secrets.BETKNESET_SECRET_NAME }}"
           channelId: live
-          projectId: snir-betkneset # 👈 החלף לשם הפרויקט שלך בדיוק!
+          projectId: snir-betkneset
+          entryPoint: "."  # ← זה מה שהיה חסר
