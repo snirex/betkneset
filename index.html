@@ -52,6 +52,43 @@
       border: 1px solid gray;
     }
   </style>
+  <script type="module">
+  //import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  //import { getDatabase, ref, set, get, child } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+	// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+	const firebaseConfig = {
+	  apiKey: "AIzaSyB49uIy5xYqMrdmqea14aBoPVP5Lw24ggI",
+	  authDomain: "snir-betkneset.firebaseapp.com",
+	  projectId: "snir-betkneset",
+	  storageBucket: "snir-betkneset.firebasestorage.app",
+	  messagingSenderId: "453027350533",
+	  appId: "1:453027350533:web:db26aa9d4af9fa92d7b46c",
+	  measurementId: "G-JL634PFGP6"
+	};
+
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+
+  // כתיבה לדוגמה
+  set(ref(db, 'users/123'), {
+    username: "snir",
+    email: "snir@example.com"
+  });
+
+  // קריאה לדוגמה
+  const dbRef = ref(db);
+  get(child(dbRef, 'users/123')).then((snapshot) => {
+    if (snapshot.exists()) {
+      console.log(snapshot.val());
+    } else {
+      console.log("No data available");
+    }
+  }).catch((error) => {
+    console.error(error);
+  });
+</script>
+
 </head>
 <body class="p-4">
 
