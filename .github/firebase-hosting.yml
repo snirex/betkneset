@@ -3,19 +3,20 @@ name: Deploy to Firebase Hosting
 on:
   push:
     branches:
-      - main  # או master, תלוי בשם ה-branch שלך
+      - main
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-      - uses: FirebaseExtended/action-hosting-deploy@v0
+      - name: Deploy to Firebase Hosting
+        uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: "${{ secrets.GITHUB_TOKEN }}"
-          firebaseServiceAccount: "${{ secrets.BETKNESET_SECRET_NAME }}"
+          firebaseServiceAccount: "${{ secrets.FIREBASE_SERVICE_ACCOUNT }}"
           channelId: live
           projectId: snir-betkneset
-          entryPoint: "."  # ← זה מה שהיה חסר
