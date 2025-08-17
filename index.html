@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
@@ -154,7 +153,6 @@ $(function(){
 
   const modal = new bootstrap.Modal(document.getElementById('addPaymentModal'));
 
-  // התראה Firebase
   $("#firebaseAlert").slideDown();
   $("#firebaseAlert .btn-close").click(()=>$("#firebaseAlert").slideUp());
 
@@ -190,7 +188,6 @@ $(function(){
   }
   updateSums();
 
-  // כפתור "הוסף תשלום"
   $("#openAddModal").click(()=>modal.show());
 
   $("#addPaymentForm").submit(function(e){
@@ -204,7 +201,6 @@ $(function(){
     modal.hide();
   });
 
-  // מחיקה
   $('#paymentsTable').on('click','.delete-row',function(){
     let row = table.row($(this).closest('tr'));
     let $tr = $(row.node());
@@ -216,7 +212,71 @@ $(function(){
     });
   });
 
-  // חיפוש אוטומטי
+  // מצב עריכה עם אנימציה
+  $('#paymentsTable').on('click','.edit-row',function(){
+    let $tr = $(this).closest('tr');
+    if($tr.hasClass('editing')) return;
+    $tr.addClass('editing');
+
+    let rowData = table.row($tr).data();
+    let originalData = {...rowData};
+
+    // אנימציה לפתיחת עריכה
+    $tr.children('td').animate({backgroundColor:'#fff3cd'},200);
+
+    $tr.children('td').each(function(i){
+      if(i < 7){
+        $(this).html(`<input type="text" class="form-control form-control-sm" value="${rowData[table.column(i).dataSrc()] || ''}">`);
+      }
+    });
+
+    let $actionsRow = $(`
+      <tr class="edit-actions">
+        <td colspan="8" style="display:none;">
+          <button class="btn btn-success btn-sm save-edit"><i class="bi bi-check-lg"></i> אישור</button>
+          <button class="btn btn-secondary btn-sm cancel-edit"><i class="bi bi-x-lg"></i> ביטול</button>
+        </td>
+      </tr>
+    `);
+    $tr.after($actionsRow);
+    $actionsRow.find('td').slideDown(200);
+
+    function restoreBackground(){
+      $tr.children('td').animate({backgroundColor:''},300);
+    }
+
+    function saveEdit(){
+      let inputs = $tr.find('input');
+      let updated = {};
+      inputs.each(function(i){
+        let key = table.column(i).dataSrc();
+        updated[key] = $(this).val();
+      });
+      let index = table.row($tr).index();
+      payments[index] = updated;
+      saveToStorage();
+
+      table.row($tr).data(updated).draw(false);
+      $actionsRow.find('td').slideUp(200,()=>{ $actionsRow.remove(); restoreBackground(); });
+      $tr.removeClass('editing');
+      updateSums();
+    }
+
+    function cancelEdit(){
+      table.row($tr).data(originalData).draw(false);
+      $actionsRow.find('td').slideUp(200,()=>{ $actionsRow.remove(); restoreBackground(); });
+      $tr.removeClass('editing');
+    }
+
+    $actionsRow.find('.save-edit').click(saveEdit);
+    $actionsRow.find('.cancel-edit').click(cancelEdit);
+
+    $tr.find('input').keydown(function(e){
+      if(e.key === "Enter") saveEdit();
+      if(e.key === "Escape") cancelEdit();
+    });
+  });
+
   $("#globalSearch").autocomplete({
     source:[...new Set(payments.map(p=>p.name))],
     select:(e,ui)=>{ table.search(ui.item.value).draw(); }
