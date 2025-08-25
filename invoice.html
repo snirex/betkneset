@@ -2,7 +2,6 @@
 <html lang="he" dir="rtl">
 <head>
   <meta charset="UTF-8" />
-  <!--<meta name="viewport" content="width=device-width, initial-scale=1" />-->
   <title>חשבונית תשלום</title>
 
   <!-- Bootstrap RTL -->
@@ -34,80 +33,34 @@
       padding-bottom: 1rem;
       margin-bottom: 2rem;
     }
-    header img {
-      height: 60px;
-    }
+    header img { height: 60px; }
     header h1 {
       color: #5151e5;
       font-weight: 700;
       margin: 0;
       font-size: 2rem;
     }
-    .org-info {
-      font-size: 0.9rem;
-      color: #555;
-      margin-top: 0.5rem;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 1rem;
-    }
-    table thead th {
-      background: #5151e5;
-      color: white;
-    }
-    th, td {
-      padding: 0.8rem;
-      text-align: center;
-      border: 1px solid #ddd;
-    }
-    tbody tr:nth-child(even) {
-      background: #f9f9f9;
-    }
-    tfoot td {
-      font-weight: 700;
-      background: #f0f0f0;
-    }
-    .total-row td {
-      background: #d1d1ff;
-    }
+    .org-info { font-size: 0.9rem; color: #555; margin-top: 0.5rem; }
+    table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+    table thead th { background: #5151e5; color: white; }
+    th, td { padding: 0.8rem; text-align: center; border: 1px solid #ddd; }
+    tbody tr:nth-child(even) { background: #f9f9f9; }
+    tfoot td { font-weight: 700; background: #f0f0f0; }
+    .total-row td { background: #d1d1ff; }
     .footer-note {
-      margin-top: 2rem;
-      font-size: 0.85rem;
-      color: #666;
-      border-top: 1px solid #ddd;
-      padding-top: 1rem;
+      margin-top: 2rem; font-size: 0.85rem; color: #666;
+      border-top: 1px solid #ddd; padding-top: 1rem;
     }
-    .signature {
-      margin-top: 3rem;
-      text-align: left;
-    }
-    .signature p {
-      margin: 0;
-      font-size: 0.9rem;
-    }
+    .signature { margin-top: 3rem; text-align: left; }
+    .signature p { margin: 0; font-size: 0.9rem; }
     .btn-download, .btn-print {
-      margin-top: 2rem;
-      background: #5151e5;
-      color: white;
-      border: none;
-      padding: 0.75rem 1.5rem;
-      font-size: 1.1rem;
-      border-radius: 6px;
-      cursor: pointer;
-      transition: background-color 0.3s ease;
-      display: inline-block;
-      margin-inline-end: 1rem;
+      margin-top: 2rem; background: #5151e5; color: white; border: none;
+      padding: 0.75rem 1.5rem; font-size: 1.1rem; border-radius: 6px;
+      cursor: pointer; transition: background-color 0.3s ease;
+      display: inline-block; margin-inline-end: 1rem;
     }
-    .btn-download:hover, .btn-print:hover {
-      background: #3a3acc;
-    }
-    @media print {
-      .btn-download, .btn-print {
-        display: none !important;
-      }
-    }
+    .btn-download:hover, .btn-print:hover { background: #3a3acc; }
+    @media print { .btn-download, .btn-print { display: none !important; } }
   </style>
 </head>
 <body>
@@ -118,7 +71,7 @@
       <div>
         <h1>חשבונית לבית הכנסת</h1>
         <div class="org-info">
-          ביתה הכנסת המרכזי מושב תלמים<br>
+          בית הכנסת המרכזי מושב תלמים<br>
           טלפון: 08-1234567 | דוא"ל: info@example.org
         </div>
       </div>
@@ -142,10 +95,11 @@
   </div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-
   <script>
     (() => {
       const params = new URLSearchParams(window.location.search);
+      const token = params.get("token");
+      const batchParam = params.get("batch");
 
       const invoiceDetailsDiv = document.getElementById('invoiceDetails');
       const invoiceContentDiv = document.getElementById('invoiceContent');
@@ -163,102 +117,98 @@
         return num != null ? Number(num).toFixed(2) + ' ₪' : '-';
       }
 
-      function createTable(payments) {
-        if (!payments.length) {
-          invoiceDetailsDiv.innerHTML = `<p class="no-data">אין תשלומים להצגה.</p>`;
+      function renderTable(payments) {
+        if (!payments || !payments.length) {
+          invoiceDetailsDiv.innerHTML = `<p class="text-danger">לא נמצאו נתונים להצגה.</p>`;
           downloadBtn.style.display = 'none';
           printBtn.style.display = 'none';
           return;
         }
 
         const totalAmount = payments.reduce((sum, p) => sum + Number(p.amount || 0), 0);
-        const totalActualPayment = payments.reduce((sum, p) => sum + Number(p.actualPayment || 0), 0);
-        const netTotal = totalActualPayment - totalAmount;
+        const totalActual = payments.reduce((sum, p) => sum + Number(p.actualPayment || 0), 0);
+        const netTotal = totalActual - totalAmount;
 
-        let html = `
-          <p><strong>שם:</strong> ${payments[0].name || '-'}</p>
-          <table>
-            <thead>
-              <tr>
-                <th>תאריך</th>
-                <th>פירוט מצווה</th>
-                <th>סוג תשלום</th>
-                <th>אסמכתא</th>
-                <th>סכום התחייבות</th>
-                <th>תשלום בפועל</th>
-              </tr>
-            </thead>
-            <tbody>
-        `;
+        let html = `<p><strong>שם:</strong> ${payments[0].name || '-'}</p>
+        <table>
+          <thead>
+            <tr>
+              <th>תאריך</th>
+              <th>פירוט מצווה</th>
+              <th>סוג תשלום</th>
+              <th>אסמכתא</th>
+              <th>סכום התחייבות</th>
+              <th>תשלום בפועל</th>
+            </tr>
+          </thead>
+          <tbody>`;
 
         payments.forEach(p => {
-          html += `
-            <tr>
-              <td>${formatDate(p.date)}</td>
-              <td>${p.mitzvah || '-'}</td>
-              <td>${p.paymentType || '-'}</td>
-              <td>${p.reference || '-'}</td>
-              <td>${formatCurrency(p.amount)}</td>
-              <td>${formatCurrency(p.actualPayment)}</td>
-            </tr>
-          `;
+          html += `<tr>
+            <td>${formatDate(p.date)}</td>
+            <td>${p.mitzvah || '-'}</td>
+            <td>${p.paymentType || '-'}</td>
+            <td>${p.reference || '-'}</td>
+            <td>${formatCurrency(p.amount)}</td>
+            <td>${formatCurrency(p.actualPayment)}</td>
+          </tr>`;
         });
 
-        html += `
-            </tbody>
-            <tfoot>
-              <tr class="total-row">
-                <td colspan="4" style="text-align:right;">סה"כ:</td>
-                <td>${formatCurrency(totalAmount)}</td>
-                <td>${formatCurrency(totalActualPayment)}</td>
-              </tr>
-              <tr>
-                <td colspan="5" style="text-align:right;">נטו (תשלום בפועל פחות התחייבות):</td>
-                <td><strong>${formatCurrency(netTotal)}</strong></td>
-              </tr>
-            </tfoot>
-          </table>
-        `;
+        html += `</tbody>
+          <tfoot>
+            <tr class="total-row">
+              <td colspan="4" style="text-align:right;">סה"כ:</td>
+              <td>${formatCurrency(totalAmount)}</td>
+              <td>${formatCurrency(totalActual)}</td>
+            </tr>
+            <tr>
+              <td colspan="5" style="text-align:right;">נטו (תשלום בפועל פחות התחייבות):</td>
+              <td><strong>${formatCurrency(netTotal)}</strong></td>
+            </tr>
+          </tfoot>
+        </table>`;
 
         invoiceDetailsDiv.innerHTML = html;
       }
 
-      function createSingleInvoice() {
-        const payment = {
-          name: params.get('name') || '-',
-          date: params.get('date') || '-',
-          mitzvah: params.get('mitzvah') || '-',
-          paymentType: params.get('paymentType') || '-',
-          reference: params.get('reference') || '-',
-          amount: parseFloat(params.get('amount')) || 0,
-          actualPayment: parseFloat(params.get('actualPayment')) || 0,
-        };
-        createTable([payment]);
-      }
-
-      function createBatchInvoice() {
+      function loadPaymentByToken(token) {
         try {
-          const batchEncoded = params.get('batch');
-          if (!batchEncoded) return;
-          const batchJson = decodeURIComponent(batchEncoded);
-          const payments = JSON.parse(batchJson);
-          if (!Array.isArray(payments)) return;
-          createTable(payments);
-        } catch (e) {
-          console.error(e);
+          const payments = JSON.parse(localStorage.getItem("paymentsLocal") || "[]");
+          return payments.find(p => p.token === token);
+        } catch(e) {
+          console.error("שגיאה בקריאת localStorage:", e);
+          return null;
         }
       }
 
-      if (params.has('batch')) {
-        createBatchInvoice();
+      function loadBatch(batchStr) {
+        try {
+          const decoded = decodeURIComponent(batchStr);
+          const payments = JSON.parse(decoded);
+          if (Array.isArray(payments)) return payments;
+        } catch(e) {
+          console.error("שגיאה בקריאת batch:", e);
+        }
+        return null;
+      }
+
+      // הצגת חשבונית לפי token או batch
+      if (batchParam) {
+        const payments = loadBatch(batchParam);
+        renderTable(payments);
+      } else if (token) {
+        const payment = loadPaymentByToken(token);
+        renderTable(payment ? [payment] : null);
       } else {
-        createSingleInvoice();
+        invoiceDetailsDiv.innerHTML = `<p class="text-danger">לא סופק מזהה חשבונית (token) או batch.</p>`;
+        downloadBtn.style.display = 'none';
+        printBtn.style.display = 'none';
       }
 
       downloadBtn.addEventListener('click', () => {
         html2pdf().from(invoiceContentDiv).set({
           margin: 0.5,
-          filename: `חשבונית_${params.get('name') || 'אדם'}.pdf`,
+          filename: `חשבונית_${token || 'תשלום'}.pdf`,
           image: { type: 'jpeg', quality: 0.98 },
           html2canvas: { scale: 2 },
           jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
@@ -271,4 +221,3 @@
 
 </body>
 </html>
-
