@@ -34,27 +34,24 @@ body.theme-blue { background: #e6f0ff; color: #003366; }
 .stat-red { background:#f8d7da; }
 .stat-green { background:#d4edda; }
 .stat-yellow { background:#fff3cd; }
+tfoot tr.balance-row th { font-weight:bold; font-size:1.1em; }
+tfoot tr.balance-row.positive th { background:#d4edda; color:#155724; }
+tfoot tr.balance-row.negative th { background:#f8d7da; color:#721c24; }
 </style>
 </head>
 <body class="theme-blue">
 
-<!-- Alert Firebase -->
 <div id="firebaseAlert" class="alert alert-warning alert-dismissible fade show mb-0 text-center" role="alert">
-  ⚠ אין חיבור ל-Firebase כרגע. הנתונים נשמרים מקומית בלבד.
+  ⚠ אין חיבור לבסיס הנתונים כרגע. הנתונים נשמרים מקומית בלבד.
   <button type="button" class="btn-close"></button>
 </div>
 
-<!-- Navbar רספונסיבי -->
 <nav class="navbar navbar-expand-lg navbar-dark bg-custom">
   <div class="container-fluid">
     <a class="navbar-brand" href="#">🏠 ניהול חשבונות</a>
-
-    <!-- כפתור Hamburger למסכים קטנים -->
-    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent"
-      aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation">
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
       <span class="navbar-toggler-icon"></span>
     </button>
-
     <div class="collapse navbar-collapse" id="navbarContent">
       <ul class="navbar-nav ms-auto">
         <li class="nav-item"><a class="nav-link" href="summary.html">📑 סיכום כולל (D)</a></li>
@@ -71,26 +68,24 @@ body.theme-blue { background: #e6f0ff; color: #003366; }
   </div>
 </nav>
 
-<!-- כרטיסי סטטוס -->
 <div class="p-4 rounded bg-white shadow-sm mb-4 text-center">
   <h1>📜 ניהול הכנסות בית הכנסת</h1>
 </div>
+
 <div class="container my-4">
   <div class="row g-3 text-center">
-    <div class="col-md-4"><div class="stat-card stat-red"><h4>סה״כ התחייבויות</h4><div id="statAmount">1,212</div></div></div>
-    <div class="col-md-4"><div class="stat-card stat-green"><h4>סה״כ תשלומים</h4><div id="statActual">1,205</div></div></div>
-    <div class="col-md-4"><div class="stat-card stat-yellow"><h4>מאזן כללי</h4><div id="statBalance">7</div></div></div>
+    <div class="col-md-4"><div class="stat-card stat-red"><h4>סה״כ התחייבויות</h4><div id="statAmount">0</div></div></div>
+    <div class="col-md-4"><div class="stat-card stat-green"><h4>סה״כ תשלומים</h4><div id="statActual">0</div></div></div>
+    <div class="col-md-4"><div class="stat-card stat-yellow"><h4>מאזן כללי</h4><div id="statBalance">0</div></div></div>
   </div>
 </div>
 
-<!-- כפתור הוספת תשלום + חיפוש -->
 <div class="container py-4">
   <div class="d-flex justify-content-between mb-3 flex-wrap gap-2">
     <button id="openAddModal" class="btn btn-primary"><i class="bi bi-plus-circle"></i> הוסף תשלום</button>
     <input type="text" id="globalSearch" class="form-control w-auto" placeholder="🔍 חיפוש חכם...">
   </div>
 
-  <!-- טבלת תשלומים -->
   <div class="table-responsive">
     <table id="paymentsTable" class="display table table-bordered table-hover w-100">
       <thead>
@@ -109,8 +104,14 @@ body.theme-blue { background: #e6f0ff; color: #003366; }
         <tr>
           <th colspan="2">סה״כ:</th>
           <th id="sumAmount">0</th>
-          <th colspan="3"></th>
+          <th colspan="2"></th>
+          <th>סה״כ בפועל:</th>
           <th id="sumActual">0</th>
+          <th></th>
+        </tr>
+        <tr class="balance-row">
+          <th colspan="2">מאזן:</th>
+          <th id="sumBalance" colspan="5">0</th>
           <th></th>
         </tr>
       </tfoot>
@@ -146,13 +147,20 @@ body.theme-blue { background: #e6f0ff; color: #003366; }
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
 <script>
 $(function(){
   let localKey = "paymentsLocal";
   let payments = JSON.parse(localStorage.getItem(localKey) || "[]");
 
-  const modal = new bootstrap.Modal(document.getElementById('addPaymentModal'));
+  // יצירת token ייחודי
+  function makeToken() { return 't_'+Math.random().toString(36).substr(2,9); }
 
+  // הוספת token לכל תשלום קיים אם אין
+  payments.forEach(p=>{ if(!p.token) p.token = makeToken(); });
+  localStorage.setItem(localKey, JSON.stringify(payments));
+
+  const modal = new bootstrap.Modal(document.getElementById('addPaymentModal'));
   $("#firebaseAlert").slideDown();
   $("#firebaseAlert .btn-close").click(()=>$("#firebaseAlert").slideUp());
 
@@ -170,7 +178,7 @@ $(function(){
         render:(data,type,row,meta)=>`
           <button class="btn btn-sm btn-warning edit-row"><i class="bi bi-pencil-square"></i></button>
           <button class="btn btn-sm btn-danger delete-row"><i class="bi bi-trash"></i></button>
-          <a href="invoice.html?id=${meta.row}" class="btn btn-sm btn-success"><i class="bi bi-receipt"></i></a>
+          <button class="btn btn-sm btn-success invoice-row" data-token="${row.token}"><i class="bi bi-receipt"></i></button>
         `
       }
     ],
@@ -181,109 +189,60 @@ $(function(){
   function saveToStorage(){ localStorage.setItem(localKey,JSON.stringify(payments)); }
 
   function updateSums(){
-    let sumAmount = 0, sumActual = 0;
-    payments.forEach(p=>{ sumAmount += Number(p.amount||0); sumActual += Number(p.actualPayment||0); });
+    let sumAmount=0,sumActual=0;
+    payments.forEach(p=>{ sumAmount+=Number(p.amount||0); sumActual+=Number(p.actualPayment||0); });
+    let balance=sumActual-sumAmount;
     $("#sumAmount").text(sumAmount.toLocaleString());
     $("#sumActual").text(sumActual.toLocaleString());
+    $("#sumBalance").text(balance.toLocaleString());
   }
   updateSums();
 
-  $("#openAddModal").click(()=>modal.show());
+  $("#globalSearch").on("keyup",function(){
+    table.search(this.value).draw();
+  });
 
+  $("#openAddModal").click(()=>modal.show());
   $("#addPaymentForm").submit(function(e){
     e.preventDefault();
-    let formData = Object.fromEntries(new FormData(this).entries());
-    payments.push(formData);
+    const f=$(this).serializeArray();
+    let newPay={token:makeToken()};
+    f.forEach(x=>newPay[x.name]=x.value);
+    payments.push(newPay);
     saveToStorage();
-    table.row.add(formData).draw(false);
+    table.row.add(newPay).draw();
     updateSums();
-    this.reset();
     modal.hide();
+    this.reset();
   });
 
-  $('#paymentsTable').on('click','.delete-row',function(){
-    let row = table.row($(this).closest('tr'));
-    let $tr = $(row.node());
-    $tr.fadeOut(400,()=>{ 
-      payments.splice(row.index(),1);
-      saveToStorage();
-      row.remove().draw();
-      updateSums();
-    });
+  // מחיקת שורה
+  $('#paymentsTable tbody').on('click','.delete-row',function(){
+    let row=table.row($(this).parents('tr'));
+    let data=row.data();
+    payments=payments.filter(p=>p.token!==data.token);
+    saveToStorage();
+    row.remove().draw();
+    updateSums();
   });
 
-  // מצב עריכה עם אנימציה
-  $('#paymentsTable').on('click','.edit-row',function(){
-    let $tr = $(this).closest('tr');
-    if($tr.hasClass('editing')) return;
-    $tr.addClass('editing');
-
-    let rowData = table.row($tr).data();
-    let originalData = {...rowData};
-
-    // אנימציה לפתיחת עריכה
-    $tr.children('td').animate({backgroundColor:'#fff3cd'},200);
-
-    $tr.children('td').each(function(i){
-      if(i < 7){
-        $(this).html(`<input type="text" class="form-control form-control-sm" value="${rowData[table.column(i).dataSrc()] || ''}">`);
-      }
-    });
-
-    let $actionsRow = $(`
-      <tr class="edit-actions">
-        <td colspan="8" style="display:none;">
-          <button class="btn btn-success btn-sm save-edit"><i class="bi bi-check-lg"></i> אישור</button>
-          <button class="btn btn-secondary btn-sm cancel-edit"><i class="bi bi-x-lg"></i> ביטול</button>
-        </td>
-      </tr>
-    `);
-    $tr.after($actionsRow);
-    $actionsRow.find('td').slideDown(200);
-
-    function restoreBackground(){
-      $tr.children('td').animate({backgroundColor:''},300);
-    }
-
-    function saveEdit(){
-      let inputs = $tr.find('input');
-      let updated = {};
-      inputs.each(function(i){
-        let key = table.column(i).dataSrc();
-        updated[key] = $(this).val();
-      });
-      let index = table.row($tr).index();
-      payments[index] = updated;
-      saveToStorage();
-
-      table.row($tr).data(updated).draw(false);
-      $actionsRow.find('td').slideUp(200,()=>{ $actionsRow.remove(); restoreBackground(); });
-      $tr.removeClass('editing');
-      updateSums();
-    }
-
-    function cancelEdit(){
-      table.row($tr).data(originalData).draw(false);
-      $actionsRow.find('td').slideUp(200,()=>{ $actionsRow.remove(); restoreBackground(); });
-      $tr.removeClass('editing');
-    }
-
-    $actionsRow.find('.save-edit').click(saveEdit);
-    $actionsRow.find('.cancel-edit').click(cancelEdit);
-
-    $tr.find('input').keydown(function(e){
-      if(e.key === "Enter") saveEdit();
-      if(e.key === "Escape") cancelEdit();
-    });
+  // הפקת חשבונית ליחיד
+  $('#paymentsTable tbody').on('click','.invoice-row',function(){
+    let token=$(this).data('token');
+    window.open(`invoice.html?token=${encodeURIComponent(token)}`,'_blank');
   });
 
-  $("#globalSearch").autocomplete({
-    source:[...new Set(payments.map(p=>p.name))],
-    select:(e,ui)=>{ table.search(ui.item.value).draw(); }
-  }).on("input",function(){ table.search(this.value).draw(); });
+  // הפקת חשבונית batch לכל השורות המסומנות (אפשר להוסיף checkbox אם רוצים)
+  // כאן לדוגמה שולחים את כל הטבלה
+  $('#batchInvoiceBtn').click(function(){
+    const batchData = payments;
+    const batchJson = encodeURIComponent(JSON.stringify(batchData));
+    window.open(`invoice.html?batch=${batchJson}`,'_blank');
+  });
 
-  $('body').fadeIn(200);
+  $("body").fadeIn(300);
 });
 </script>
+
 </body>
 </html>
