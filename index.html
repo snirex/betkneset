@@ -27,7 +27,6 @@ body { display:none; background:#f8f9fa; font-family:"Segoe UI",Tahoma,sans-seri
 .bg-custom { background: linear-gradient(135deg,#6f86d6 0%,#48c6ef 100%); }
 .table-hover tbody tr:hover { background-color: rgba(0,123,255,0.07); cursor:pointer; }
 #firebaseAlert { display:none; }
-.edit-actions td { background:#eef; text-align:center; }
 tfoot th { background:#f1f1f1; }
 body.theme-blue { background: #e6f0ff; color: #003366; }
 .stat-card { border-radius:12px; padding:20px; color:#333; text-align:center; }
@@ -54,6 +53,9 @@ tfoot tr.balance-row.negative th { background:#f8d7da; color:#721c24; }
     </button>
     <div class="collapse navbar-collapse" id="navbarContent">
       <ul class="navbar-nav ms-auto">
+	  <li class="nav-item"><a class="nav-link active" href="commitments.html">💼 התחייבויות</a></li>
+        <li class="nav-item"><a class="nav-link" href="payments.html">💸 תשלומים</a></li>
+		<li class="nav-item"><a class="nav-link" href="manage.html">⚙️ ניהול סוגי הכנסה</a></li>
         <li class="nav-item"><a class="nav-link" href="summary.html">📑 סיכום כולל (D)</a></li>
         <li class="nav-item"><a class="nav-link" href="users.html">👥 ניהול משתמשים (E)</a></li>
         <li class="nav-item"><a class="nav-link" href="dashboard.html">📊 דוחות (F)</a></li>
@@ -83,6 +85,7 @@ tfoot tr.balance-row.negative th { background:#f8d7da; color:#721c24; }
 <div class="container py-4">
   <div class="d-flex justify-content-between mb-3 flex-wrap gap-2">
     <button id="openAddModal" class="btn btn-primary"><i class="bi bi-plus-circle"></i> הוסף תשלום</button>
+    <button id="batchInvoiceBtn" class="btn btn-success"><i class="bi bi-receipt"></i> הפקת חשבונית מסומנים</button>
     <input type="text" id="globalSearch" class="form-control w-auto" placeholder="🔍 חיפוש חכם...">
   </div>
 
@@ -90,6 +93,7 @@ tfoot tr.balance-row.negative th { background:#f8d7da; color:#721c24; }
     <table id="paymentsTable" class="display table table-bordered table-hover w-100">
       <thead>
         <tr>
+          <th><input type="checkbox" id="selectAll"></th>
           <th>תאריך</th>
           <th>שם</th>
           <th>סכום התחייבות</th>
@@ -102,6 +106,7 @@ tfoot tr.balance-row.negative th { background:#f8d7da; color:#721c24; }
       </thead>
       <tfoot>
         <tr>
+          <th></th>
           <th colspan="2">סה״כ:</th>
           <th id="sumAmount">0</th>
           <th colspan="2"></th>
@@ -111,7 +116,7 @@ tfoot tr.balance-row.negative th { background:#f8d7da; color:#721c24; }
         </tr>
         <tr class="balance-row">
           <th colspan="2">מאזן:</th>
-          <th id="sumBalance" colspan="5">0</th>
+          <th id="sumBalance" colspan="6">0</th>
           <th></th>
         </tr>
       </tfoot>
@@ -153,10 +158,7 @@ $(function(){
   let localKey = "paymentsLocal";
   let payments = JSON.parse(localStorage.getItem(localKey) || "[]");
 
-  // יצירת token ייחודי
   function makeToken() { return 't_'+Math.random().toString(36).substr(2,9); }
-
-  // הוספת token לכל תשלום קיים אם אין
   payments.forEach(p=>{ if(!p.token) p.token = makeToken(); });
   localStorage.setItem(localKey, JSON.stringify(payments));
 
@@ -167,6 +169,7 @@ $(function(){
   const table = $('#paymentsTable').DataTable({
     data: payments,
     columns: [
+      { data:null, orderable:false, render:()=>'<input type="checkbox" class="row-select">' },
       { data:'date' },
       { data:'name', render:data=>`<a href="person.html?name=${encodeURIComponent(data)}">${data}</a>` },
       { data:'amount' },
@@ -175,7 +178,7 @@ $(function(){
       { data:'reference' },
       { data:'actualPayment' },
       { data:null, orderable:false,
-        render:(data,type,row,meta)=>`
+        render:(data,type,row)=>`
           <button class="btn btn-sm btn-warning edit-row"><i class="bi bi-pencil-square"></i></button>
           <button class="btn btn-sm btn-danger delete-row"><i class="bi bi-trash"></i></button>
           <button class="btn btn-sm btn-success invoice-row" data-token="${row.token}"><i class="bi bi-receipt"></i></button>
@@ -198,11 +201,9 @@ $(function(){
   }
   updateSums();
 
-  $("#globalSearch").on("keyup",function(){
-    table.search(this.value).draw();
-  });
-
+  $("#globalSearch").on("keyup",function(){ table.search(this.value).draw(); });
   $("#openAddModal").click(()=>modal.show());
+
   $("#addPaymentForm").submit(function(e){
     e.preventDefault();
     const f=$(this).serializeArray();
@@ -232,11 +233,21 @@ $(function(){
     window.open(`invoice.html?token=${encodeURIComponent(token)}`,'_blank');
   });
 
-  // הפקת חשבונית batch לכל השורות המסומנות (אפשר להוסיף checkbox אם רוצים)
-  // כאן לדוגמה שולחים את כל הטבלה
+  // select all checkbox
+  $('#selectAll').on('change',function(){
+    $('.row-select').prop('checked',this.checked);
+  });
+
+  // הפקת חשבונית batch לשורות מסומנות בלבד
   $('#batchInvoiceBtn').click(function(){
-    const batchData = payments;
-    const batchJson = encodeURIComponent(JSON.stringify(batchData));
+    let selected = [];
+    $('#paymentsTable tbody tr').each(function(){
+      if($(this).find('.row-select').is(':checked')){
+        selected.push(table.row(this).data());
+      }
+    });
+    if(selected.length===0){ alert("בחר לפחות שורה אחת להפקת חשבונית"); return; }
+    const batchJson = encodeURIComponent(JSON.stringify(selected));
     window.open(`invoice.html?batch=${batchJson}`,'_blank');
   });
 
