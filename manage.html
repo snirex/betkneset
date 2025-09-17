@@ -17,22 +17,31 @@ body { display:none; background:#f8f9fa; font-family:"Segoe UI",Tahoma,sans-seri
 </head>
 <body>
 
-<nav class="navbar navbar-expand-lg navbar-dark bg-custom">
-  <div class="container-fluid">
-    <a class="navbar-brand" href="payments.html">🏠 ניהול חשבונות</a>
-    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
-      <span class="navbar-toggler-icon"></span>
-    </button>
-    <div class="collapse navbar-collapse" id="navbarContent">
-      <ul class="navbar-nav ms-auto">
-        <li class="nav-item"><a class="nav-link" href="commitments.html">💼 התחייבויות</a></li>
-        <li class="nav-item"><a class="nav-link" href="payments.html">💸 תשלומים</a></li>
-        <li class="nav-item"><a class="nav-link active" href="manage.html">⚙️ ניהול סוגי הכנסה</a></li>
-        <li class="nav-item"><a class="nav-link" href="summary.html">📑 סיכום כולל</a></li>
-      </ul>
-    </div>
-  </div>
-</nav>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-custom">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">⚙️ ניהול סוגי הכנסה</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarContent">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item"><a class="nav-link" href="index.html">🏠 דף ראשי</a></li>
+                    <li class="nav-item"><a class="nav-link" href="commitments.html">💼 התחייבויות</a></li>
+                    <li class="nav-item"><a class="nav-link" href="payments.html">💸 תשלומים</a></li>
+                    <li class="nav-item"><a class="nav-link" href="summary.html">📑 סיכום כולל</a></li>
+                    <li class="nav-item"><a class="nav-link active" href="manage.html">⚙️ ניהול סוגי הכנסה</a></li>
+                    <li class="nav-item"><a class="nav-link" href="users.html">👥 ניהול משתמשים</a></li>
+                    <li class="nav-item"><a class="nav-link" href="dashboard.html">📊 דוחות</a></li>
+                    <li class="nav-item"><a class="nav-link" href="permissions.html">🔐 הרשאות</a></li>
+                    <li class="nav-item">
+                        <span id="firebaseStatus" class="nav-link text-warning" title="לא מחובר ל-Firebase">
+                            <i class="bi bi-cloud-slash"></i>
+                        </span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
 
 <div class="container py-4">
   <div class="list-card">
