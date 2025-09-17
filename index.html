@@ -84,6 +84,44 @@
             background: #f8d7da;
             color: #721c24;
         }
+
+        /* Gmail-style autocomplete enhanced */
+        .ui-autocomplete {
+            max-height: 250px;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding-right: 0;
+            z-index: 9999;
+            background: #fff;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            transition: opacity 0.2s ease, transform 0.1s ease;
+            opacity: 0;
+            transform: translateY(-5px);
+        }
+
+            /* show animation */
+            .ui-autocomplete.ui-autocomplete-open {
+                opacity: 1;
+                transform: translateY(0);
+            }
+
+        /* item style */
+        .ui-menu-item-wrapper {
+            font-size: 14px;
+            padding: 6px 12px;
+            cursor: pointer;
+            transition: background-color 0.1s, color 0.2s;
+        }
+
+        /* highlight on hover / active */
+        .ui-state-active {
+            background-color: #e8f0fe !important;
+            color: #1967d2 !important;
+            font-weight: 500;
+        }
+
     </style>
 </head>
 <body class="theme-blue">
@@ -95,7 +133,7 @@
 
     <nav class="navbar navbar-expand-lg navbar-dark bg-custom">
         <div class="container-fluid">
-            <a class="navbar-brand" href="#">🏠 דף ראשי</a>
+            <a class="navbar-brand" href="#">🏠 ניהול בית הכנסת</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
                 <span class="navbar-toggler-icon"></span>
             </button>
@@ -184,10 +222,10 @@
                     </div>
                     <div class="modal-body row g-2">
                         <div class="col-6"><label class="form-label">תאריך</label><input type="date" name="date" class="form-control" required></div>
-                        <div class="col-6"><label class="form-label">שם</label><input type="text" name="name" class="form-control" required></div>
+                        <div class="col-6"><label class="form-label">שם</label><input type="text" name="name" class="form-control autocomplete" data-autocomplete-type="mispallelim" required></div>
                         <div class="col-6"><label class="form-label">סכום התחייבות</label><input type="number" name="amount" class="form-control" required></div>
-                        <div class="col-6"><label class="form-label">פירוט מצווה</label><input type="text" name="mitzvah" class="form-control"></div>
-                        <div class="col-6"><label class="form-label">סוג תשלום</label><input type="text" name="paymentType" class="form-control"></div>
+                        <div class="col-6"><label class="form-label">פירוט מצווה</label><input type="text" name="mitzvah" class="form-control autocomplete" data-autocomplete-type="mitzvot"></div>
+                        <div class="col-6"><label class="form-label">סוג תשלום</label><input type="text" name="paymentType" class="form-control autocomplete" data-autocomplete-type="payments"></div>
                         <div class="col-6"><label class="form-label">אסמכתא</label><input type="text" name="reference" class="form-control"></div>
                         <div class="col-6"><label class="form-label">תשלום בפועל</label><input type="number" name="actualPayment" class="form-control"></div>
                     </div>
@@ -201,10 +239,11 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/autocomplete.js"></script>
 
     <script>
         $(function () {
-            let localKey = "paymentsLocal";
+            let localKey = "transactionsLocal";
             let payments = JSON.parse(localStorage.getItem(localKey) || "[]");
 
             function makeToken() { return 't_' + Math.random().toString(36).substr(2, 9); }
@@ -219,21 +258,19 @@
                 data: payments,
                 columns: [
                     { data: null, orderable: false, render: () => '<input type="checkbox" class="row-select">' },
-                    { data: 'date' },
-                    { data: 'name', render: data => `<a href="person.html?name=${encodeURIComponent(data)}">${data}</a>` },
-                    { data: 'amount' },
-                    { data: 'mitzvah' },
-                    { data: 'paymentType' },
-                    { data: 'reference' },
-                    { data: 'actualPayment' },
+                    { data: 'date', defaultContent: '-' },
+                    { data: 'name', defaultContent: '-', render: data => `<a href="person.html?name=${encodeURIComponent(data)}">${data}</a>` },
+                    { data: 'amount', defaultContent: '-' },
+                    { data: 'mitzvah', defaultContent: '-' },
+                    { data: 'paymentType', defaultContent: '-' },
+                    { data: 'reference', defaultContent: '-' },
+                    { data: 'actualPayment', defaultContent: "-" },
                     {
-                        data: null, orderable: false,
-                        render: (data, type, row) => `
-                  <button class="btn btn-sm btn-warning edit-row"><i class="bi bi-pencil-square"></i></button>
-                  <button class="btn btn-sm btn-danger delete-row"><i class="bi bi-trash"></i></button>
-                  <button class="btn btn-sm btn-success invoice-row" data-token="${row.token}"><i class="bi bi-receipt"></i></button>
-                `
-                    }
+                        data: null, orderable: false, render: (data, row) => `
+                                <button class="btn btn-sm btn-warning edit-row"><i class="bi bi-pencil-square"></i></button>
+                                <button class="btn btn-sm btn-danger delete-row"><i class="bi bi-trash"></i></button>
+                                <button class="btn btn-sm btn-success invoice-row" data-token="${row.token}"><i class="bi bi-receipt"></i></button>
+                            `}
                 ],
                 searching: false,
                 drawCallback: function () { updateSums(); }
@@ -252,13 +289,47 @@
             updateSums();
 
             $("#globalSearch").on("keyup", function () { table.search(this.value).draw(); });
-            $("#openAddModal").click(() => modal.show());
+
+            $("#openAddModal").click(() => {
+                modal.show();
+                const today = new Date().toISOString().split('T')[0];
+                $("#addPaymentModal input[name='date']").val(today);
+
+                // Initialize autocomplete for all inputs
+                $("#addPaymentModal input.autocomplete").each(function () {
+                    const type = $(this).data("autocomplete-type");
+                    $(this).autocomplete({
+                        source: function (request, response) {
+                            let list = getAutocompleteList(type);
+                            let term = request.term.toLowerCase();
+                            let matches = list.filter(x => x.toLowerCase().includes(term));
+                            response(matches);
+                        },
+                        minLength: 0,
+                        delay: 100,
+                        autoFocus: true,
+                        select: function (event, ui) {
+                            $(this).val(ui.item.value);
+                            addToAutocomplete(type, ui.item.value); // Move to recent
+                            return false;
+                        }
+                    }).focus(function () { $(this).autocomplete("search", $(this).val()); });
+                });
+            });
 
             $("#addPaymentForm").submit(function (e) {
                 e.preventDefault();
                 const f = $(this).serializeArray();
                 let newPay = { token: makeToken() };
                 f.forEach(x => newPay[x.name] = x.value);
+
+                // Update autocomplete lists
+                $("#addPaymentModal input.autocomplete").each(function () {
+                    const type = $(this).data("autocomplete-type");
+                    const val = $(this).val();
+                    addToAutocomplete(type, val);
+                });
+
                 payments.push(newPay);
                 saveToStorage();
                 table.row.add(newPay).draw();
@@ -267,7 +338,6 @@
                 this.reset();
             });
 
-            // מחיקת שורה
             $('#paymentsTable tbody').on('click', '.delete-row', function () {
                 let row = table.row($(this).parents('tr'));
                 let data = row.data();
@@ -277,18 +347,15 @@
                 updateSums();
             });
 
-            // הפקת חשבונית ליחיד
             $('#paymentsTable tbody').on('click', '.invoice-row', function () {
                 let token = $(this).data('token');
                 window.open(`invoice.html?token=${encodeURIComponent(token)}`, '_blank');
             });
 
-            // select all checkbox
             $('#selectAll').on('change', function () {
                 $('.row-select').prop('checked', this.checked);
             });
 
-            // הפקת חשבונית batch לשורות מסומנות בלבד
             $('#batchInvoiceBtn').click(function () {
                 let selected = [];
                 $('#paymentsTable tbody tr').each(function () {
@@ -304,6 +371,5 @@
             $("body").fadeIn(300);
         });
     </script>
-
 </body>
 </html>
