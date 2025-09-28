@@ -1,229 +1,333 @@
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ניהול רשימות</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>ניהול רשימות</title>
 
-<!-- Bootstrap + Icons -->
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+    <!-- Bootstrap + Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
 
-<!-- jQuery + jQuery UI -->
-<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-<script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
-<link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
+    <!-- jQuery + jQuery UI -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
 
-<style>
-body { display: none; background: #f8f9fa; font-family: "Segoe UI",Tahoma,sans-serif; }
-.bg-custom { background: linear-gradient(135deg,#6f86d6 0%,#48c6ef 100%); }
-.sidebar { width:240px; min-height:100vh; position:fixed; top:0; right:0; background:linear-gradient(135deg,#6f86d6 0%,#48c6ef 100%); padding-top:1rem; color:#fff; z-index:1000; }
-.sidebar .nav-link { color:#fff; }
-.sidebar .nav-link:hover { background: rgba(255,255,255,0.2); border-radius:6px; }
-.submenu { display:none; padding-right:1rem; }
-.submenu.show { display:block; }
-.content { margin-right:240px; padding:1rem; }
-@media (max-width:992px) { .sidebar{display:none;} .content{margin-right:0;} }
+    <style>
+        body {
+            display: none;
+            background: #f8f9fa;
+            font-family: "Segoe UI",Tahoma,sans-serif;
+        }
 
-/* List styles */
-.accordion-button { flex:1 1 auto; white-space: nowrap; overflow:hidden; text-overflow:ellipsis; }
-.accordion-header { display:flex; justify-content:space-between; align-items:center; gap:10px; }
-.accordion-header div { flex-shrink:0; display:flex; gap:5px; }
+        .bg-custom {
+            background: linear-gradient(135deg,#6f86d6 0%,#48c6ef 100%);
+        }
 
-.list-item { display:flex; justify-content:space-between; align-items:center; margin-bottom:5px; padding:5px 10px; background:#fefefe; border-radius:6px; box-shadow:0 1px 3px rgba(0,0,0,0.08); cursor: grab; }
-.list-item input { flex:1; border:none; background:transparent; }
-.list-item .actions button { margin-left:5px; }
-input:focus { outline:none; }
-.ui-autocomplete { max-height:250px; overflow-y:auto; overflow-x:hidden; padding-right:0; z-index:9999; background:#fff; border:1px solid #ccc; border-radius:8px; box-shadow:0 4px 12px rgba(0,0,0,0.15); }
-.ui-menu-item-wrapper { font-size:14px; padding:6px 12px; cursor:pointer; }
-.ui-state-active { background-color:#e8f0fe !important; color:#1967d2 !important; font-weight:500; }
-</style>
+        .sidebar {
+            width: 240px;
+            min-height: 100vh;
+            position: fixed;
+            top: 0;
+            right: 0;
+            background: linear-gradient(135deg,#6f86d6 0%,#48c6ef 100%);
+            padding-top: 1rem;
+            color: #fff;
+            z-index: 1000;
+        }
+
+            .sidebar .nav-link {
+                color: #fff;
+            }
+
+                .sidebar .nav-link:hover {
+                    background: rgba(255,255,255,0.2);
+                    border-radius: 6px;
+                }
+
+        .submenu {
+            display: none;
+            padding-right: 1rem;
+        }
+
+            .submenu.show {
+                display: block;
+            }
+
+        .content {
+            margin-right: 240px;
+            padding: 1rem;
+        }
+
+        @media (max-width:992px) {
+            .sidebar {
+                display: none;
+            }
+
+            .content {
+                margin-right: 0;
+            }
+        }
+
+        /* List styles */
+        .accordion-button {
+            flex: 1 1 auto;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .accordion-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+        }
+
+            .accordion-header div {
+                flex-shrink: 0;
+                display: flex;
+                gap: 5px;
+            }
+
+        .list-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 5px;
+            padding: 5px 10px;
+            background: #fefefe;
+            border-radius: 6px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            cursor: grab;
+        }
+
+            .list-item input {
+                flex: 1;
+                border: none;
+                background: transparent;
+            }
+
+            .list-item .actions button {
+                margin-left: 5px;
+            }
+
+        input:focus {
+            outline: none;
+        }
+
+        .ui-autocomplete {
+            max-height: 250px;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding-right: 0;
+            z-index: 9999;
+            background: #fff;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .ui-menu-item-wrapper {
+            font-size: 14px;
+            padding: 6px 12px;
+            cursor: pointer;
+        }
+
+        .ui-state-active {
+            background-color: #e8f0fe !important;
+            color: #1967d2 !important;
+            font-weight: 500;
+        }
+    </style>
 </head>
 <body>
 
-<!-- Topbar for mobile -->
-<nav class="navbar navbar-dark bg-custom d-lg-none">
-    <div class="container-fluid">
-        <span class="navbar-brand mb-0 h1">🏠 ניהול בית הכנסת</span>
-        <button class="navbar-toggler" type="button" data-bs-toggle="offcanvas" data-bs-target="#mobileSidebar">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-    </div>
-</nav>
+    <!-- Topbar for mobile -->
+    <nav class="navbar navbar-dark bg-custom d-lg-none">
+        <div class="container-fluid">
+            <span class="navbar-brand mb-0 h1">🏠 ניהול בית הכנסת</span>
+            <button class="navbar-toggler" type="button" data-bs-toggle="offcanvas" data-bs-target="#mobileSidebar">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+        </div>
+    </nav>
 
-<!-- Sidebar desktop -->
-<div class="sidebar d-none d-lg-block">
-    <div class="px-3 mb-3"><a class="navbar-brand text-white" href="#">🏠 ניהול בית הכנסת</a></div>
-    <ul class="nav flex-column px-2">
-        <li class="nav-item"><a class="nav-link active" href="index.html">🏠 דף ראשי</a></li>
-        <li class="nav-item"><a class="nav-link" href="commitments.html">💼 התחייבויות</a></li>
-        <li class="nav-item"><a class="nav-link" href="payments.html">💸 תשלומים</a></li>
-        <li class="nav-item"><a class="nav-link" href="summary.html">📑 סיכום כולל</a></li>
-        <li class="nav-item">
-            <a href="#" class="nav-link d-flex justify-content-between align-items-center" id="manageToggle">⚙️ ניהול <i class="bi bi-caret-down"></i></a>
-            <ul class="submenu list-unstyled" id="manageSubmenu">
-                <li><a class="nav-link" href="manage.html">⚙️ ניהול רשימות</a></li>
-                <li><a class="nav-link" href="users.html">👥 ניהול משתמשים</a></li>
-                <li><a class="nav-link" href="permissions.html">🔐 הרשאות</a></li>
-            </ul>
-        </li>
-        <li class="nav-item"><a class="nav-link" href="dashboard.html">📊 דוחות</a></li>
-    </ul>
-</div>
-
-<!-- Offcanvas mobile -->
-<div class="offcanvas offcanvas-end bg-custom text-white" tabindex="-1" id="mobileSidebar">
-    <div class="offcanvas-header">
-        <h5 class="offcanvas-title">📂 תפריט</h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas"></button>
-    </div>
-    <div class="offcanvas-body">
-        <ul class="nav flex-column">
-            <li class="nav-item"><a class="nav-link text-white" href="index.html">🏠 דף ראשי</a></li>
-            <li class="nav-item"><a class="nav-link text-white" href="commitments.html">💼 התחייבויות</a></li>
-            <li class="nav-item"><a class="nav-link text-white" href="payments.html">💸 תשלומים</a></li>
-            <li class="nav-item"><a class="nav-link text-white" href="summary.html">📑 סיכום כולל</a></li>
+    <!-- Sidebar desktop -->
+    <div class="sidebar d-none d-lg-block">
+        <div class="px-3 mb-3"><a class="navbar-brand text-white" href="#">🏠 ניהול בית הכנסת</a></div>
+        <ul class="nav flex-column px-2">
+            <li class="nav-item"><a class="nav-link active" href="index.html">🏠 דף ראשי</a></li>
+            <li class="nav-item"><a class="nav-link" href="commitments.html">💼 התחייבויות</a></li>
+            <li class="nav-item"><a class="nav-link" href="payments.html">💸 תשלומים</a></li>
+            <li class="nav-item"><a class="nav-link" href="summary.html">📑 סיכום כולל</a></li>
             <li class="nav-item">
-                <a href="#" class="nav-link d-flex justify-content-between align-items-center" id="manageToggleMobile">⚙️ ניהול <i class="bi bi-caret-down"></i></a>
-                <ul class="submenu list-unstyled" id="manageSubmenuMobile">
+                <a href="#" class="nav-link d-flex justify-content-between align-items-center"
+                   id="manageToggle">⚙️ ניהול <i class="bi bi-caret-down"></i></a>
+                <ul class="submenu list-unstyled show" id="manageSubmenu">
                     <li><a class="nav-link" href="manage.html">⚙️ ניהול רשימות</a></li>
                     <li><a class="nav-link" href="users.html">👥 ניהול משתמשים</a></li>
                     <li><a class="nav-link" href="permissions.html">🔐 הרשאות</a></li>
                 </ul>
             </li>
-            <li class="nav-item"><a class="nav-link text-white" href="dashboard.html">📊 דוחות</a></li>
+            <li class="nav-item"><a class="nav-link" href="dashboard.html">📊 דוחות</a></li>
         </ul>
     </div>
-</div>
 
-<!-- Content -->
-<div class="content">
-    <div class="container py-4">
-        <h1 class="mb-4 text-center">⚙️ ניהול רשימות</h1>
-        <div id="listsAccordion" class="accordion"></div>
+    <!-- Offcanvas mobile -->
+    <div class="offcanvas offcanvas-end bg-custom text-white" tabindex="-1" id="mobileSidebar">
+        <div class="offcanvas-header">
+            <h5 class="offcanvas-title">📂 תפריט</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas"></button>
+        </div>
+        <div class="offcanvas-body">
+            <ul class="nav flex-column">
+                <li class="nav-item"><a class="nav-link text-white" href="index.html">🏠 דף ראשי</a></li>
+                <li class="nav-item"><a class="nav-link text-white" href="commitments.html">💼 התחייבויות</a></li>
+                <li class="nav-item"><a class="nav-link text-white" href="payments.html">💸 תשלומים</a></li>
+                <li class="nav-item"><a class="nav-link text-white" href="summary.html">📑 סיכום כולל</a></li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link d-flex justify-content-between align-items-center" id="manageToggleMobile">⚙️ ניהול <i class="bi bi-caret-down"></i></a>
+                    <ul class="submenu list-unstyled" id="manageSubmenuMobile">
+                        <li><a class="nav-link" href="manage.html">⚙️ ניהול רשימות</a></li>
+                        <li><a class="nav-link" href="users.html">👥 ניהול משתמשים</a></li>
+                        <li><a class="nav-link" href="permissions.html">🔐 הרשאות</a></li>
+                    </ul>
+                </li>
+                <li class="nav-item"><a class="nav-link text-white" href="dashboard.html">📊 דוחות</a></li>
+            </ul>
+        </div>
     </div>
-</div>
 
-<!-- Bootstrap JS -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Content -->
+    <div class="content">
+        <div class="container py-4">
+            <h1 class="mb-4 text-center">⚙️ ניהול רשימות</h1>
+            <div id="listsAccordion" class="accordion"></div>
+        </div>
+    </div>
 
-<script>
-$(function(){
-    const STORAGE_KEY = "autocompleteData";
-    let dataMap = JSON.parse(localStorage.getItem(STORAGE_KEY)||"{}");
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
-    function saveData(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(dataMap)); }
+    <script>
+        $(function () {
+            const STORAGE_KEY = "autocompleteData";
+            let dataMap = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
 
-    function renderLists(){
-        const container = $("#listsAccordion").empty();
-        let idx=0;
-        for(const key in dataMap){
-            const listId = `collapse${idx}`;
-            const arr = dataMap[key];
-            const card = $(`
-                <div class="accordion-item mb-2">
-                    <h2 class="accordion-header d-flex justify-content-between align-items-center" id="heading${idx}">
-                        <button class="accordion-button collapsed flex-grow-1 text-truncate" type="button" data-bs-toggle="collapse" data-bs-target="#${listId}" aria-expanded="false">
-                            ${key} (${arr.length})
-                        </button>
-                        <div>
-                            <button class="btn btn-sm btn-success export-list">יצוא</button>
-                            <button class="btn btn-sm btn-primary import-list">ייבוא</button>
-                            <button class="btn btn-sm btn-danger delete-list">מחיקה</button>
-                        </div>
-                    </h2>
-                    <div id="${listId}" class="accordion-collapse collapse" data-bs-parent="#listsAccordion">
-                        <div class="accordion-body p-2">
-                            <ul class="list-group mb-2 sortable"></ul>
-                            <input type="text" class="form-control add-item" placeholder="הוסף פריט והקש Enter">
+            function saveData() { localStorage.setItem(STORAGE_KEY, JSON.stringify(dataMap)); }
+
+            function renderLists() {
+                const container = $("#listsAccordion").empty();
+                let idx = 0;
+                for (const key in dataMap) {
+                    const listId = `collapse${idx}`;
+                    const arr = dataMap[key];
+                    const card = $(`
+                    <div class="accordion-item mb-2">
+                        <h2 class="accordion-header d-flex justify-content-between align-items-center" id="heading${idx}">
+                            <button class="accordion-button collapsed flex-grow-1 text-truncate" type="button" data-bs-toggle="collapse" data-bs-target="#${listId}" aria-expanded="false">
+                                ${key} (${arr.length})
+                            </button>
+                            <div>
+                                <button class="btn btn-sm btn-success export-list">יצוא</button>
+                                <button class="btn btn-sm btn-primary import-list">ייבוא</button>
+                                <button class="btn btn-sm btn-danger delete-list">מחיקה</button>
+                            </div>
+                        </h2>
+                        <div id="${listId}" class="accordion-collapse collapse" data-bs-parent="#listsAccordion">
+                            <div class="accordion-body p-2">
+                                <ul class="list-group mb-2 sortable"></ul>
+                                <input type="text" class="form-control add-item" placeholder="הוסף פריט והקש Enter">
+                            </div>
                         </div>
                     </div>
-                </div>
-            `);
-            container.append(card);
+                `);
+                    container.append(card);
 
-            const listUL = card.find(".sortable");
-            arr.forEach(v=>{
-                listUL.append(`<li class="list-item list-group-item"><input value="${v}"><div class="actions"><button class="btn btn-sm btn-danger delete-item">✖</button></div></li>`);
-            });
+                    const listUL = card.find(".sortable");
+                    arr.forEach(v => {
+                        listUL.append(`<li class="list-item list-group-item"><input value="${v}"><div class="actions"><button class="btn btn-sm btn-danger delete-item">✖</button></div></li>`);
+                    });
 
-            // Drag & Drop
-            listUL.sortable({
-                update:function(){ arr.length=0; listUL.find("input").each(function(){ arr.push($(this).val().trim()); }); saveData(); }
-            });
+                    // Drag & Drop
+                    listUL.sortable({
+                        update: function () { arr.length = 0; listUL.find("input").each(function () { arr.push($(this).val().trim()); }); saveData(); }
+                    });
 
-            // Add item
-            card.find(".add-item").keypress(function(e){
-                if(e.which===13){
-                    const val=$(this).val().trim(); if(!val) return;
-                    arr.push(val); saveData();
-                    listUL.append(`<li class="list-item list-group-item"><input value="${val}"><div class="actions"><button class="btn btn-sm btn-danger delete-item">✖</button></div></li>`);
-                    $(this).val("");
+                    // Add item
+                    card.find(".add-item").keypress(function (e) {
+                        if (e.which === 13) {
+                            const val = $(this).val().trim(); if (!val) return;
+                            arr.push(val); saveData();
+                            listUL.append(`<li class="list-item list-group-item"><input value="${val}"><div class="actions"><button class="btn btn-sm btn-danger delete-item">✖</button></div></li>`);
+                            $(this).val("");
+                        }
+                    });
+
+                    // Delete item
+                    listUL.on("click", ".delete-item", function () {
+                        if (confirm("למחוק פריט זה?")) {
+                            const idx = $(this).closest("li").index();
+                            arr.splice(idx, 1); saveData();
+                            renderLists();
+                        }
+                    });
+
+                    // Edit item
+                    listUL.on("change", "input", function () {
+                        const idx = $(this).closest("li").index();
+                        arr[idx] = $(this).val().trim(); saveData();
+                    });
+
+                    // Delete list
+                    card.find(".delete-list").click(function () {
+                        if (confirm("למחוק את כל הרשימה?")) {
+                            delete dataMap[key]; saveData();
+                            renderLists();
+                        }
+                    });
+
+                    // Export list
+                    card.find(".export-list").click(function () {
+                        const blob = new Blob([JSON.stringify(arr, null, 2)], { type: "application/json" });
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement("a"); a.href = url; a.download = key + ".json"; a.click(); URL.revokeObjectURL(url);
+                    });
+
+                    // Import list
+                    card.find(".import-list").click(function () {
+                        const fileInput = document.createElement("input");
+                        fileInput.type = "file"; fileInput.accept = ".json,.txt,.csv";
+                        fileInput.onchange = function (e) {
+                            const file = this.files[0]; if (!file) return;
+                            const reader = new FileReader();
+                            reader.onload = function (ev) {
+                                try {
+                                    let content = JSON.parse(ev.target.result);
+                                    if (!Array.isArray(content)) content = ev.target.result.split(/\r?\n/);
+                                    dataMap[key] = content; saveData(); renderLists();
+                                } catch (err) { alert("קובץ לא חוקי"); }
+                            };
+                            reader.readAsText(file);
+                        };
+                        fileInput.click();
+                    });
+
+                    idx++;
                 }
-            });
+            }
 
-            // Delete item
-            listUL.on("click",".delete-item",function(){
-                if(confirm("למחוק פריט זה?")){
-                    const idx = $(this).closest("li").index();
-                    arr.splice(idx,1); saveData();
-                    renderLists();
-                }
-            });
+            renderLists();
 
-            // Edit item
-            listUL.on("change","input",function(){
-                const idx=$(this).closest("li").index();
-                arr[idx]=$(this).val().trim(); saveData();
-            });
+            // Sidebar toggles
+            $("#manageToggle").click(e => { e.preventDefault(); $("#manageSubmenu").toggleClass("show"); });
+            $("#manageToggleMobile").click(e => { e.preventDefault(); $("#manageSubmenuMobile").toggleClass("show"); });
 
-            // Delete list
-            card.find(".delete-list").click(function(){
-                if(confirm("למחוק את כל הרשימה?")){
-                    delete dataMap[key]; saveData();
-                    renderLists();
-                }
-            });
-
-            // Export list
-            card.find(".export-list").click(function(){
-                const blob = new Blob([JSON.stringify(arr, null, 2)], {type:"application/json"});
-                const url = URL.createObjectURL(blob);
-                const a=document.createElement("a"); a.href=url; a.download=key+".json"; a.click(); URL.revokeObjectURL(url);
-            });
-
-            // Import list
-            card.find(".import-list").click(function(){
-                const fileInput=document.createElement("input");
-                fileInput.type="file"; fileInput.accept=".json,.txt,.csv";
-                fileInput.onchange=function(e){
-                    const file=this.files[0]; if(!file) return;
-                    const reader=new FileReader();
-                    reader.onload=function(ev){
-                        try{
-                            let content = JSON.parse(ev.target.result);
-                            if(!Array.isArray(content)) content = ev.target.result.split(/\r?\n/);
-                            dataMap[key]=content; saveData(); renderLists();
-                        }catch(err){ alert("קובץ לא חוקי"); }
-                    };
-                    reader.readAsText(file);
-                };
-                fileInput.click();
-            });
-
-            idx++;
-        }
-    }
-
-    renderLists();
-
-    // Sidebar toggles
-    $("#manageToggle").click(e=>{ e.preventDefault(); $("#manageSubmenu").toggleClass("show"); });
-    $("#manageToggleMobile").click(e=>{ e.preventDefault(); $("#manageSubmenuMobile").toggleClass("show"); });
-
-    $("body").fadeIn(300);
-});
-</script>
+            $("body").fadeIn(300);
+        });
+    </script>
 
 </body>
 </html>
