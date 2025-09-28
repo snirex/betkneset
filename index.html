@@ -390,6 +390,15 @@
 		        $(this).find('i.bi-caret-down').toggleClass("caret-rotate open");
             });
 
+    // Sidebar toggles
+
+    $("#manageToggleMobile").click(e=>{ 
+		e.preventDefault(); 
+		$("#manageSubmenuMobile").toggleClass("show"); 
+		$(this).find('i.bi-caret-down').toggleClass("caret-rotate open"); 
+	});
+	
+	
             const TRAN_KEY = "transactionsLocal";
             let transactions = JSON.parse(localStorage.getItem(TRAN_KEY) || "[]");
             localStorage.setItem(TRAN_KEY, JSON.stringify(transactions));
@@ -551,9 +560,6 @@
             $("body").fadeIn(300);
         });
 		
-    // Sidebar toggles
-    $("#manageToggle").click(e=>{ e.preventDefault(); $("#manageSubmenu").toggleClass("show"); });
-    $("#manageToggleMobile").click(e=>{ e.preventDefault(); $("#manageSubmenuMobile").toggleClass("show"); $(this).find('i.bi-caret-down').toggleClass("caret-rotate open"); });
     </script>
 </body>
 </html>
