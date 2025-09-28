@@ -28,17 +28,81 @@
     <script src="js/autocomplete.js"></script>
     <style>
         body {
-            display: none;
+            /*display: none;*/
             background: #f8f9fa;
-            font-family: "Segoe UI", Tahoma, sans-serif;
+            font-family: "Segoe UI",Tahoma,sans-serif;
         }
 
         .bg-custom {
             background: linear-gradient(135deg,#6f86d6 0%,#48c6ef 100%);
         }
 
+        /* Sidebar style */
+        .sidebar {
+            width: 240px;
+            min-height: 100vh;
+            position: fixed;
+            top: 0;
+            right: 0;
+            background: linear-gradient(135deg,#6f86d6 0%,#48c6ef 100%);
+            padding-top: 1rem;
+            color: #fff;
+            z-index: 1000;
+        }
+
+            .sidebar .nav-link {
+                color: #fff;
+            }
+
+                .sidebar .nav-link:hover {
+                    background: rgba(255,255,255,0.2);
+                    border-radius: 6px;
+                }
+
+        .submenu {
+            display: none;
+            padding-right: 1rem;
+        }
+
+            .submenu.show {
+                display: block;
+                animation: slideDown 0.3s ease;
+            }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-5px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* content area with sidebar */
+        .content {
+            display: none;
+            margin-right: 240px;
+            padding: 1rem;
+        }
+
+        /* Responsive: hide sidebar in small screens */
+        @media (max-width: 992px) {
+            .sidebar {
+                position: relative;
+                width: 100%;
+                min-height: auto;
+            }
+
+            .content {
+                margin-right: 0;
+            }
+        }
+
         .table-hover tbody tr:hover {
-            background-color: rgba(0,123,255,0.04);
+            background-color: rgba(0,123,255,0.07);
             cursor: pointer;
         }
 
@@ -61,11 +125,33 @@
             color: #333;
             text-align: center;
         }
-        /* Responsive small tweak */
-        .dataTables_wrapper .dt-buttons {
-            margin-bottom: 0.5rem;
+
+        .stat-red {
+            background: #f8d7da;
         }
 
+        .stat-green {
+            background: #d4edda;
+        }
+
+        .stat-yellow {
+            background: #fff3cd;
+        }
+
+        tfoot tr.balance-row th {
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+
+        tfoot tr.balance-row.positive th {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        tfoot tr.balance-row.negative th {
+            background: #f8d7da;
+            color: #721c24;
+        }
 
         /* Gmail-style autocomplete enhanced */
         .ui-autocomplete {
@@ -99,70 +185,169 @@
             color: #1967d2 !important;
             font-weight: 500;
         }
+
+        #manageSubmenuMobile {
+            display: none;
+        }
+
+            #manageSubmenuMobile.show {
+                display: block;
+            }
+
+        .offcanvas .submenu .nav-link {
+            color: #fff;
+        }
+
+            .offcanvas .submenu .nav-link:hover {
+                background: rgba(255,255,255,0.2);
+                border-radius: 6px;
+            }
+
+        /* כפתור ניהול ראשי בדסקטופ */
+        .sidebar #manageToggle {
+            color: #fff;
+        }
+
+            .sidebar #manageToggle:hover {
+                background: rgba(255,255,255,0.2);
+                border-radius: 6px;
+            }
+
+        /* כפתור ניהול ראשי במובייל */
+        .offcanvas #manageToggleMobile {
+            color: #fff;
+        }
+
+            .offcanvas #manageToggleMobile:hover {
+                background: rgba(255,255,255,0.2);
+                border-radius: 6px;
+            }
+
+        .caret-rotate {
+            display: inline-block;
+            transition: transform 0.3s ease;
+        }
+
+            .caret-rotate.open {
+                transform: rotate(90deg); /* עכשיו מצביע למעלה */
+            }
     </style>
 </head>
 <body class="theme-blue">
 
-    <nav class="navbar navbar-expand-lg navbar-dark bg-custom">
+    <div id="firebaseAlert" class="alert alert-warning alert-dismissible fade show mb-0 text-center" role="alert">
+        ⚠ אין חיבור לבסיס הנתונים כרגע. הנתונים נשמרים מקומית בלבד.
+        <button type="button" class="btn-close"></button>
+    </div>
+
+    <!-- Topbar -->
+    <nav class="navbar navbar-dark bg-custom d-lg-none">
         <div class="container-fluid">
-            <a class="navbar-brand" href="#">💼 התחייבויות</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
+            <span class="navbar-brand mb-0 h1">🏠 ניהול בית הכנסת</span>
+            <button class="navbar-toggler" type="button" data-bs-toggle="offcanvas" data-bs-target="#mobileSidebar">
                 <span class="navbar-toggler-icon"></span>
             </button>
-            <div class="collapse navbar-collapse" id="navbarContent">
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item"><a class="nav-link" href="index.html">🏠 דף ראשי</a></li>
-                    <li class="nav-item"><a class="nav-link active" href="commitments.html">💼 התחייבויות</a></li>
-                    <li class="nav-item"><a class="nav-link" href="payments.html">💸 תשלומים</a></li>
-                    <li class="nav-item"><a class="nav-link" href="summary.html">📑 סיכום כולל</a></li>
-                    <li class="nav-item"><a class="nav-link" href="manage.html">⚙️ ניהול סוגי הכנסה</a></li>
-                    <li class="nav-item"><a class="nav-link" href="users.html">👥 ניהול משתמשים</a></li>
-                    <li class="nav-item"><a class="nav-link" href="dashboard.html">📊 דוחות</a></li>
-                    <li class="nav-item"><a class="nav-link" href="permissions.html">🔐 הרשאות</a></li>
-                    <li class="nav-item">
-                        <span id="firebaseStatus" class="nav-link text-warning" title="לא מחובר ל-Firebase">
-                            <i class="bi bi-cloud-slash"></i>
-                        </span>
-                    </li>
-                </ul>
-            </div>
         </div>
     </nav>
 
-    <div class="p-4 rounded bg-white shadow-sm mb-4 text-center">
-        <h1>📝 רישום התחייבויות</h1>
+    <!-- Sidebar for desktop -->
+    <div class="sidebar d-none d-lg-block">
+        <div class="px-3 mb-3">
+            <a class="navbar-brand text-white" href="#">🏠 ניהול בית הכנסת</a>
+        </div>
+        <ul class="nav flex-column px-2">
+            <li class="nav-item"><a class="nav-link active" href="index.html">🏠 דף ראשי</a></li>
+            <li class="nav-item"><a class="nav-link" href="commitments.html">💼 התחייבויות</a></li>
+            <li class="nav-item"><a class="nav-link" href="payments.html">💸 תשלומים</a></li>
+            <li class="nav-item"><a class="nav-link" href="summary.html">📑 סיכום כולל</a></li>
+            <li class="nav-item">
+                <a href="#" class="nav-link d-flex justify-content-between align-items-center" id="manageToggle">
+                    ⚙️ ניהול <i class="bi bi-caret-down"></i>
+                </a>
+                <ul class="submenu list-unstyled" id="manageSubmenu">
+                    <li><a class="nav-link" href="manage.html">⚙️ ניהול סוגי הכנסה</a></li>
+                    <li><a class="nav-link" href="users.html">👥 ניהול משתמשים</a></li>
+                    <li><a class="nav-link" href="permissions.html">🔐 הרשאות</a></li>
+                </ul>
+            </li>
+            <li class="nav-item"><a class="nav-link" href="dashboard.html">📊 דוחות</a></li>
+            <li class="nav-item">
+                <span id="firebaseStatus" class="nav-link text-warning" title="לא מחובר ל-Firebase">
+                    <i class="bi bi-cloud-slash"></i>
+                </span>
+            </li>
+        </ul>
     </div>
 
-    <div class="container py-4">
-        <div class="d-flex justify-content-between mb-3 flex-wrap gap-2">
-            <button id="openAddModal" class="btn btn-primary"><i class="bi bi-plus-circle"></i> הוסף התחייבות</button>
-            <input type="text" id="globalSearch" class="form-control w-auto" placeholder="🔍 חיפוש חכם...">
+    <!-- Offcanvas mobile -->
+    <div class="offcanvas offcanvas-end bg-custom text-white" tabindex="-1" id="mobileSidebar">
+        <div class="offcanvas-header">
+            <h5 class="offcanvas-title">📂 תפריט</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas"></button>
+        </div>
+        <div class="offcanvas-body">
+            <ul class="nav flex-column">
+                <li class="nav-item"><a class="nav-link text-white" href="index.html">🏠 דף ראשי</a></li>
+                <li class="nav-item"><a class="nav-link text-white" href="commitments.html">💼 התחייבויות</a></li>
+                <li class="nav-item"><a class="nav-link text-white" href="payments.html">💸 תשלומים</a></li>
+                <li class="nav-item"><a class="nav-link text-white" href="summary.html">📑 סיכום כולל</a></li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link d-flex justify-content-between align-items-center" id="manageToggleMobile">⚙️ ניהול <i class="bi bi-caret-down"></i></a>
+                    <ul class="submenu list-unstyled" id="manageSubmenuMobile">
+                        <li><a class="nav-link" href="manage.html">⚙️ ניהול רשימות</a></li>
+                        <li><a class="nav-link" href="users.html">👥 ניהול משתמשים</a></li>
+                        <li><a class="nav-link" href="permissions.html">🔐 הרשאות</a></li>
+                    </ul>
+                </li>
+                <li class="nav-item"><a class="nav-link text-white" href="dashboard.html">📊 דוחות</a></li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="content">
+        <div class="p-4 rounded bg-white shadow-sm mb-4 text-center">
+            <h1>📝 רישום התחייבויות</h1>
         </div>
 
-        <div class="table-responsive">
-            <table id="transactionsTable" class="display table table-bordered table-hover w-100" style="width:100%">
-                <thead>
-                    <tr>
-                        <th>תאריך</th>
-                        <th>שם</th>
-                        <th>סכום התחייבות</th>
-                        <th>פירוט מצווה</th>
-                        <th>סוג הכנסה</th>
-                        <th>אסמכתא</th>
-                        <th>יתרה</th>
-                        <th>פעולות</th>
-                    </tr>
-                </thead>
-                <tfoot>
-                    <tr>
-                        <th colspan="2">סה״כ (עמוד זה):</th>
-                        <th id="sumAmount">0</th>
-                        <th colspan="2"></th>
-                        <th colspan="2" id="sumBalance">0</th>
-                        <th></th>
-                    </tr>
-                </tfoot>
-            </table>
+        <div class="container my-4">
+            <div class="row g-3 text-center">
+                <div class="col-md-4"><div class="stat-card stat-red"><h4>סה״כ התחייבויות</h4><div id="statAmount">0</div></div></div>
+        <!--        <div class="col-md-4"><div class="stat-card stat-green"><h4>סה״כ תשלומים</h4><div id="statActual">0</div></div></div>-->
+            <!--    <div class="col-md-4"><div class="stat-card stat-yellow"><h4>מאזן כללי</h4><div id="statBalance">0</div></div></div>-->
+            </div>
+        </div>
+
+        <div class="container py-4">
+            <div class="d-flex justify-content-between mb-3 flex-wrap gap-2">
+                <button id="openAddModal" class="btn btn-primary"><i class="bi bi-plus-circle"></i> הוסף התחייבות</button>
+                <input type="text" id="globalSearch" class="form-control w-auto" placeholder="🔍 חיפוש חכם...">
+            </div>
+
+            <div class="table-responsive">
+                <table id="transactionsTable" class="display table table-bordered table-hover w-100" style="width:100%">
+                    <thead>
+                        <tr>
+                            <th>תאריך</th>
+                            <th>שם</th>
+                            <th>סכום התחייבות</th>
+                            <th>פירוט מצווה</th>
+                            <th>סוג הכנסה</th>
+                            <th>אסמכתא</th>
+                            <th>יתרה</th>
+                            <th>פעולות</th>
+                        </tr>
+                    </thead>
+                    <tfoot>
+                        <tr>
+                            <th colspan="2">סה״כ (עמוד זה):</th>
+                            <th id="sumAmount">0</th>
+                            <th colspan="2"></th>
+                            <th colspan="2" id="sumBalance">0</th>
+                            <th></th>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
         </div>
     </div>
 
@@ -234,6 +419,9 @@
                 return sumPayments - sumCommitments;
             }
 
+            //$("#firebaseAlert").slideDown();
+            //$("#firebaseAlert .btn-close").click(() => $("#firebaseAlert").slideUp());
+
             // אתחול DataTable
             const table = $('#transactionsTable').DataTable({
                 data: transactions.filter(t => t.txType === 'commitment'),
@@ -259,9 +447,9 @@
                     },
                     {
                         data: null, orderable: false, render: () => `
-                                    <button class="btn btn-sm btn-warning edit-row"><i class="bi bi-pencil-square"></i></button>
-                                    <button class="btn btn-sm btn-danger delete-row"><i class="bi bi-trash"></i></button>
-                                `
+                                                    <button class="btn btn-sm btn-warning edit-row"><i class="bi bi-pencil-square"></i></button>
+                                                    <button class="btn btn-sm btn-danger delete-row"><i class="bi bi-trash"></i></button>
+                                                `
                     }
                 ],
                 searching: false,
@@ -400,7 +588,7 @@
             });
 
             // דאגה ל־UI
-            $("body").fadeIn(200);
+            $(".content").fadeIn(200);
 
             // רענון ראשוני של הטבלה
             reloadTable();
