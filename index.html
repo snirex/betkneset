@@ -181,6 +181,47 @@
             color: #1967d2 !important;
             font-weight: 500;
         }
+		
+		#manageSubmenuMobile {
+    display: none;
+}
+#manageSubmenuMobile.show {
+    display: block;
+}
+
+.offcanvas .submenu .nav-link {
+    color: #fff;
+}
+.offcanvas .submenu .nav-link:hover {
+    background: rgba(255,255,255,0.2);
+    border-radius: 6px;
+}
+
+/* כפתור ניהול ראשי בדסקטופ */
+.sidebar #manageToggle {
+    color: #fff;
+}
+.sidebar #manageToggle:hover {
+    background: rgba(255,255,255,0.2);
+    border-radius: 6px;
+}
+
+/* כפתור ניהול ראשי במובייל */
+.offcanvas #manageToggleMobile {
+    color: #fff;
+}
+.offcanvas #manageToggleMobile:hover {
+    background: rgba(255,255,255,0.2);
+    border-radius: 6px;
+}
+.caret-rotate {
+    display: inline-block;
+    transition: transform 0.3s ease;
+}
+.caret-rotate.open {
+    transform: rotate(90deg); /* עכשיו מצביע למעלה */
+}
+
     </style>
 </head>
 <body class="theme-blue">
@@ -229,32 +270,31 @@
         </ul>
     </div>
 
-    <!-- Offcanvas for mobile -->
-    <div class="offcanvas offcanvas-end bg-custom text-white" tabindex="-1" id="mobileSidebar">
-        <div class="offcanvas-header">
-            <h5 class="offcanvas-title">📂 תפריט</h5>
-            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas"></button>
-        </div>
-        <div class="offcanvas-body">
-            <ul class="nav flex-column">
-                <li class="nav-item"><a class="nav-link text-white" href="index.html">🏠 דף ראשי</a></li>
-                <li class="nav-item"><a class="nav-link text-white" href="commitments.html">💼 התחייבויות</a></li>
-                <li class="nav-item"><a class="nav-link text-white" href="payments.html">💸 תשלומים</a></li>
-                <li class="nav-item"><a class="nav-link text-white" href="summary.html">📑 סיכום כולל</a></li>
-                <li class="nav-item">
-                    <a href="#" class="nav-link d-flex justify-content-between align-items-center" id="manageToggle">
-                        ⚙️ ניהול <i class="bi bi-caret-down"></i>
-                    </a>
-                    <ul class="submenu list-unstyled" id="manageSubmenu">
-                        <li><a class="nav-link" href="manage.html">⚙️ ניהול סוגי הכנסה</a></li>
-                        <li><a class="nav-link" href="users.html">👥 ניהול משתמשים</a></li>
-                        <li><a class="nav-link" href="permissions.html">🔐 הרשאות</a></li>
-                    </ul>
-                </li>
-                <li class="nav-item"><a class="nav-link text-white" href="dashboard.html">📊 דוחות</a></li>
-            </ul>
-        </div>
+<!-- Offcanvas mobile -->
+<div class="offcanvas offcanvas-end bg-custom text-white" tabindex="-1" id="mobileSidebar">
+    <div class="offcanvas-header">
+        <h5 class="offcanvas-title">📂 תפריט</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas"></button>
     </div>
+    <div class="offcanvas-body">
+        <ul class="nav flex-column">
+            <li class="nav-item"><a class="nav-link text-white" href="index.html">🏠 דף ראשי</a></li>
+            <li class="nav-item"><a class="nav-link text-white" href="commitments.html">💼 התחייבויות</a></li>
+            <li class="nav-item"><a class="nav-link text-white" href="payments.html">💸 תשלומים</a></li>
+            <li class="nav-item"><a class="nav-link text-white" href="summary.html">📑 סיכום כולל</a></li>
+            <li class="nav-item">
+                <a href="#" class="nav-link d-flex justify-content-between align-items-center" id="manageToggleMobile">⚙️ ניהול <i class="bi bi-caret-down"></i></a>
+                <ul class="submenu list-unstyled" id="manageSubmenuMobile">
+                    <li><a class="nav-link" href="manage.html">⚙️ ניהול רשימות</a></li>
+                    <li><a class="nav-link" href="users.html">👥 ניהול משתמשים</a></li>
+                    <li><a class="nav-link" href="permissions.html">🔐 הרשאות</a></li>
+                </ul>
+            </li>
+            <li class="nav-item"><a class="nav-link text-white" href="dashboard.html">📊 דוחות</a></li>
+        </ul>
+    </div>
+</div>
+
 
     <!-- Content -->
     <div class="content">
@@ -324,7 +364,7 @@
                     </div>
                     <div class="modal-body row g-2">
                         <div class="col-6"><label class="form-label">תאריך</label><input type="date" name="date" class="form-control" required></div>
-                        <div class="col-6"><label class="form-label">שם</label><input type="text" name="name" class="form-control autocomplete" data-autocomplete-type="mispallelim" required></div>
+                        <div class="col-6"><label class="form-label">שם</label><input type="text" name="name" class="form-control autocomplete" data-autocomplete-type="mitpallelim" required></div>
                         <div class="col-6"><label class="form-label">סכום התחייבות</label><input type="number" name="amount" class="form-control" required></div>
                         <div class="col-6"><label class="form-label">פירוט מצווה</label><input type="text" name="mitzvah" class="form-control autocomplete" data-autocomplete-type="mitzvot"></div>
                         <div class="col-6"><label class="form-label">סוג תשלום</label><input type="text" name="paymentType" class="form-control autocomplete" data-autocomplete-type="payments"></div>
@@ -346,21 +386,9 @@
             $("#manageToggle").click(function (e) {
                 e.preventDefault();
                 $("#manageSubmenu").toggleClass("show");
+				//rotate caret
+		        $(this).find('i.bi-caret-down').toggleClass("caret-rotate open");
             });
-
-            // זה בטוח עובד עם Offcanvas ב-Bootstrap
-            $('#mobileSidebar').on('show.bs.offcanvas', function () {
-
-                $("#manageSubmenuMobile").toggleClass("show");
-                console.log('Sidebar opened');
-            });
-            $('#mobileSidebar').on('hide.bs.offcanvas', function () {
-
-                $("#manageSubmenuMobile").toggleClass("show");
-                console.log('Sidebar closed');
-            });
-
-
 
             const TRAN_KEY = "transactionsLocal";
             let transactions = JSON.parse(localStorage.getItem(TRAN_KEY) || "[]");
@@ -522,6 +550,10 @@
 
             $("body").fadeIn(300);
         });
+		
+    // Sidebar toggles
+    $("#manageToggle").click(e=>{ e.preventDefault(); $("#manageSubmenu").toggleClass("show"); });
+    $("#manageToggleMobile").click(e=>{ e.preventDefault(); $("#manageSubmenuMobile").toggleClass("show"); $(this).find('i.bi-caret-down').toggleClass("caret-rotate open"); });
     </script>
 </body>
 </html>
