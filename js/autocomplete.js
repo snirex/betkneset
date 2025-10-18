@@ -42,7 +42,7 @@ function initAutocomplete() {
             },
             minLength: 0,
             delay: 100,
-            autoFocus: true,
+            autoFocus: false,
             select: function (event, ui) {
                 $(this).val(ui.item.value);
                 addToAutocomplete(type, ui.item.value);
@@ -53,7 +53,11 @@ function initAutocomplete() {
                 $ul.hide().css({ opacity: 0, transform: "translateY(-5px)" }).slideDown(150).animate({ opacity: 1 }, { duration: 150 });
             }
         }).focus(function () {
-            $(this).autocomplete("search", $(this).val());
+            //$(this).autocomplete("search", $(this).val());
+            if (!$(this).val()) {
+                // אם השדה ריק, הראה את כל הרשימה
+                $(this).autocomplete("search", "");
+            }
         });
     });
 }
