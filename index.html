@@ -401,12 +401,34 @@
             $("#manageToggleMobile").click(e => {
                 e.preventDefault();
                 $("#manageSubmenuMobile").toggleClass("show");
+                //rotate caret
                 $(this).find('i.bi-caret-down').toggleClass("caret-rotate open");
             });
 
 
             const TRAN_KEY = "transactionsLocal";
             let transactions = JSON.parse(localStorage.getItem(TRAN_KEY) || "[]");
+
+
+            const types = {
+                name: "mitpallelim",
+                mitzvah: "mitzvot",
+                paymentType: "payments",
+                reference: "reference"
+            };
+
+            // Preload values ​​from existing data for each completion type
+            transactions.forEach(t => {
+                if (t.name) addToAutocomplete(types.name, t.name);
+                if (t.mitzvah) addToAutocomplete(types.mitzvah, t.mitzvah);
+                if (t.paymentType) addToAutocomplete(types.paymentType, t.paymentType);
+                if (t.reference) addToAutocomplete(types.reference, t.reference);
+            });
+
+
+
+
+
             localStorage.setItem(TRAN_KEY, JSON.stringify(transactions));
 
             function makeToken() { return 't_' + Math.random().toString(36).substr(2, 9); }
@@ -455,10 +477,10 @@
                     { data: 'actualPayment', defaultContent: "-" },
                     {
                         data: null, orderable: false, render: (data, row) => `
-                                            <button class="btn btn-sm btn-warning edit-row"><i class="bi bi-pencil-square"></i></button>
-                                            <button class="btn btn-sm btn-danger delete-row"><i class="bi bi-trash"></i></button>
-                                            <button class="btn btn-sm btn-success invoice-row" data-token="${row.token}"><i class="bi bi-receipt"></i></button>
-                                        `}
+                                                <button class="btn btn-sm btn-warning edit-row"><i class="bi bi-pencil-square"></i></button>
+                                                <button class="btn btn-sm btn-danger delete-row"><i class="bi bi-trash"></i></button>
+                                                <button class="btn btn-sm btn-success invoice-row" data-token="${row.token}"><i class="bi bi-receipt"></i></button>
+                                            `}
                 ],
                 searching: false,
                 select: true, // מאפשר בחירת שורות
@@ -501,13 +523,19 @@
                         },
                         minLength: 0,
                         delay: 100,
-                        autoFocus: true,
+                        autoFocus: false,
                         select: function (event, ui) {
                             $(this).val(ui.item.value);
                             addToAutocomplete(type, ui.item.value); // Move to recent
                             return false;
                         }
-                    }).focus(function () { $(this).autocomplete("search", $(this).val()); });
+                    }).focus(function () {
+                        //$(this).autocomplete("search", $(this).val());
+                        if (!$(this).val()) {
+                            // אם השדה ריק, הראה את כל הרשימה
+                            $(this).autocomplete("search", "");
+                        }
+                    });
                 });
             });
 
@@ -570,4 +598,3 @@
     </script>
 </body>
 </html>
-
