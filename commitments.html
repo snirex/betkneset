@@ -592,6 +592,25 @@
 
             // רענון ראשוני של הטבלה
             reloadTable();
+
+
+            // Sidebar toggle submenu
+            $("#manageToggle").click(function (e) {
+                e.preventDefault();
+                $("#manageSubmenu").toggleClass("show");
+                //rotate caret
+                $(this).find('i.bi-caret-down').toggleClass("caret-rotate open");
+            });
+
+            // Sidebar toggles
+
+            $("#manageToggleMobile").click(e => {
+                e.preventDefault();
+                $("#manageSubmenuMobile").toggleClass("show");
+                //rotate caret
+                $(this).find('i.bi-caret-down').toggleClass("caret-rotate open");
+            });
+
         });
     </script>
 </body>
