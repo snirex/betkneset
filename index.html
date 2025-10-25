@@ -476,11 +476,12 @@
                     { data: 'reference', defaultContent: '-' },
                     { data: 'actualPayment', defaultContent: "-" },
                     {
-                        data: null, orderable: false, render: (data, row) => `
-                                                <button class="btn btn-sm btn-warning edit-row"><i class="bi bi-pencil-square"></i></button>
-                                                <button class="btn btn-sm btn-danger delete-row"><i class="bi bi-trash"></i></button>
-                                                <button class="btn btn-sm btn-success invoice-row" data-token="${row.token}"><i class="bi bi-receipt"></i></button>
-                                            `}
+                        data: null, orderable: false,
+                        render: (data, type, row) => `
+                        <button class="btn btn-sm btn-warning edit-row"><i class="bi bi-pencil-square"></i></button>
+                        <button class="btn btn-sm btn-success invoice-row" data-token="${row.token}"><i class="bi bi-receipt"></i></button>
+                        <button class="btn btn-sm btn-danger delete-row"><i class="bi bi-trash"></i></button>`}
+
                 ],
                 searching: false,
                 select: true, // מאפשר בחירת שורות
@@ -552,14 +553,53 @@
                     addToAutocomplete(type, val);
                 });
 
-                transactions.push(newPay);
-                //table.clear().rows.add(transactions).draw();
+                //transactions.push(newPay);
+                ////table.clear().rows.add(transactions).draw();
+                //saveToStorage();
+                //table.row.add(newPay).draw();
+
+                const editToken = $(this).data('edit-token');
+
+                if (editToken) {
+                    // מצב עריכה
+                    const idx = transactions.findIndex(t => t.token === editToken);
+                    if (idx !== -1) {
+                        newPay.token = editToken;
+                        transactions[idx] = newPay;
+                        table.row(idx).data(newPay).draw(false);
+                    }
+                    $(this).removeData('edit-token');
+                    $('#addPaymentModal .modal-title').text('➕ הוסף תשלום חדש');
+                } else {
+                    // מצב הוספה רגיל
+                    transactions.push(newPay);
+                    table.row.add(newPay).draw(false);
+                }
+
                 saveToStorage();
-                table.row.add(newPay).draw();
                 updateSums();
                 modal.hide();
                 this.reset();
             });
+
+            // עריכת רשומה קיימת
+            $('#transactionsTable').on('click', '.edit-row', function () {
+                const row = table.row($(this).closest('tr')).data();
+                if (!row) return;
+
+                // שמור token לעריכה
+                $('#addPaymentForm').data('edit-token', row.token);
+
+                // מלא את הנתונים הקיימים בטופס
+                for (let key in row) {
+                    $(`#addPaymentModal [name='${key}']`).val(row[key]);
+                }
+
+                // עדכן כותרת
+                $('#addPaymentModal .modal-title').text('✏️ עריכת תשלום');
+                modal.show();
+            });
+
 
             $('#transactionsTable tbody').on('click', '.delete-row', function () {
                 let row = table.row($(this).parents('tr'));
