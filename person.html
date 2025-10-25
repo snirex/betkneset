@@ -23,75 +23,278 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 
     <style>
-        body {
-            display: none;
-            background: #f8f9fa;
-            font-family: "Segoe UI",Tahoma,sans-serif;
+    body {
+        /*display: none;*/
+        background: #f8f9fa;
+        font-family: "Segoe UI",Tahoma,sans-serif;
+    }
+
+    .bg-custom {
+        background: linear-gradient(135deg,#6f86d6 0%,#48c6ef 100%);
+    }
+
+    /* Sidebar style */
+    .sidebar {
+        width: 240px;
+        min-height: 100vh;
+        position: fixed;
+        top: 0;
+        right: 0;
+        background: linear-gradient(135deg,#6f86d6 0%,#48c6ef 100%);
+        padding-top: 1rem;
+        color: #fff;
+        z-index: 1000;
+    }
+
+        .sidebar .nav-link {
+            color: #fff;
         }
 
-        .bg-custom {
-            background: linear-gradient(135deg,#6f86d6 0%,#48c6ef 100%);
-        }
-
-        .table-hover tbody tr:hover {
-            background-color: rgba(0,123,255,0.07);
-            cursor: pointer;
-        }
-
-        body.theme-blue {
-            background: #e6f0ff;
-            color: #003366;
-        }
-
-        .stat-card {
-            border-radius: 12px;
-            padding: 20px;
-            color: #333;
-            text-align: center;
-        }
-
-        .stat-red {
-            background: #f8d7da;
-        }
-
-        .stat-green {
-            background: #d4edda;
-        }
-
-        .stat-yellow {
-            background: #fff3cd;
-        }
-
-        .link {
-            color: blue;
-        }
-
-            .link:hover {
-                text-decoration: underline;
-                cursor: pointer;
+            .sidebar .nav-link:hover {
+                background: rgba(255,255,255,0.2);
+                border-radius: 6px;
             }
-    </style>
+
+    .submenu {
+        display: none;
+        padding-right: 1rem;
+    }
+
+        .submenu.show {
+            display: block;
+            animation: slideDown 0.3s ease;
+        }
+
+    @keyframes slideDown {
+        from {
+            opacity: 0;
+            transform: translateY(-5px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* content area with sidebar */
+    .content {
+        display: none;
+        margin-right: 240px;
+        padding: 1rem;
+    }
+
+    /* Responsive: hide sidebar in small screens */
+    @media (max-width: 992px) {
+        .sidebar {
+            position: relative;
+            width: 100%;
+            min-height: auto;
+        }
+
+        .content {
+            margin-right: 0;
+        }
+    }
+
+    .table-hover tbody tr:hover {
+        background-color: rgba(0,123,255,0.07);
+        cursor: pointer;
+    }
+
+    #firebaseAlert {
+        display: none;
+    }
+
+    tfoot th {
+        background: #f1f1f1;
+    }
+
+    body.theme-blue {
+        background: #e6f0ff;
+        color: #003366;
+    }
+
+    .stat-card {
+        border-radius: 12px;
+        padding: 20px;
+        color: #333;
+        text-align: center;
+    }
+
+    .stat-red {
+        background: #f8d7da;
+    }
+
+    .stat-green {
+        background: #d4edda;
+    }
+
+    .stat-yellow {
+        background: #fff3cd;
+    }
+
+    tfoot tr.balance-row th {
+        font-weight: bold;
+        font-size: 1.1em;
+    }
+
+    tfoot tr.balance-row.positive th {
+        background: #d4edda;
+        color: #155724;
+    }
+
+    tfoot tr.balance-row.negative th {
+        background: #f8d7da;
+        color: #721c24;
+    }
+
+    /* Gmail-style autocomplete enhanced */
+    .ui-autocomplete {
+        max-height: 250px;
+        overflow-y: auto;
+        overflow-x: hidden;
+        padding-right: 0;
+        z-index: 9999;
+        background: #fff;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        transition: opacity 0.2s ease, transform 0.1s ease;
+        opacity: 0;
+        transform: translateY(-5px);
+    }
+
+        .ui-autocomplete.ui-autocomplete-open {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+    .ui-menu-item-wrapper {
+        font-size: 14px;
+        padding: 6px 12px;
+        cursor: pointer;
+    }
+
+    .ui-state-active {
+        background-color: #e8f0fe !important;
+        color: #1967d2 !important;
+        font-weight: 500;
+    }
+
+    #manageSubmenuMobile {
+        display: none;
+    }
+
+        #manageSubmenuMobile.show {
+            display: block;
+        }
+
+    .offcanvas .submenu .nav-link {
+        color: #fff;
+    }
+
+        .offcanvas .submenu .nav-link:hover {
+            background: rgba(255,255,255,0.2);
+            border-radius: 6px;
+        }
+
+    /* כפתור ניהול ראשי בדסקטופ */
+    .sidebar #manageToggle {
+        color: #fff;
+    }
+
+        .sidebar #manageToggle:hover {
+            background: rgba(255,255,255,0.2);
+            border-radius: 6px;
+        }
+
+    /* כפתור ניהול ראשי במובייל */
+    .offcanvas #manageToggleMobile {
+        color: #fff;
+    }
+
+        .offcanvas #manageToggleMobile:hover {
+            background: rgba(255,255,255,0.2);
+            border-radius: 6px;
+        }
+
+    .caret-rotate {
+        display: inline-block;
+        transition: transform 0.3s ease;
+    }
+
+        .caret-rotate.open {
+            transform: rotate(90deg); /* עכשיו מצביע למעלה */
+        }
+</style>
 </head>
 <body class="theme-blue">
 
-    <!-- Navbar רספונסיבי -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-custom">
+    <!-- Topbar -->
+    <nav class="navbar navbar-dark bg-custom d-lg-none">
         <div class="container-fluid">
-            <a class="navbar-brand" href="index.html">🏠 ניהול חשבונות</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent"
-                    aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-brand mb-0 h1">🏠 ניהול בית הכנסת</span>
+            <button class="navbar-toggler" type="button" data-bs-toggle="offcanvas" data-bs-target="#mobileSidebar">
                 <span class="navbar-toggler-icon"></span>
             </button>
-            <div class="collapse navbar-collapse" id="navbarContent">
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item"><a class="nav-link" href="summary.html">📑 סיכום כולל (D)</a></li>
-                    <li class="nav-item"><a class="nav-link" href="users.html">👥 ניהול משתמשים (E)</a></li>
-                    <li class="nav-item"><a class="nav-link" href="dashboard.html">📊 דוחות (F)</a></li>
-                    <li class="nav-item"><a class="nav-link" href="permissions.html">🔐 הרשאות (G)</a></li>
-                </ul>
-            </div>
         </div>
     </nav>
+
+
+    <!-- Sidebar for desktop -->
+    <div class="sidebar d-none d-lg-block">
+        <div class="px-3 mb-3">
+            <a class="navbar-brand text-white" href="#">🏠 ניהול בית הכנסת</a>
+        </div>
+        <ul class="nav flex-column px-2">
+            <li class="nav-item"><a class="nav-link active" href="index.html">🏠 דף ראשי</a></li>
+            <li class="nav-item"><a class="nav-link" href="commitments.html">💼 התחייבויות</a></li>
+            <li class="nav-item"><a class="nav-link" href="payments.html">💸 תשלומים</a></li>
+            <li class="nav-item"><a class="nav-link" href="summary.html">📑 סיכום כולל</a></li>
+            <li class="nav-item">
+                <a href="#" class="nav-link d-flex justify-content-between align-items-center" id="manageToggle">
+                    ⚙️ ניהול <i class="bi bi-caret-down"></i>
+                </a>
+                <ul class="submenu list-unstyled" id="manageSubmenu">
+                    <li><a class="nav-link" href="manage.html">⚙️ ניהול רשימות</a></li>
+                    <li><a class="nav-link" href="users.html">👥 ניהול משתמשים</a></li>
+                    <li><a class="nav-link" href="permissions.html">🔐 הרשאות</a></li>
+                </ul>
+            </li>
+            <li class="nav-item"><a class="nav-link" href="dashboard.html">📊 דוחות</a></li>
+            <li class="nav-item">
+                <span id="firebaseStatus" class="nav-link text-warning" title="לא מחובר ל-Firebase">
+                    <i class="bi bi-cloud-slash"></i>
+                </span>
+            </li>
+        </ul>
+    </div>
+
+    <!-- Offcanvas mobile -->
+    <div class="offcanvas offcanvas-end bg-custom text-white" tabindex="-1" id="mobileSidebar">
+        <div class="offcanvas-header">
+            <h5 class="offcanvas-title">📂 תפריט</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas"></button>
+        </div>
+        <div class="offcanvas-body">
+            <ul class="nav flex-column">
+                <li class="nav-item"><a class="nav-link text-white" href="index.html">🏠 דף ראשי</a></li>
+                <li class="nav-item"><a class="nav-link text-white" href="commitments.html">💼 התחייבויות</a></li>
+                <li class="nav-item"><a class="nav-link text-white" href="payments.html">💸 תשלומים</a></li>
+                <li class="nav-item"><a class="nav-link text-white" href="summary.html">📑 סיכום כולל</a></li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link d-flex justify-content-between align-items-center" id="manageToggleMobile">⚙️ ניהול <i class="bi bi-caret-down"></i></a>
+                    <ul class="submenu list-unstyled" id="manageSubmenuMobile">
+                        <li><a class="nav-link" href="manage.html">⚙️ ניהול רשימות</a></li>
+                        <li><a class="nav-link" href="users.html">👥 ניהול משתמשים</a></li>
+                        <li><a class="nav-link" href="permissions.html">🔐 הרשאות</a></li>
+                    </ul>
+                </li>
+                <li class="nav-item"><a class="nav-link text-white" href="dashboard.html">📊 דוחות</a></li>
+            </ul>
+        </div>
+    </div>
 
     <!-- כותרת ושם האדם -->
     <div class="p-4 rounded bg-white shadow-sm mb-4 text-center">
@@ -174,8 +377,8 @@
                     {
                         data: null, orderable: false,
                         render: (data, type, row, meta) => `
-              <button class="btn btn-sm btn-success print-invoice" title="חשבונית"><i class="bi bi-receipt"></i></button>
-            `
+                      <button class="btn btn-sm btn-success print-invoice" title="חשבונית"><i class="bi bi-receipt"></i></button>
+                    `
                     }
                 ],
                 searching: false,
