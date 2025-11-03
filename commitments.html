@@ -127,15 +127,15 @@
         }
 
         .stat-red {
-            background: #f8d7da;
+            background: #f8d7da !important;
         }
 
         .stat-green {
-            background: #d4edda;
+            background: #d4edda !important;
         }
 
         .stat-yellow {
-            background: #fff3cd;
+            background: #fff3cd !important;
         }
 
         tfoot tr.balance-row th {
@@ -311,7 +311,7 @@
 
         <div class="container my-4">
             <div class="row g-3 text-center">
-                <div class="col-md-4"><div class="stat-card stat-red"><h4>סה״כ התחייבויות</h4><div id="statAmount">0</div></div></div>
+                <div class="col-md-4"><div class="stat-card stat-red"><h4>סה״כ התחייבויות</h4><div class="sumBalance">0</div></div></div>
         <!--        <div class="col-md-4"><div class="stat-card stat-green"><h4>סה״כ תשלומים</h4><div id="statActual">0</div></div></div>-->
             <!--    <div class="col-md-4"><div class="stat-card stat-yellow"><h4>מאזן כללי</h4><div id="statBalance">0</div></div></div>-->
             </div>
@@ -341,8 +341,8 @@
                         <tr>
                             <th colspan="2">סה״כ (עמוד זה):</th>
                             <th id="sumAmount">0</th>
-                            <th colspan="2"></th>
-                            <th colspan="2" id="sumBalance">0</th>
+                            <th colspan="3"></th>
+                            <th class="sumBalance stat-red"">0</th>
                             <th></th>
                         </tr>
                     </tfoot>
@@ -476,7 +476,7 @@
                     sumBalance += Number(calcBalanceUpTo(p.name, p.date || "0000-00-00", p.createdAt || 0) || 0);
                 });
                 $("#sumAmount").text(sumAmount.toLocaleString('he-IL'));
-                $("#sumBalance").text(sumBalance.toLocaleString('he-IL'));
+                $(".sumBalance").text(sumBalance.toLocaleString('he-IL'));
             }
             updateSums();
 
