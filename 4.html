@@ -1,0 +1,665 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>ניהול חשבונות בית כנסת</title>
+  <!-- Bootstrap 5 -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.rtl.min.css" rel="stylesheet"/>
+  <!-- Tabulator -->
+  <link href="https://unpkg.com/tabulator-tables@5.5.0/dist/css/tabulator_min.css" rel="stylesheet">
+  <!-- FontAwesome for icons -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+  <!-- jQuery -->
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <!-- Alpine.js -->
+  <script src="https://unpkg.com/alpinejs@3.12.0/dist/cdn.min.js" defer></script>
+  <!-- Tabulator JS -->
+  <script src="https://unpkg.com/tabulator-tables@5.5.0/dist/js/tabulator_min.js"></script>
+  <style>
+    html,body { height:100%; }
+    body { padding-left:0; padding-right:260px; }
+    .right-sidebar { width:260px; position:fixed; top:0; right:0; height:100%; background:#f8f9fa; border-left:1px solid #e0e0e0; padding:1rem; overflow:auto; }
+    .content { padding:1rem; }
+    .page { display:none; }
+    .page.active { display:block; }
+    .summary-box { background:#ffffff; border:1px solid #dee2e6; padding:12px; border-radius:8px; }
+    .tabulator .tabulator-cell { direction: ltr; }
+    .action-btn { cursor:pointer; margin-right:0.4rem; }
+    @media (max-width:768px){
+      body { padding-right:0; padding-left:0; }
+      .right-sidebar { width:100%; height:auto; position:static; border-left:0; border-top:1px solid #e0e0e0; }
+    }
+  </style>
+</head>
+<body x-data="app()" x-init="init()">
+
+  <!-- Right side navigation -->
+  <aside class="right-sidebar">
+    <h5 class="mb-3">תפריט מהיר</h5>
+    <div class="list-group mb-3">
+      <a href="#" class="list-group-item list-group-item-action" @click.prevent="showPage('commitments')">
+        <i class="fa-solid fa-hand-holding-dollar"></i> התחייבויות
+      </a>
+      <a href="#" class="list-group-item list-group-item-action" @click.prevent="showPage('payments')">
+        <i class="fa-solid fa-credit-card"></i> הזנת תשלומים
+      </a>
+      <a href="#" class="list-group-item list-group-item-action" @click.prevent="showPage('clients')">
+        <i class="fa-solid fa-users"></i> לקוחות
+      </a>
+      <a href="#" class="list-group-item list-group-item-action" @click.prevent="exportAll()">
+        <i class="fa-solid fa-file-export"></i> ייצוא JSON
+      </a>
+      <label class="btn btn-sm btn-outline-secondary mt-2" role="button">
+        ייבוא JSON
+        <input type="file" accept="application/json" @change="importJSON($event)" hidden>
+      </label>
+    </div>
+    <h6>קיצורי מקשים</h6>
+    <ul class="small">
+      <li><strong>Alt + A</strong> — הוספת שורה לטבלה</li>
+      <li><strong>Alt + S</strong> — קפיצה בין רשימת לקוחות לטבלה</li>
+    </ul>
+    <hr/>
+    <small class="text-muted">האתר שומר נתונים בדפדפן (localStorage).</small>
+  </aside>
+
+  <!-- Main content -->
+  <main class="content container-fluid">
+    <header class="mb-4">
+      <h2>מערכת ניהול חשבונות - בית כנסת</h2>
+      <p class="text-muted">רספונסיבי, Bootstrap, Alpine.js, Tabulator. שמירה ב-localStorage.</p>
+    </header>
+
+    <!-- Commitments Page -->
+    <section id="commitments" class="page active">
+      <div class="row mb-3">
+        <!-- Clients list (same as payments page) -->
+        <div class="col-md-3">
+          <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+              <span>לקוחות</span>
+              <button class="btn btn-sm btn-outline-primary" @click="promptAddClient()">הוסף</button>
+            </div>
+            <ul class="list-group list-group-flush" id="clientsList" style="max-height:50vh; overflow:auto;">
+              <template x-for="client in clients" :key="client.id">
+                <li class="list-group-item d-flex justify-content-between align-items-center"
+                    :class="{'active': selectedClientId===client.id}"
+                    @click="selectClient(client.id)">
+                  <div>
+                    <div style="font-weight:600;" x-text="client.name"></div>
+                    <div class="small text-muted" x-text="client.note"></div>
+                  </div>
+                  <div class="small text-muted" x-text="formatCurrency(clientCommitmentTotal(client.id))"></div>
+                </li>
+              </template>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Commitments table and controls -->
+        <div class="col-md-9">
+          <div class="d-flex gap-3 mb-3 flex-column flex-md-row">
+            <div class="summary-box flex-grow-1">
+              <div class="d-flex justify-content-between align-items-center">
+                <div>
+                  <div class="small text-muted">סה"כ התחייבויות של הלקוח (מסוננות):</div>
+                  <div style="font-size:1.4rem; font-weight:700;" x-text="formatCurrency(commitmentsFilteredTotal)"></div>
+                </div>
+                <div>
+                  <label class="form-label small">מ-</label>
+                  <input type="date" class="form-control form-control-sm mb-1" x-model="commitmentsFilter.from" @change="applyCommitmentsFilter()">
+                  <label class="form-label small">עד</label>
+                  <input type="date" class="form-control form-control-sm" x-model="commitmentsFilter.to" @change="applyCommitmentsFilter()">
+                </div>
+              </div>
+            </div>
+            <div style="min-width:220px;">
+              <div class="d-grid">
+                <button class="btn btn-primary" @click="addCommitmentRow()">
+                  <i class="fa-solid fa-plus"></i> הוסף
+                </button>
+                <button class="btn btn-outline-secondary mt-2" @click="downloadCSV('commitments')">
+                  <i class="fa-solid fa-file-csv"></i> ייצוא CSV
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- מצוות list editor -->
+          <div class="mb-2">
+            <small class="text-muted me-2">עריכת רשימת מצוות:</small>
+            <template x-for="(mitzvah, index) in mitzvotList" :key="index">
+              <span class="badge bg-secondary me-1">
+                <span x-text="mitzvah"></span>
+                <i class="fa-solid fa-times ms-1 action-btn" @click="mitzvotList.splice(index,1); saveMitzvot()"></i>
+              </span>
+            </template>
+            <input type="text" class="form-control form-control-sm d-inline-block" style="width:200px;" x-model="newMitzvah" @keyup.enter="addMitzvah()">
+            <button class="btn btn-sm btn-outline-primary" @click="addMitzvah()">הוסף מצווה</button>
+          </div>
+
+          <div id="commitments-table"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Payments Page (ללא שינוי מהותי, רק שיתוף selectedClientId) -->
+    <section id="payments" class="page">
+      <div class="row mb-3">
+        <div class="col-md-3">
+          <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+              <span>לקוחות</span>
+              <button class="btn btn-sm btn-outline-primary" @click="promptAddClient()">הוסף</button>
+            </div>
+            <ul class="list-group list-group-flush" id="clientsList" style="max-height:50vh; overflow:auto;">
+              <template x-for="client in clients" :key="client.id">
+                <li class="list-group-item d-flex justify-content-between align-items-center"
+                    :class="{'active': selectedClientId===client.id}"
+                    @click="selectClient(client.id)">
+                  <div>
+                    <div style="font-weight:600;" x-text="client.name"></div>
+                    <div class="small text-muted" x-text="client.note"></div>
+                  </div>
+                  <div class="small text-muted" x-text="formatCurrency(clientBalance(client.id))"></div>
+                </li>
+              </template>
+            </ul>
+          </div>
+        </div>
+        <div class="col-md-9">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <div class="d-flex gap-2 align-items-center">
+              <button class="btn btn-primary" @click="addPaymentRow()"><i class="fa-solid fa-plus"></i> הוסף</button>
+              <button class="btn btn-outline-secondary" @click="downloadCSV('payments')"><i class="fa-solid fa-file-csv"></i> ייצוא CSV</button>
+            </div>
+            <div>
+              <label class="form-label small">סינון תאריכים:</label>
+              <input type="date" class="form-control form-control-sm d-inline-block" style="width:120px;" x-model="paymentsFilter.from" @change="applyPaymentsFilter()">
+              <input type="date" class="form-control form-control-sm d-inline-block" style="width:120px;" x-model="paymentsFilter.to" @change="applyPaymentsFilter()">
+            </div>
+          </div>
+          <div id="payments-table"></div>
+          <div class="mt-3 summary-box">
+            <div class="d-flex justify-content-between">
+              <div>
+                <div class="small text-muted">סיכום תשלומים (מסונן):</div>
+                <div style="font-weight:700; font-size:1.2rem;" x-text="formatCurrency(paymentsFilteredTotal)"></div>
+              </div>
+              <div class="text-end">
+                <div class="small text-muted">סה״כ לכל הלקוחות:</div>
+                <div style="font-weight:700;" x-text="formatCurrency(totalPaymentsAll)"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Clients Page -->
+    <section id="clients" class="page">
+      <div class="d-flex justify-content-between mb-3">
+        <h5>ניהול לקוחות</h5>
+        <button class="btn btn-success" @click="promptAddClient()">הוסף לקוח</button>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-striped">
+          <thead><tr><th>שם</th><th>הערה</th><th>פעולות</th></tr></thead>
+          <tbody>
+            <template x-for="client in clients" :key="client.id">
+              <tr>
+                <td x-text="client.name"></td>
+                <td x-text="client.note"></td>
+                <td>
+                  <button class="btn btn-sm btn-outline-primary" @click="editClient(client.id)"><i class="fa-solid fa-edit"></i></button>
+                  <button class="btn btn-sm btn-outline-danger" @click="deleteClient(client.id)"><i class="fa-solid fa-trash"></i></button>
+                </td>
+              </tr>
+            </template>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+<script>
+function uid() { return 'id-' + Math.random().toString(36).slice(2,10); }
+
+function app() {
+  return {
+    // STATE
+    currentPage: 'commitments',
+    commitmentsTable: null,
+    paymentsTable: null,
+    commitmentsDataKey: 'bk_commitments_v2',  // שונה גרסה כדי לא לערבב עם נתונים ישנים
+    paymentsDataKey: 'bk_payments_v1',
+    clientsKey: 'bk_clients_v1',
+    mitzvotKey: 'bk_mitzvot_v1',
+    lastAddedCommitmentDate: null,
+    lastAddedPaymentDate: null,
+
+    clients: [],
+    selectedClientId: null,
+
+    mitzvotList: ['עליה לתורה', 'פתיחת ארון קודש', 'הגבהה', 'גלילה', 'נר תמיד'], // ברירת מחדל
+    newMitzvah: '',
+
+    // filters
+    commitmentsFilter: { from: '', to: '' },
+    paymentsFilter: { from: '', to: '' },
+
+    // summary
+    commitmentsFilteredTotal: 0,
+    paymentsFilteredTotal: 0,
+    totalPaymentsAll: 0,
+
+    init(){
+      this.loadClients();
+      this.loadMitzvot();
+      if (!this.clients.length){
+        this.clients = [
+          { id: uid(), name:'משה כהן', note:'חבר קהילה' },
+          { id: uid(), name:'שרה לוי', note:'תורמת' },
+        ];
+        this.saveClients();
+      }
+      this.selectedClientId = this.clients[0]?.id || null;
+
+      //this.initCommitmentsTable();
+      //this.initPaymentsTable();
+
+      window.addEventListener('keydown', (e)=>{
+        if (e.altKey && (e.key==='a' || e.key==='A')){ e.preventDefault(); this.shortcutAdd(); }
+        if (e.altKey && (e.key==='s' || e.key==='S')){ e.preventDefault(); this.shortcutToggleClientsPayments(); }
+      });
+
+      this.showPage(this.currentPage);
+      this.recalculateTotals();
+    },
+
+    // MITZVOT
+    loadMitzvot(){
+      const raw = localStorage.getItem(this.mitzvotKey);
+      if (raw) this.mitzvotList = JSON.parse(raw);
+    },
+    saveMitzvot(){
+      localStorage.setItem(this.mitzvotKey, JSON.stringify(this.mitzvotList));
+    },
+    addMitzvah(){
+      if (this.newMitzvah.trim()){
+        this.mitzvotList.push(this.newMitzvah.trim());
+        this.newMitzvah = '';
+        this.saveMitzvot();
+      }
+    },
+
+    // PAGE NAV
+    showPage(page){
+  this.currentPage = page;
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  const el = document.getElementById(page);
+  if (el) el.classList.add('active');
+
+  // --- חלק חדש וחשוב ---
+  // יצירת הטבלה רק כשהדף גלוי
+  if (page === 'commitments') {
+    if (!this.commitmentsTable) {
+      this.initCommitmentsTable();
+    } else {
+      this.commitmentsTable.redraw();
+    }
+    this.applyCommitmentsFilter();  // חשוב לרענן פילטר אחרי מעבר
+  } else if (page === 'payments') {
+    if (!this.paymentsTable) {
+      this.initPaymentsTable();
+    } else {
+      this.paymentsTable.redraw();
+    }
+    this.applyPaymentsFilter();
+  }
+  // --- סיום חלק חדש ---
+
+  setTimeout(() => {
+    if (this.commitmentsTable) this.commitmentsTable.redraw();
+    if (this.paymentsTable) this.paymentsTable.redraw();
+  }, 200);
+},
+
+    // CLIENTS
+    loadClients(){
+      const raw = localStorage.getItem(this.clientsKey);
+      if (raw) this.clients = JSON.parse(raw);
+    },
+    saveClients(){
+      localStorage.setItem(this.clientsKey, JSON.stringify(this.clients));
+    },
+    promptAddClient(){
+      const name = prompt('שם לקוח:');
+      if (!name) return;
+      const note = prompt('הערה (אופציונלי):','');
+      this.clients.push({ id: uid(), name: name.trim(), note: note || ''});
+      this.saveClients();
+      this.selectedClientId = this.clients[this.clients.length-1].id;
+      this.recalculateTotals();
+    },
+    editClient(id){
+      const c = this.clients.find(x=>x.id===id);
+      if (!c) return;
+      const name = prompt('ערוך שם:', c.name);
+      if (!name) return;
+      const note = prompt('ערוך הערה:', c.note);
+      c.name = name.trim(); c.note = note || '';
+      this.saveClients();
+    },
+    deleteClient(id){
+      if (!confirm('למחוק לקוח?')) return;
+      this.clients = this.clients.filter(x=>x.id!==id);
+      this.saveClients();
+      if (this.selectedClientId === id) this.selectedClientId = this.clients[0]?.id || null;
+      this.recalculateTotals();
+    },
+    selectClient(id){
+      this.selectedClientId = id;
+      this.applyCommitmentsFilter();
+      this.applyPaymentsFilter();
+	  setTimeout(() => {
+		if (this.commitmentsTable) this.commitmentsTable.redraw();
+		if (this.paymentsTable) this.paymentsTable.redraw();
+	  }, 100);
+    },
+
+    // BALANCE HELPERS
+    clientBalance(clientId){
+      const all = this.loadPaymentsData();
+      return all.filter(r=> r.clientId === clientId ).reduce((s,r)=> s + (Number(r.amount)||0), 0);
+    },
+    clientCommitmentTotal(clientId){
+      const all = this.loadCommitmentsData();
+      return all.filter(r=> r.clientId === clientId ).reduce((s,r)=> s + (Number(r.amount)||0), 0);
+    },
+
+    // SHORTCUTS
+    shortcutAdd(){
+      if (this.currentPage === 'commitments') this.addCommitmentRow();
+      else if (this.currentPage === 'payments') this.addPaymentRow();
+    },
+    shortcutToggleClientsPayments(){
+	  if (this.currentPage !== 'commitments' && this.currentPage !== 'payments'){ 
+		this.showPage('commitments'); 
+		return; 
+	  }
+	  const listId = this.currentPage === 'commitments' ? 'clientsListCommitments' : 'clientsList';
+	  const list = document.getElementById(listId);
+	  const tableSelector = '#' + (this.currentPage === 'commitments' ? 'commitments' : 'payments') + '-table .tabulator';
+	  if (document.activeElement && list.contains(document.activeElement)){
+		document.querySelector(tableSelector)?.focus();
+	  } else {
+		const first = list.querySelector('li');
+		if (first) first.focus();
+	  }
+	},
+
+    // COMMITMENTS TABLE
+    initCommitmentsTable(){
+      const self = this;
+      const data = this.loadCommitmentsData();
+
+      this.commitmentsTable = new Tabulator("#commitments-table", {
+        height: "480px",
+        layout:"fitColumns",
+        index:"id",
+        data: data,
+        reactiveData:true,
+        columns:[
+          {title:"תאריך", field:"date", editor:"date", editorParams:{format:"yyyy-MM-dd"}, hozAlign:"center", width:120},
+          {title:"פירוט מצווה", field:"mitzvah", editor:"select", editorParams:{values: self.mitzvotList}, width:180},
+          {title:"סוג הכנסה", field:"incomeType", editor:"input"},
+          {title:"סכום התחייבות", field:"amount", editor:"number", hozAlign:"right", 
+           formatter: cell => self.formatCurrency(cell.getValue())},
+          {title:"פעולות", headerSort:false, hozAlign:"center", width:100,
+           formatter:() => `<i class="fa-solid fa-trash text-danger action-btn" title="מחיקה"></i>`,
+           cellClick:(e, cell)=>{
+             if (e.target.classList.contains('fa-trash')){
+               if (confirm('להסיר התחייבות?')) {
+                 cell.getRow().delete();
+                 self.saveCommitmentsData(self.commitmentsTable.getData());
+                 self.recalculateTotals();
+               }
+             }
+           }
+          }
+        ],
+        cellEdited:()=>{ self.saveCommitmentsData(self.commitmentsTable.getData()); self.recalculateTotals(); },
+        rowAdded:()=>{ self.saveCommitmentsData(self.commitmentsTable.getData()); self.recalculateTotals(); },
+        rowDeleted:()=>{ self.saveCommitmentsData(self.commitmentsTable.getData()); self.recalculateTotals(); },
+      });
+
+      this.applyCommitmentsFilter();
+    },
+
+    addCommitmentRow(){
+	  if (!this.selectedClientId){ 
+		alert('בחר לקוח תחילה'); 
+		return; 
+	  }
+	  const today = new Date().toISOString().slice(0,10);
+	  const newRow = {
+		id: uid(),
+		clientId: this.selectedClientId,
+		date: today,
+		mitzvah: this.mitzvotList[0] || '',
+		incomeType: '',
+		amount: 0
+	  };
+	  this.commitmentsTable.addRow(newRow, true).then(() => {
+		this.commitmentsTable.redraw(true);  // <--- שורה חשובה מאוד!
+		setTimeout(() => {
+		  const row = this.commitmentsTable.getRow(newRow.id);
+		  if (row) row.getCell('amount').edit();
+		}, 100);
+	  });
+	},
+
+    applyCommitmentsFilter(){
+      this.commitmentsTable.clearFilter(true);
+
+      // Filter by selected client
+      if (this.selectedClientId){
+        this.commitmentsTable.addFilter("clientId", "=", this.selectedClientId);
+      }
+
+      // Date range filter
+      const f = this.commitmentsFilter;
+      const from = f.from ? new Date(f.from) : null;
+      const to = f.to ? new Date(f.to) : null;
+      if (from || to){
+        this.commitmentsTable.addFilter(data => {
+          const d = data.date ? new Date(data.date) : null;
+          if (!d) return false;
+          if (from && d < from) return false;
+          if (to && d > new Date(new Date(to).getTime() + 24*3600*1000 -1)) return false;
+          return true;
+        });
+      }
+
+      this.recalculateTotals();
+	  this.recalculateTotals();
+	  this.commitmentsTable.redraw();  // <--- חשוב!
+    },
+
+    saveCommitmentsData(data){
+      localStorage.setItem(this.commitmentsDataKey, JSON.stringify(data));
+    },
+    loadCommitmentsData(){
+      const raw = localStorage.getItem(this.commitmentsDataKey);
+      return raw ? JSON.parse(raw) : [];
+    },
+
+    // PAYMENTS TABLE (ללא שינויים מהותיים)
+    initPaymentsTable(){
+      const self = this;
+      const data = this.loadPaymentsData();
+      this.paymentsTable = new Tabulator("#payments-table", {
+        height: "420px",
+        layout:"fitColumns",
+        index:"id",
+        data: data,
+        reactiveData:true,
+        columns:[
+          {title:"תאריך", field:"date", editor:"input", width:110, hozAlign:"center"},
+          {title:"סכום", field:"amount", editor:"input", hozAlign:"right", formatter:cell => self.formatCurrency(cell.getValue())},
+          {title:"סוג תשלום", field:"type", editor:"select", editorParams:{values:["מזומן","אשראי","העברה","אחר"]}},
+          {title:"אסמכתא", field:"receipt", editor:"input"},
+          {title:"פעולות", headerSort:false, hozAlign:"center", width:140,
+           formatter:() => `<i class="fa-solid fa-pen-to-square text-primary action-btn"></i>
+                            <i class="fa-solid fa-trash text-danger action-btn"></i>
+                            <i class="fa-solid fa-check-to-slot text-success action-btn"></i>`,
+           cellClick:(e, cell)=>{
+             const row = cell.getRow();
+             if (e.target.classList.contains('fa-pen-to-square')) row.getCell('amount').edit();
+             else if (e.target.classList.contains('fa-trash')){
+               if (confirm('להסיר תשלום?')){ row.delete(); self.savePaymentsData(self.paymentsTable.getData()); self.recalculateTotals(); }
+             }
+             else if (e.target.classList.contains('fa-check-to-slot')) self.showPaymentReceipt(row.getData());
+           }
+          }
+        ],
+        cellEdited:()=>{ self.savePaymentsData(self.paymentsTable.getData()); self.recalculateTotals(); },
+        rowAdded:()=>{ self.savePaymentsData(self.paymentsTable.getData()); self.recalculateTotals(); },
+        rowDeleted:()=>{ self.savePaymentsData(self.paymentsTable.getData()); self.recalculateTotals(); },
+      });
+      this.applyPaymentsFilter();
+    },
+
+    addPaymentRow(){
+	  if (!this.selectedClientId){ 
+		alert('בחר לקוח תחילה'); 
+		return; 
+	  }
+	  const today = new Date().toISOString().slice(0,10);
+	  const newRow = {
+		id: uid(),
+		clientId: this.selectedClientId,
+		date: today,
+		amount: 0,
+		type: 'מזומן',
+		receipt: ''
+	  };
+	  this.paymentsTable.addRow(newRow, true).then(() => {
+		this.paymentsTable.redraw(true);  // <--- גם כאן!
+		setTimeout(() => {
+		  const row = this.paymentsTable.getRow(newRow.id);
+		  if (row) row.getCell('amount').edit();
+		}, 100);
+	  });
+	},
+
+    applyPaymentsFilter(){
+      this.paymentsTable.clearFilter(true);
+      if (this.selectedClientId){
+        this.paymentsTable.addFilter("clientId","=", this.selectedClientId);
+      }
+      const f = this.paymentsFilter;
+      const from = f.from ? new Date(f.from) : null;
+      const to = f.to ? new Date(f.to) : null;
+      if (from || to){
+        this.paymentsTable.addFilter(data => {
+          const d = data.date ? new Date(data.date) : null;
+          if (!d) return false;
+          if (from && d < from) return false;
+          if (to && d > new Date(new Date(to).getTime() + 24*3600*1000 -1)) return false;
+          return true;
+        });
+      }
+      this.recalculateTotals();
+	  this.recalculateTotals();
+      this.paymentsTable.redraw();  // <--- חשוב!
+    },
+
+    savePaymentsData(data){ localStorage.setItem(this.paymentsDataKey, JSON.stringify(data)); },
+    loadPaymentsData(){
+      const raw = localStorage.getItem(this.paymentsDataKey);
+      return raw ? JSON.parse(raw) : [];
+    },
+
+    // UTILS
+    formatCurrency(val){
+      const num = Number(val) || 0;
+      return num.toLocaleString('he-IL', { style:'currency', currency:'ILS', maximumFractionDigits: 2 });
+    },
+
+    recalculateTotals(){
+      // Commitments
+      let cTotal = 0;
+      if (this.commitmentsTable){
+        const visible = this.commitmentsTable.getData(); // already filtered
+        cTotal = visible.reduce((s,r)=> s + (Number(r.amount)||0), 0);
+      }
+      this.commitmentsFilteredTotal = cTotal;
+
+      // Payments
+      const allPayments = this.loadPaymentsData();
+      const visiblePayments = this.paymentsTable ? this.paymentsTable.getData() : allPayments;
+      this.paymentsFilteredTotal = visiblePayments.reduce((s,r)=> s + (Number(r.amount)||0), 0);
+      this.totalPaymentsAll = allPayments.reduce((s,r)=> s + (Number(r.amount)||0), 0);
+    },
+
+    downloadCSV(type){
+      if (type === 'commitments' && this.commitmentsTable) this.commitmentsTable.download("csv", "commitments.csv");
+      else if (this.paymentsTable) this.paymentsTable.download("csv", "payments.csv");
+    },
+
+    exportAll(){
+      const out = {
+        clients: this.clients,
+        commitments: this.loadCommitmentsData(),
+        payments: this.loadPaymentsData(),
+        mitzvot: this.mitzvotList
+      };
+      const blob = new Blob([JSON.stringify(out, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = 'bk_export.json'; a.click();
+      URL.revokeObjectURL(url);
+    },
+
+    importJSON(e){
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (ev)=>{
+        try{
+          const obj = JSON.parse(ev.target.result);
+          if (obj.clients){ this.clients = obj.clients; this.saveClients(); }
+          if (obj.commitments){ localStorage.setItem(this.commitmentsDataKey, JSON.stringify(obj.commitments)); if (this.commitmentsTable) this.commitmentsTable.setData(obj.commitments); }
+          if (obj.payments){ localStorage.setItem(this.paymentsDataKey, JSON.stringify(obj.payments)); if (this.paymentsTable) this.paymentsTable.setData(obj.payments); }
+          if (obj.mitzvot){ this.mitzvotList = obj.mitzvot; this.saveMitzvot(); }
+          alert('ייבוא בוצע בהצלחה');
+          this.recalculateTotals();
+          this.applyCommitmentsFilter();
+          this.applyPaymentsFilter();
+        }catch(err){ alert('קובץ לא תקין'); }
+      };
+      reader.readAsText(file);
+    },
+
+    showPaymentReceipt(data){
+      const client = this.clients.find(c=>c.id===data.clientId);
+      const name = client ? client.name : '—';
+      const html = `<div style="padding:20px; font-family:Arial; direction:rtl;">
+        <h3>אישור תשלום</h3>
+        <p><strong>שם:</strong> ${name}</p>
+        <p><strong>תאריך:</strong> ${data.date}</p>
+        <p><strong>סכום:</strong> ${this.formatCurrency(data.amount)}</p>
+        <p><strong>אמצעי:</strong> ${data.type}</p>
+        <p><strong>אסמכתא:</strong> ${data.receipt || '—'}</p>
+      </div>`;
+      const w = window.open('', '_blank', 'width=600,height=600');
+      w.document.write(html); w.document.close();
+    },
+  };
+}
+</script>
+</body>
+</html>
