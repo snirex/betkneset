@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>מערכת גבאי - ניהול חשבונות בית כנסת</title>
+    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://unpkg.com/tabulator-tables@5.5.0/dist/css/tabulator_bootstrap5.min.css" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --accent-color: #3498db;
+            --bg-light: #f8f9fa;
+        }
+        
+        body {
+            background-color: var(--bg-light);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Sidebar Styling */
+        .sidebar {
+            background-color: white;
+            border-left: 1px solid #dee2e6;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.05);
+        }
+
+        .congregant-list {
+            overflow-y: auto;
+            flex-grow: 1;
+        }
+
+        .list-group-item.active {
+            background-color: var(--accent-color);
+            border-color: var(--accent-color);
+        }
+
+        /* Main Content */
+        .main-content {
+            height: 100%;
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        /* Input Row Styling (Fake top row) */
+        .input-row {
+            background-color: #e9ecef;
+            padding: 10px;
+            border-radius: 5px 5px 0 0;
+            border: 1px solid #dee2e6;
+            border-bottom: none;
+        }
+
+        /* Tabulator Customization */
+        .tabulator {
+            border-radius: 0 0 5px 5px;
+            border: 1px solid #dee2e6;
+        }
+
+        /* Summary Card */
+        .summary-card {
+            transition: transform 0.2s;
+        }
+        .summary-card:hover {
+            transform: translateY(-5px);
+        }
+
+        /* Print Styles */
+        @media print {
+            .sidebar, .input-row, .nav-tabs, .btn-no-print {
+                display: none !important;
+            }
+            .main-content {
+                width: 100% !important;
+                padding: 0;
+            }
+            .tab-pane {
+                display: block !important;
+                opacity: 1 !important; 
+                margin-bottom: 30px;
+            }
+            /* Hide Tabulator headers/footers irrelevant for print if needed */
+        }
+    </style>
+</head>
+<body x-data="synagogueApp()" x-init="initApp()">
+
+    <div class="container-fluid h-100 p-0">
+        <div class="row g-0 h-100">
+            
+            <div class="col-md-3 col-lg-2 sidebar d-flex flex-column p-3">
+                <h4 class="text-center mb-4 text-primary"><i class="fas fa-synagogue"></i> ניהול גבאי</h4>
+                
+                <div class="mb-3">
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="fas fa-search"></i></span>
+                        <input type="text" class="form-control" placeholder="חפש מתפלל..." x-model="searchQuery">
+                    </div>
+                </div>
+
+                <div class="d-grid gap-2 mb-3">
+                    <button class="btn btn-outline-primary btn-sm" @click="addNewCongregant()">
+                        <i class="fas fa-plus"></i> מתפלל חדש
+                    </button>
+                    <button class="btn btn-outline-secondary btn-sm" @click="showSettings = true">
+                        <i class="fas fa-cog"></i> הגדרות
+                    </button>
+                </div>
+
+                <div class="congregant-list list-group list-group-flush">
+                    <template x-for="c in filteredCongregants" :key="c.id">
+                        <button type="button" 
+                                class="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
+                                :class="{ 'active': currentCongregant && currentCongregant.id === c.id }"
+                                @click="selectCongregant(c)">
+                            <span x-text="c.name"></span>
+                            <span class="badge rounded-pill" 
+                                  :class="c.balance > 0 ? 'bg-danger' : 'bg-success'"
+                                  x-text="formatCurrency(c.balance)"></span>
+                        </button>
+                    </template>
+                </div>
+            </div>
+
+            <div class="col-md-9 col-lg-10 main-content bg-light">
+                
+                <template x-if="!currentCongregant">
+                    <div class="d-flex justify-content-center align-items-center h-100 text-muted">
+                        <div class="text-center">
+                            <i class="fas fa-user-friends fa-4x mb-3"></i>
+                            <h3>בחר מתפלל מהרשימה או צור חדש</h3>
+                        </div>
+                    </div>
+                </template>
+
+                <template x-if="currentCongregant">
+                    <div class="container-fluid">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h2 x-text="'כרטיס מתפלל: ' + currentCongregant.name"></h2>
+                            <button class="btn btn-success btn-no-print" onclick="window.print()">
+                                <i class="fas fa-print"></i> הדפס דף חשבון
+                            </button>
+                        </div>
+
+                        <ul class="nav nav-tabs mb-3 btn-no-print" id="myTab" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active" id="commitments-tab" data-bs-toggle="tab" data-bs-target="#commitments" type="button" role="tab" @click="redrawTables()">התחייבויות</button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="payments-tab" data-bs-toggle="tab" data-bs-target="#payments" type="button" role="tab" @click="redrawTables()">תשלומים</button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="summary-tab" data-bs-toggle="tab" data-bs-target="#summary" type="button" role="tab">סיכום</button>
+                            </li>
+                        </ul>
+
+                        <div class="tab-content" id="myTabContent">
+                            
+                            <div class="tab-pane fade show active" id="commitments" role="tabpanel">
+                                <div class="input-row row g-2 align-items-end btn-no-print">
+                                    <div class="col-md-2">
+                                        <label class="form-label small">תאריך</label>
+                                        <input type="date" class="form-control form-control-sm" x-model="newCommitment.date">
+                                    </div>
+                                    <div class="col-md-2">
+                                        <label class="form-label small">סוג מצווה</label>
+                                        <select class="form-select form-select-sm" x-model="newCommitment.mitzvah">
+                                            <template x-for="m in settings.mitzvot">
+                                                <option :value="m" x-text="m"></option>
+                                            </template>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label small">פירוט / הערה</label>
+                                        <input type="text" class="form-control form-control-sm" placeholder="למשל: עליה שלישי" x-model="newCommitment.details" @keydown.enter="addCommitment()">
+                                    </div>
+                                    <div class="col-md-2">
+                                        <label class="form-label small">סכום</label>
+                                        <input type="number" class="form-control form-control-sm" placeholder="0.00" x-model="newCommitment.amount" @keydown.enter="addCommitment()">
+                                    </div>
+                                    <div class="col-md-2">
+                                        <button class="btn btn-primary btn-sm w-100" @click="addCommitment()">
+                                            <i class="fas fa-plus"></i> הוסף
+                                        </button>
+                                    </div>
+                                </div>
+                                <div id="commitments-table"></div>
+                            </div>
+
+                            <div class="tab-pane fade" id="payments" role="tabpanel">
+                                <div class="input-row row g-2 align-items-end btn-no-print">
+                                    <div class="col-md-2">
+                                        <label class="form-label small">תאריך</label>
+                                        <input type="date" class="form-control form-control-sm" x-model="newPayment.date">
+                                    </div>
+                                    <div class="col-md-2">
+                                        <label class="form-label small">אמצעי תשלום</label>
+                                        <select class="form-select form-select-sm" x-model="newPayment.method">
+                                            <template x-for="m in settings.paymentMethods">
+                                                <option :value="m" x-text="m"></option>
+                                            </template>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label small">אסמכתא / הערה</label>
+                                        <input type="text" class="form-control form-control-sm" placeholder="מס' צ'ק / 4 ספרות" x-model="newPayment.reference" @keydown.enter="addPayment()">
+                                    </div>
+                                    <div class="col-md-2">
+                                        <label class="form-label small">סכום</label>
+                                        <input type="number" class="form-control form-control-sm" placeholder="0.00" x-model="newPayment.amount" @keydown.enter="addPayment()">
+                                    </div>
+                                    <div class="col-md-2">
+                                        <button class="btn btn-success btn-sm w-100" @click="addPayment()">
+                                            <i class="fas fa-check"></i> קבל תשלום
+                                        </button>
+                                    </div>
+                                </div>
+                                <div id="payments-table"></div>
+                            </div>
+
+                            <div class="tab-pane fade" id="summary" role="tabpanel">
+                                <div class="row mt-4">
+                                    <div class="col-md-4">
+                                        <div class="card text-white bg-danger mb-3 summary-card">
+                                            <div class="card-header">סה"כ התחייבויות</div>
+                                            <div class="card-body">
+                                                <h2 class="card-title" x-text="formatCurrency(summary.totalDebit)"></h2>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="card text-white bg-success mb-3 summary-card">
+                                            <div class="card-header">סה"כ תשלומים</div>
+                                            <div class="card-body">
+                                                <h2 class="card-title" x-text="formatCurrency(summary.totalCredit)"></h2>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="card text-white mb-3 summary-card" :class="summary.balance > 0 ? 'bg-warning' : 'bg-primary'">
+                                            <div class="card-header">יתרה לתשלום</div>
+                                            <div class="card-body">
+                                                <h2 class="card-title" x-text="formatCurrency(summary.balance)"></h2>
+                                                <p class="card-text" x-text="summary.balance > 0 ? 'המתפלל חייב לבית הכנסת' : 'זכות'"></p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <hr>
+                                <h5>היסטוריית פעולות אחרונות</h5>
+                                </div>
+                        </div>
+                    </div>
+                </template>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script type="text/javascript" src="https://unpkg.com/tabulator-tables@5.5.0/dist/js/tabulator.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+    <script>
+        document.addEventListener('alpine:init', () => {
+            Alpine.data('synagogueApp', () => ({
+                // Data Storage
+                congregants: [],
+                transactions: [], // Stores both commitments (debit) and payments (credit)
+                settings: {
+                    mitzvot: ['עליה לתורה', 'פתיחת ההיכל', 'מפטיר', 'נדר', 'מי שברך', 'יזכור', 'קידוש'],
+                    paymentMethods: ['מזומן', 'אשראי', 'העברה בנקאית', 'צ\'ק', 'ביט/פייבוקס']
+                },
+                
+                // UI State
+                searchQuery: '',
+                currentCongregant: null,
+                showSettings: false,
+                
+                // Tables Instances
+                commitmentsTable: null,
+                paymentsTable: null,
+
+                // Input Forms Models
+                newCommitment: { date: new Date().toISOString().split('T')[0], mitzvah: 'עליה לתורה', details: '', amount: '' },
+                newPayment: { date: new Date().toISOString().split('T')[0], method: 'מזומן', reference: '', amount: '' },
+
+                initApp() {
+                    // Load from LocalStorage
+                    const savedCongregants = localStorage.getItem('gabai_congregants');
+                    const savedTransactions = localStorage.getItem('gabai_transactions');
+                    
+                    if (savedCongregants) this.congregants = JSON.parse(savedCongregants);
+                    if (savedTransactions) this.transactions = JSON.parse(savedTransactions);
+
+                    // Watch for changes to save
+                    this.$watch('congregants', val => localStorage.setItem('gabai_congregants', JSON.stringify(val)));
+                    this.$watch('transactions', val => localStorage.setItem('gabai_transactions', JSON.stringify(val)));
+                },
+
+                // Get filtered congregants with live balance calculation
+                get filteredCongregants() {
+                    return this.congregants.filter(c => c.name.includes(this.searchQuery)).map(c => {
+                        const balance = this.calculateBalance(c.id);
+                        return { ...c, balance };
+                    });
+                },
+
+                get summary() {
+                    if (!this.currentCongregant) return { totalDebit: 0, totalCredit: 0, balance: 0 };
+                    
+                    const userTrans = this.transactions.filter(t => t.congregantId === this.currentCongregant.id);
+                    const totalDebit = userTrans.filter(t => t.type === 'commitment').reduce((sum, t) => sum + parseFloat(t.amount || 0), 0);
+                    const totalCredit = userTrans.filter(t => t.type === 'payment').reduce((sum, t) => sum + parseFloat(t.amount || 0), 0);
+                    
+                    return {
+                        totalDebit,
+                        totalCredit,
+                        balance: totalDebit - totalCredit
+                    };
+                },
+
+                addNewCongregant() {
+                    const name = prompt("הכנס שם מתפלל:");
+                    if (name) {
+                        const newId = Date.now().toString();
+                        this.congregants.push({ id: newId, name: name, phone: '' });
+                        this.selectCongregant(this.congregants[this.congregants.length - 1]);
+                    }
+                },
+
+                selectCongregant(c) {
+                    this.currentCongregant = c;
+                    // Wait for DOM update then init tables
+                    this.$nextTick(() => {
+                        this.initTables();
+                    });
+                },
+
+                calculateBalance(id) {
+                    const userTrans = this.transactions.filter(t => t.congregantId === id);
+                    const debit = userTrans.filter(t => t.type === 'commitment').reduce((sum, t) => sum + parseFloat(t.amount || 0), 0);
+                    const credit = userTrans.filter(t => t.type === 'payment').reduce((sum, t) => sum + parseFloat(t.amount || 0), 0);
+                    return debit - credit;
+                },
+
+                addCommitment() {
+                    if (!this.newCommitment.amount) return;
+                    
+                    const record = {
+                        id: Date.now(),
+                        congregantId: this.currentCongregant.id,
+                        type: 'commitment',
+                        date: this.newCommitment.date,
+                        category: this.newCommitment.mitzvah,
+                        details: this.newCommitment.details,
+                        amount: parseFloat(this.newCommitment.amount)
+                    };
+
+                    this.transactions.push(record);
+                    
+                    // Update Table
+                    this.commitmentsTable.addData([record]);
+                    
+                    // Reset inputs but keep date
+                    const currentDate = this.newCommitment.date;
+                    this.newCommitment = { date: currentDate, mitzvah: 'עליה לתורה', details: '', amount: '' };
+                },
+
+                addPayment() {
+                    if (!this.newPayment.amount) return;
+
+                    const record = {
+                        id: Date.now(),
+                        congregantId: this.currentCongregant.id,
+                        type: 'payment',
+                        date: this.newPayment.date,
+                        category: this.newPayment.method, // Using category field for method
+                        details: this.newPayment.reference, // Using details for ref
+                        amount: parseFloat(this.newPayment.amount)
+                    };
+
+                    this.transactions.push(record);
+                    this.paymentsTable.addData([record]);
+
+                    // Reset inputs but keep date
+                    const currentDate = this.newPayment.date;
+                    this.newPayment = { date: currentDate, method: 'מזומן', reference: '', amount: '' };
+                },
+
+                deleteTransaction(id, tableInstance) {
+                    if(confirm('האם למחוק שורה זו?')) {
+                        this.transactions = this.transactions.filter(t => t.id !== id);
+                        tableInstance.deleteRow(id);
+                    }
+                },
+
+                initTables() {
+                    const userTrans = this.transactions.filter(t => t.congregantId === this.currentCongregant.id);
+
+                    // Commitments Table
+                    this.commitmentsTable = new Tabulator("#commitments-table", {
+                        data: userTrans.filter(t => t.type === 'commitment'),
+                        layout: "fitColumns",
+                        direction: "rtl",
+                        columns: [
+                            {title: "תאריך", field: "date", width: 120},
+                            {title: "סוג", field: "category", width: 150},
+                            {title: "פירוט", field: "details"},
+                            {title: "סכום", field: "amount", formatter:"money", formatterParams:{symbol:"₪"}},
+                            {title: "פעולות", formatter: (cell) => {
+                                return "<button class='btn btn-sm btn-danger'><i class='fas fa-trash'></i></button>";
+                            }, width: 80, cellClick: (e, cell) => {
+                                this.deleteTransaction(cell.getRow().getData().id, this.commitmentsTable);
+                            }}
+                        ]
+                    });
+
+                    // Payments Table
+                    this.paymentsTable = new Tabulator("#payments-table", {
+                        data: userTrans.filter(t => t.type === 'payment'),
+                        layout: "fitColumns",
+                        direction: "rtl",
+                        columns: [
+                            {title: "תאריך", field: "date", width: 120},
+                            {title: "אופן תשלום", field: "category", width: 150},
+                            {title: "אסמכתא", field: "details"},
+                            {title: "סכום", field: "amount", formatter:"money", formatterParams:{symbol:"₪"}, cssClass:"text-success"},
+                            {title: "פעולות", formatter: (cell) => {
+                                return "<button class='btn btn-sm btn-danger'><i class='fas fa-trash'></i></button>";
+                            }, width: 80, cellClick: (e, cell) => {
+                                this.deleteTransaction(cell.getRow().getData().id, this.paymentsTable);
+                            }}
+                        ]
+                    });
+                },
+
+                redrawTables() {
+                    // Timeout allows the tab to become visible before redrawing logic runs
+                    setTimeout(() => {
+                        if(this.commitmentsTable) this.commitmentsTable.redraw();
+                        if(this.paymentsTable) this.paymentsTable.redraw();
+                    }, 100);
+                },
+
+                formatCurrency(value) {
+                    return new Intl.NumberFormat('he-IL', { style: 'currency', currency: 'ILS' }).format(value);
+                }
+            }));
+        });
+    </script>
+</body>
+</html>
