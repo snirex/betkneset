@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ניהול חשבונות בית כנסת</title>
+    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css">
+    <link href="https://unpkg.com/tabulator-tables@5.5.0/dist/css/tabulator_bootstrap5.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    
+    <style>
+        body { background-color: #f0f2f5; font-family: 'Segoe UI', system-ui, sans-serif; }
+        .sidebar { background: #1e293b; color: white; min-height: 100vh; position: sticky; top: 0; }
+        .nav-link { color: #cbd5e1; cursor: pointer; padding: 10px 15px; transition: 0.2s; border-radius: 6px; }
+        .nav-link:hover { background: #334155; color: white; }
+        .nav-link.active { background: #3b82f6; color: white; }
+        .main-content { padding: 30px; }
+        .card { border: none; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+        .hidden { display: none !important; }
+        .balance-box { font-size: 1.4rem; font-weight: bold; padding: 10px 20px; border-radius: 8px; background: white; border: 1px solid #e2e8f0; }
+        .input-bar { background: #f8fafc; border: 2px solid #e2e8f0; padding: 15px; border-radius: 10px; margin-bottom: 20px; }
+    </style>
+</head>
+<body>
+
+<div class="container-fluid">
+    <div class="row">
+        <nav class="col-md-3 col-lg-2 sidebar">
+            <div class="p-3">
+                <h4 class="text-center mb-4 border-bottom pb-3">קופת בית הכנסת</h4>
+                
+                <div class="mb-3">
+                    <label class="small text-uppercase text-muted">חיפוש/הוספת מתפלל</label>
+                    <input type="text" id="memberInput" class="form-control form-control-sm" placeholder="שם מתפלל...">
+                    <button class="btn btn-primary btn-sm w-100 mt-2" onclick="handleMemberAction()">חיפוש / הוספה</button>
+                </div>
+
+                <hr>
+                <div id="membersList" class="nav flex-column mb-4">
+                    </div>
+
+                <hr>
+                <a class="nav-link mb-2" onclick="showPage('summary')"><i class="bi bi-calculator me-2"></i> סיכום חובות</a>
+                <a class="nav-link" onclick="showPage('settings')"><i class="bi bi-gear me-2"></i> הגדרות (עמוד B)</a>
+            </div>
+        </nav>
+
+        <main class="col-md-9 col-lg-10 main-content">
+            
+            <div id="page-welcome" class="text-center mt-5">
+                <i class="bi bi-bank" style="font-size: 4rem; color: #94a3b8;"></i>
+                <h2 class="mt-3">נא לבחור מתפלל מרשימת הצד</h2>
+            </div>
+
+            <div id="page-member" class="hidden">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2 id="view-member-name">---</h2>
+                    <div id="view-balance" class="balance-box">₪ 0</div>
+                </div>
+
+                <ul class="nav nav-tabs mb-4" id="memberTabs">
+                    <li class="nav-item"><button class="nav-link active" onclick="switchMode('commitments')">התחייבויות</button></li>
+                    <li class="nav-item"><button class="nav-link" onclick="switchMode('payments')">תשלומים</button></li>
+                </ul>
+
+                <div class="input-bar shadow-sm">
+                    <div class="row g-2 align-items-end">
+                        <div class="col-md-2">
+                            <label class="small">תאריך</label>
+                            <input type="date" id="f-date" class="form-control">
+                        </div>
+                        <div class="col-md-3">
+                            <label id="f-desc-label" class="small">תיאור</label>
+                            <select id="f-desc" class="form-select"></select>
+                        </div>
+                        <div class="col-md-3">
+                            <label id="f-ref-label" class="small">אסמכתא/הערה</label>
+                            <input type="text" id="f-ref" class="form-control">
+                        </div>
+                        <div class="col-md-2">
+                            <label class="small">סכום</label>
+                            <input type="number" id="f-amount" class="form-control" placeholder="0.00">
+                        </div>
+                        <div class="col-md-2">
+                            <button class="btn btn-success w-100" onclick="addRow()">הוסף (Enter)</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card p-3">
+                    <div id="main-table"></div>
+                </div>
+            </div>
+
+            <div id="page-settings" class="hidden">
+                <h2 class="mb-4">הגדרות מערכת (עמוד B)</h2>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card p-3">
+                            <h5>רשימת מצוות / פריטים</h5>
+                            <div id="settings-mitzvot-table"></div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card p-3">
+                            <h5>אמצעי תשלום</h5>
+                            <div id="settings-pay-table"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="page-summary" class="hidden">
+                <h2 class="mb-4">דוח יתרות כללי</h2>
+                <div class="card p-3">
+                    <div id="summary-table"></div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://unpkg.com/tabulator-tables@5.5.0/dist/js/tabulator.min.js"></script>
+
+<script>
+/** מודל הנתונים **/
+let data = JSON.parse(localStorage.getItem('shul_app_db')) || {
+    members: [],
+    mitzvot: ["עליה לתורה", "פתיחת היכל", "קידוש", "נדבה"],
+    payMethods: ["מזומן", "אשראי", "העברה"],
+    logs: [] // {id, memberId, type, date, desc, ref, amount}
+};
+
+let currentMemberId = null;
+let currentMode = 'commitments'; // או payments
+let lastSelectedDate = new Date().toISOString().split('T')[0];
+
+function saveData() {
+    localStorage.setItem('shul_app_db', JSON.stringify(data));
+}
+
+/** ניווט ותצוגה **/
+function showPage(pageId) {
+    $('main > div').addClass('hidden');
+    $(`#page-${pageId}`).removeClass('hidden');
+    $('.nav-link').removeClass('active');
+    
+    if(pageId === 'settings') renderSettings();
+    if(pageId === 'summary') renderSummary();
+}
+
+/** ניהול מתפללים **/
+function renderMembers() {
+    const term = $('#memberInput').val().toLowerCase();
+    const list = $('#membersList').empty();
+    
+    data.members.filter(m => m.name.toLowerCase().includes(term)).forEach(m => {
+        const activeClass = m.id === currentMemberId ? 'active' : '';
+        list.append(`
+            <div class="d-flex align-items-center mb-1">
+                <a class="nav-link ${activeClass} flex-grow-1" onclick="selectMember(${m.id})">${m.name}</a>
+                <button class="btn btn-link text-danger p-0 px-2" onclick="deleteMember(${m.id})"><i class="bi bi-trash"></i></button>
+            </div>
+        `);
+    });
+}
+
+function handleMemberAction() {
+    const name = $('#memberInput').val().trim();
+    if (!name) return;
+    
+    const existing = data.members.find(m => m.name === name);
+    if (existing) {
+        selectMember(existing.id);
+    } else {
+        const newMember = { id: Date.now(), name: name };
+        data.members.push(newMember);
+        saveData();
+        renderMembers();
+        selectMember(newMember.id);
+    }
+}
+
+function deleteMember(id) {
+    if(confirm("למחוק את המתפלל וכל היסטוריית התשלומים שלו?")) {
+        data.members = data.members.filter(m => m.id !== id);
+        data.logs = data.logs.filter(l => l.memberId !== id);
+        saveData();
+        renderMembers();
+        showPage('welcome');
+    }
+}
+
+function selectMember(id) {
+    currentMemberId = id;
+    const member = data.members.find(m => m.id === id);
+    $('#view-member-name').text(member.name);
+    $('#f-date').val(lastSelectedDate);
+    renderMembers();
+    showPage('member');
+    switchMode('commitments');
+}
+
+/** ניהול טבלאות ונתונים **/
+function switchMode(mode) {
+    currentMode = mode;
+    $('#memberTabs .nav-link').removeClass('active');
+    $(`#memberTabs button[onclick="switchMode('${mode}')"]`).addClass('active');
+    
+    // עדכון תוויות שורת הזנה
+    if(mode === 'commitments') {
+        $('#f-desc-label').text('פירוט מצווה');
+        $('#f-ref-label').text('סוג הכנסה');
+        fillSelect('#f-desc', data.mitzvot);
+    } else {
+        $('#f-desc-label').text('אמצעי תשלום');
+        $('#f-ref-label').text('אסמכתא');
+        fillSelect('#f-desc', data.payMethods);
+    }
+    
+    renderMainTable();
+}
+
+function fillSelect(selector, list) {
+    const s = $(selector).empty();
+    list.forEach(item => s.append(`<option value="${item}">${item}</option>`));
+}
+
+function renderMainTable() {
+    const tableData = data.logs.filter(l => l.memberId === currentMemberId && l.type === currentMode);
+    
+    new Tabulator("#main-table", {
+        data: tableData,
+        layout: "fitColumns",
+        columns: [
+            {title: "תאריך", field: "date", width: 150},
+            {title: "פירוט", field: "desc"},
+            {title: "הערה/אסמכתא", field: "ref"},
+            {title: "סכום", field: "amount", bottomCalc: "sum", formatter: (cell) => cell.getValue() + " ₪"},
+            {title: "פעולות", width: 80, hozAlign: "center", formatter: () => "<button class='btn btn-sm btn-outline-danger'><i class='bi bi-x'></i></button>", cellClick: (e, cell) => {
+                data.logs = data.logs.filter(l => l.id !== cell.getData().id);
+                saveData();
+                renderMainTable();
+                updateBalance();
+            }}
+        ]
+    });
+    updateBalance();
+}
+
+function addRow() {
+    const amount = parseFloat($('#f-amount').val());
+    if(!amount) { alert("נא להזין סכום"); return; }
+    
+    lastSelectedDate = $('#f-date').val();
+    
+    const newLog = {
+        id: Date.now(),
+        memberId: currentMemberId,
+        type: currentMode,
+        date: lastSelectedDate,
+        desc: $('#f-desc').val(),
+        ref: $('#f-ref').val(),
+        amount: amount
+    };
+    
+    data.logs.push(newLog);
+    saveData();
+    
+    // איפוס סכום בלבד
+    $('#f-amount').val('');
+    renderMainTable();
+}
+
+function updateBalance() {
+    const logs = data.logs.filter(l => l.memberId === currentMemberId);
+    const commits = logs.filter(l => l.type === 'commitments').reduce((a, b) => a + b.amount, 0);
+    const pays = logs.filter(l => l.type === 'payments').reduce((a, b) => a + b.amount, 0);
+    const bal = commits - pays;
+    
+    $('#view-balance').text(`₪ ${bal.toLocaleString()}`);
+    $('#view-balance').css('color', bal > 0 ? '#dc3545' : '#198754');
+}
+
+/** עמוד B - הגדרות **/
+function renderSettings() {
+    const createSettingTable = (selector, key) => {
+        new Tabulator(selector, {
+            data: data[key].map(val => ({name: val})),
+            layout: "fitColumns",
+            columns: [
+                {title: "שם", field: "name", editor: "input"},
+                {title: "מחיקה", width: 70, formatter: () => "🗑️", cellClick: (e, cell) => {
+                    data[key].splice(cell.getRow().getIndex(), 1);
+                    saveData(); renderSettings();
+                }}
+            ],
+            footerElement: `<button class="btn btn-sm btn-primary m-2" id="add-${key}">+ הוסף שורה</button>`
+        });
+        
+        $(`#add-${key}`).off().on('click', () => {
+            const n = prompt("שם חדש:");
+            if(n) { data[key].push(n); saveData(); renderSettings(); }
+        });
+    };
+
+    createSettingTable("#settings-mitzvot-table", "mitzvot");
+    createSettingTable("#settings-pay-table", "payMethods");
+}
+
+/** דוח יתרות **/
+function renderSummary() {
+    const summaryData = data.members.map(m => {
+        const logs = data.logs.filter(l => l.memberId === m.id);
+        const bal = logs.filter(l => l.type === 'commitments').reduce((a, b) => a + b.amount, 0) -
+                    logs.filter(l => l.type === 'payments').reduce((a, b) => a + b.amount, 0);
+        return { name: m.name, balance: bal };
+    });
+
+    new Tabulator("#summary-table", {
+        data: summaryData,
+        layout: "fitColumns",
+        columns: [
+            {title: "שם המתפלל", field: "name"},
+            {title: "יתרה לתשלום", field: "balance", formatter: cell => {
+                const v = cell.getValue();
+                return `<span style="color: ${v > 0 ? 'red' : 'green'}">${v.toLocaleString()} ₪</span>`;
+            }, htmlOutput: true}
+        ]
+    });
+}
+
+// מאזין למקש Enter בתיבת הסכום
+$(document).on('keypress', '#f-amount, #f-ref', function(e) {
+    if(e.which == 13) addRow();
+});
+
+// חיפוש בזמן אמת
+$('#memberInput').on('input', renderMembers);
+
+$(document).ready(() => {
+    renderMembers();
+});
+</script>
+
+</body>
+</html>
