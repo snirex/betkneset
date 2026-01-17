@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ניהול חשבונות בית כנסת</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
+    <link href="https://unpkg.com/tabulator-tables@5.5.0/dist/css/tabulator_bootstrap5.min.css" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://unpkg.com/tabulator-tables@5.5.0/dist/js/tabulator.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <style>
+        body { background-color: #f8f9fa; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        
+        /* שיפור רספונסיביות לסרגל הצד */
+        .sidebar { 
+            height: 100vh; 
+            background: white; 
+            border-left: 1px solid #dee2e6; 
+            position: sticky; 
+            top: 0; 
+        }
+
+        @media (max-width: 768px) {
+            .sidebar { 
+                height: auto; 
+                position: relative; 
+                display: none; /* יוסתר במובייל ויוצג כ-Offcanvas */
+            }
+            .main-content { padding-top: 60px; }
+        }
+
+        .member-list { max-height: 60vh; overflow-y: auto; }
+        .tabulator { border: none !important; font-size: 14px; }
+        .input-row-card { background: #e9ecef; border-radius: 8px; padding: 15px; margin-bottom: 15px; }
+        [x-cloak] { display: none !important; }
+        
+        @media print {
+            .no-print { display: none !important; }
+            .sidebar { display: none; }
+            main { width: 100%; margin: 0; padding: 0; }
+        }
+    </style>
+</head>
+<body x-data="synagogueApp()">
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary d-md-none no-print fixed-top">
+    <div class="container-fluid">
+        <button class="navbar-toggler" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebarOffcanvas">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <span class="navbar-brand">ניהול בית כנסת</span>
+    </div>
+</nav>
+
+<div class="container-fluid">
+    <div class="row">
+        <nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block sidebar collapse bg-white no-print shadow-sm">
+            <div class="position-sticky pt-3">
+                <h4 class="mb-3 text-primary d-none d-md-block">ניהול בית כנסת</h4>
+                
+                <div class="mb-3">
+                    <input type="text" id="memberSearch" x-model="memberSearch" class="form-control" placeholder="חיפוש מתפלל (Esc)">
+                </div>
+
+                <div class="member-list list-group list-group-flush border-bottom mb-3">
+                    <template x-for="m in filteredMembers" :key="m.id">
+                        <button @click="selectMember(m)" 
+                                class="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
+                                :class="selectedMember?.id === m.id ? 'active' : ''">
+                            <div>
+                                <span x-text="m.name"></span>
+                                <small class="d-block opacity-75" x-text="m.nickname"></small>
+                            </div>
+                        </button>
+                    </template>
+                </div>
+
+                <div class="mt-auto">
+                    <button @click="view = 'globalSummary'" class="btn btn-outline-primary w-100 mb-2 text-start">📊 סיכום חובות (Alt+4)</button>
+                    <button @click="view = 'management'" class="btn btn-outline-secondary w-100 text-start">⚙️ ניהול רשימות (Alt+5)</button>
+                </div>
+            </div>
+        </nav>
+
+        <div class="offcanvas offcanvas-start no-print" tabindex="-1" id="sidebarOffcanvas" aria-labelledby="offcanvasLabel">
+            <div class="offcanvas-header">
+                <h5 id="offcanvasLabel">תפריט</h5>
+                <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas"></button>
+            </div>
+            <div class="offcanvas-body" x-html="document.getElementById('sidebarMenu').innerHTML">
+                </div>
+        </div>
+
+        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4 main-content">
+            
+            <div x-show="view === 'account' && selectedMember" x-cloak>
+                <div class="d-flex justify-content-between align-items-md-center flex-column flex-md-row mb-4">
+                    <h2>כרטיס: <span x-text="selectedMember?.name"></span> <small class="text-muted" x-text="'('+selectedMember?.nickname+')'"></small></h2>
+                    <button class="btn btn-dark no-print mt-2 mt-md-0" onclick="window.print()">🖨️ הדפס</button>
+                </div>
+
+                <ul class="nav nav-pills mb-3 no-print overflow-auto flex-nowrap">
+                    <li class="nav-item"><button class="nav-link" :class="activeTab === 'obligations' ? 'active' : ''" @click="setTab('obligations')">התחייבויות (Alt+1)</button></li>
+                    <li class="nav-item"><button class="nav-link" :class="activeTab === 'payments' ? 'active' : ''" @click="setTab('payments')">תשלומים (Alt+2)</button></li>
+                    <li class="nav-item"><button class="nav-link" :class="activeTab === 'summary' ? 'active' : ''" @click="setTab('summary')">סיכום אישי (Alt+3)</button></li>
+                </ul>
+
+                <div class="input-row-card no-print" x-show="activeTab !== 'summary' && role !== 'viewer'">
+                    <div class="row g-2">
+                        <div class="col-6 col-md-2">
+                            <label class="small">תאריך</label>
+                            <input type="date" x-model="newEntry.date" class="form-control" id="entryFirstInput">
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <label class="small" x-text="activeTab === 'obligations' ? 'סוג' : 'אמצעי'"></label>
+                            <select x-model="newEntry.type" class="form-select">
+                                <template x-for="item in (activeTab === 'obligations' ? incomeTypes : paymentMethods)">
+                                    <option :value="item" x-text="item"></option>
+                                </template>
+                            </select>
+                        </div>
+                        <div class="col-12 col-md-4">
+                            <label class="small">פירוט</label>
+                            <input type="text" x-model="newEntry.description" @keydown.enter="addNewEntry()" class="form-control" placeholder="תיאור...">
+                        </div>
+                        <div class="col-8 col-md-2">
+                            <label class="small">סכום</label>
+                            <input type="number" x-model="newEntry.amount" @keydown.enter="addNewEntry()" class="form-control" placeholder="0.00">
+                        </div>
+                        <div class="col-4 col-md-1 d-flex align-items-end">
+                            <button @click="addNewEntry()" class="btn btn-primary w-100">הוסף</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="mainTable"></div>
+            </div>
+
+            <div x-show="view === 'management'" x-cloak>... (תוכן הניהול) ...</div>
+            <div x-show="view === 'globalSummary'" x-cloak>... (תוכן סיכום כללי) ...</div>
+
+        </main>
+    </div>
+</div>
+
+<script>
+function synagogueApp() {
+    return {
+        view: 'account',
+        activeTab: 'obligations',
+        role: 'admin',
+        memberSearch: '',
+        selectedMember: null,
+        members: JSON.parse(localStorage.getItem('syn_members')) || [{id: 1, name: 'יעקב כהן', nickname: 'יענקל'}],
+        incomeTypes: ['עלייה לתורה', 'פתיחת ההיכל', 'יזכור', 'נדבה', 'דמי חבר'],
+        paymentMethods: ['מזומן', 'אשראי', 'העברה בנקאית', 'צ׳ק'],
+        transactions: JSON.parse(localStorage.getItem('syn_tx')) || [],
+        newEntry: { date: new Date().toISOString().split('T')[0], type: 'עלייה לתורה', description: '', amount: '' },
+        tabulator: null,
+
+        init() {
+            this.$watch('view', () => this.renderTable());
+            this.$watch('activeTab', () => this.renderTable());
+
+            // האזנה לקיצורי מקלדת
+            window.addEventListener('keydown', (e) => {
+                // ESC - חיפוש מתפלל
+                if (e.key === 'Escape') {
+                    e.preventDefault();
+                    const searchInput = document.getElementById('memberSearch');
+                    if (searchInput) searchInput.focus();
+                }
+
+                // Alt + Numbers
+                if (e.altKey) {
+                    if (e.key === '1') { this.view = 'account'; this.setTab('obligations'); }
+                    if (e.key === '2') { this.view = 'account'; this.setTab('payments'); }
+                    if (e.key === '3') { this.view = 'account'; this.setTab('summary'); }
+                    if (e.key === '4') { this.view = 'globalSummary'; }
+                    if (e.key === '5') { this.view = 'management'; }
+                }
+            });
+
+            setTimeout(() => document.getElementById('memberSearch').focus(), 500);
+        },
+
+        get filteredMembers() {
+            if (!this.memberSearch) return this.members;
+            return this.members.filter(m => m.name.includes(this.memberSearch) || m.nickname.includes(this.memberSearch));
+        },
+
+        selectMember(member) {
+            this.selectedMember = member;
+            this.view = 'account';
+            // סגירת התפריט במובייל לאחר בחירה
+            const offcanvasElement = document.getElementById('sidebarOffcanvas');
+            const instance = bootstrap.Offcanvas.getInstance(offcanvasElement);
+            if (instance) instance.hide();
+            this.renderTable();
+        },
+
+        setTab(tab) {
+            this.activeTab = tab;
+            this.newEntry.type = (tab === 'obligations' ? this.incomeTypes[0] : this.paymentMethods[0]);
+        },
+
+        addNewEntry() {
+            if (!this.newEntry.amount || !this.selectedMember) return;
+            const entry = {
+                id: Date.now(),
+                memberId: this.selectedMember.id,
+                date: this.newEntry.date,
+                type: this.newEntry.type,
+                description: this.newEntry.description,
+                amount: parseFloat(this.newEntry.amount),
+                kind: this.activeTab
+            };
+            this.transactions.push(entry);
+            this.saveData();
+            this.newEntry.description = '';
+            this.newEntry.amount = '';
+            this.renderTable();
+            // פוקוס חזרה לפירוט לאחר הוספה
+            this.$nextTick(() => document.querySelector('input[placeholder="תיאור..."]').focus());
+        },
+
+        renderTable() {
+            if (this.view !== 'account' || !this.selectedMember) return;
+            
+            let data = this.transactions.filter(t => t.memberId === this.selectedMember.id);
+            let columns = [
+                {title: "תאריך", field: "date", width: 100},
+                {title: "סוג/אמצעי", field: "type", width: 120},
+                {title: "פירוט", field: "description", responsive: 0}, // תמיד יוצג
+                {title: "סכום", field: "amount", formatter: "money", width: 90}
+            ];
+
+            if (this.activeTab === 'summary') {
+                columns.push({title: "יתרה", field: "balance", formatter: "money", cssClass: "fw-bold"});
+                // לוגיקת חישוב יתרה...
+            }
+
+            this.tabulator = new Tabulator("#mainTable", {
+                data: this.activeTab === 'summary' ? data : data.filter(t => t.kind === this.activeTab),
+                layout: "fitColumns",
+                responsiveLayout: "collapse", // קריסה רספונסיבית במובייל
+                columns: columns,
+                rtl: true
+            });
+        },
+
+        saveData() {
+            localStorage.setItem('syn_members', JSON.stringify(this.members));
+            localStorage.setItem('syn_tx', JSON.stringify(this.transactions));
+        }
+    }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,1821 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ניהול חשבונות בית כנסת</title>
+    
+    <!-- Bootstrap RTL -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css">
+    <!-- Tabulator -->
+    <link href="https://unpkg.com/tabulator-tables@5.5.0/dist/css/tabulator_bootstrap5.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    
+    <style>
+        :root {
+            --primary-color: #1e293b;
+            --primary-light: #334155;
+            --accent-color: #3b82f6;
+            --success-color: #10b981;
+            --danger-color: #ef4444;
+            --warning-color: #f59e0b;
+            --bg-color: #f0f2f5;
+            --card-bg: #ffffff;
+            --border-color: #e2e8f0;
+            --text-muted: #64748b;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background-color: var(--bg-color);
+            font-family: 'Segoe UI', 'Assistant', 'Rubik', system-ui, sans-serif;
+            overflow-x: hidden;
+        }
+        
+        /* Login Screen */
+        .login-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .login-card {
+            background: white;
+            border-radius: 16px;
+            padding: 3rem;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 400px;
+            width: 90%;
+        }
+        
+        .login-card h2 {
+            text-align: center;
+            margin-bottom: 2rem;
+            color: var(--primary-color);
+        }
+        
+        .login-card .btn-login {
+            width: 100%;
+            padding: 0.75rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-top: 1rem;
+        }
+        
+        /* Sidebar */
+        .sidebar {
+            background: var(--primary-color);
+            color: white;
+            min-height: 100vh;
+            position: sticky;
+            top: 0;
+            overflow-y: auto;
+            box-shadow: 4px 0 10px rgba(0,0,0,0.1);
+        }
+        
+        .sidebar-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+        }
+        
+        .sidebar-header h4 {
+            font-weight: 700;
+            margin: 0;
+            font-size: 1.2rem;
+        }
+        
+        .sidebar-header .user-info {
+            font-size: 0.85rem;
+            color: #94a3b8;
+            margin-top: 0.5rem;
+        }
+        
+        /* Members Search */
+        .members-section {
+            padding: 1rem;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .members-section label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            color: #94a3b8;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+        }
+        
+        .members-list {
+            max-height: 400px;
+            overflow-y: auto;
+            margin-top: 0.5rem;
+        }
+        
+        .members-list::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .members-list::-webkit-scrollbar-track {
+            background: rgba(255,255,255,0.05);
+        }
+        
+        .members-list::-webkit-scrollbar-thumb {
+            background: rgba(255,255,255,0.2);
+            border-radius: 3px;
+        }
+        
+        .member-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.75rem;
+            margin-bottom: 0.25rem;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: #cbd5e1;
+        }
+        
+        .member-item:hover {
+            background: var(--primary-light);
+            color: white;
+        }
+        
+        .member-item.active {
+            background: var(--accent-color);
+            color: white;
+            box-shadow: 0 2px 8px rgba(59,130,246,0.3);
+        }
+        
+        .member-item .member-name {
+            flex: 1;
+            font-weight: 500;
+        }
+        
+        .member-item .member-balance {
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-left: 0.5rem;
+        }
+        
+        .member-item .btn-delete {
+            background: none;
+            border: none;
+            color: #94a3b8;
+            padding: 0.25rem 0.5rem;
+            cursor: pointer;
+            opacity: 0;
+            transition: all 0.2s;
+        }
+        
+        .member-item:hover .btn-delete {
+            opacity: 1;
+        }
+        
+        .member-item .btn-delete:hover {
+            color: var(--danger-color);
+        }
+        
+        /* Navigation Links */
+        .nav-section {
+            padding: 1rem;
+        }
+        
+        .nav-link {
+            color: #cbd5e1;
+            cursor: pointer;
+            padding: 0.75rem 1rem;
+            transition: all 0.2s;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.25rem;
+            font-weight: 500;
+            text-decoration: none;
+        }
+        
+        .nav-link:hover {
+            background: var(--primary-light);
+            color: white;
+        }
+        
+        .nav-link.active {
+            background: var(--accent-color);
+            color: white;
+        }
+        
+        .nav-link i {
+            margin-left: 0.75rem;
+            width: 20px;
+        }
+        
+        /* Main Content */
+        .main-content {
+            padding: 2rem;
+            min-height: 100vh;
+        }
+        
+        .page {
+            display: none;
+        }
+        
+        .page.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* Welcome Page */
+        .welcome-page {
+            text-align: center;
+            padding: 4rem 2rem;
+        }
+        
+        .welcome-page i {
+            font-size: 5rem;
+            color: #cbd5e1;
+            margin-bottom: 1.5rem;
+        }
+        
+        .welcome-page h2 {
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+        
+        /* Member Page Header */
+        .member-header {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .member-header h2 {
+            margin: 0;
+            color: var(--primary-color);
+            font-weight: 700;
+        }
+        
+        .balance-box {
+            font-size: 1.8rem;
+            font-weight: 700;
+            padding: 0.75rem 1.5rem;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            border: 2px solid var(--border-color);
+            font-family: 'Courier New', monospace;
+        }
+        
+        .balance-box.positive {
+            color: var(--success-color);
+            background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+            border-color: var(--success-color);
+        }
+        
+        .balance-box.negative {
+            color: var(--danger-color);
+            background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+            border-color: var(--danger-color);
+        }
+        
+        /* Tabs */
+        .nav-tabs {
+            border-bottom: 2px solid var(--border-color);
+            margin-bottom: 1.5rem;
+        }
+        
+        .nav-tabs .nav-link {
+            color: var(--text-muted);
+            background: none;
+            border: none;
+            border-bottom: 3px solid transparent;
+            padding: 0.75rem 1.5rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        
+        .nav-tabs .nav-link:hover {
+            color: var(--accent-color);
+            background: rgba(59,130,246,0.05);
+        }
+        
+        .nav-tabs .nav-link.active {
+            color: var(--accent-color);
+            border-bottom-color: var(--accent-color);
+            background: rgba(59,130,246,0.05);
+        }
+        
+        /* Input Bar */
+        .input-bar {
+            background: white;
+            border: 2px solid var(--border-color);
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+        
+        .input-bar label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            margin-bottom: 0.5rem;
+        }
+        
+        .input-bar .form-control,
+        .input-bar .form-select {
+            border: 1px solid var(--border-color);
+            padding: 0.625rem;
+            font-size: 0.95rem;
+        }
+        
+        .input-bar .form-control:focus,
+        .input-bar .form-select:focus {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
+        }
+        
+        /* Cards */
+        .card {
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            background: white;
+            margin-bottom: 1.5rem;
+        }
+        
+        .card-header {
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            border-bottom: 2px solid var(--border-color);
+            padding: 1.25rem 1.5rem;
+            border-radius: 12px 12px 0 0;
+        }
+        
+        .card-header h3 {
+            margin: 0;
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+        
+        /* Tabulator Customization */
+        .tabulator {
+            border: none;
+            border-radius: 8px;
+            font-size: 0.95rem;
+        }
+        
+        .tabulator-header {
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            border-bottom: 2px solid var(--border-color);
+        }
+        
+        .tabulator-col {
+            background: transparent;
+            border: none;
+        }
+        
+        .tabulator-col-title {
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+        
+        .tabulator-row:hover {
+            background: #f8fafc !important;
+        }
+        
+        .tabulator-row.tabulator-selected {
+            background: rgba(59,130,246,0.1) !important;
+        }
+        
+        .tabulator-footer {
+            background: #f8fafc;
+            border-top: 2px solid var(--border-color);
+            font-weight: 700;
+        }
+        
+        /* Buttons */
+        .btn {
+            border-radius: 8px;
+            padding: 0.625rem 1.25rem;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent-color) 0%, #2563eb 100%);
+            border: none;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(59,130,246,0.3);
+        }
+        
+        .btn-success {
+            background: linear-gradient(135deg, var(--success-color) 0%, #059669 100%);
+            border: none;
+        }
+        
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(16,185,129,0.3);
+        }
+        
+        .btn-danger {
+            background: linear-gradient(135deg, var(--danger-color) 0%, #dc2626 100%);
+            border: none;
+        }
+        
+        /* Keyboard Shortcuts Help */
+        .shortcuts-help {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: white;
+            border-radius: 10px;
+            padding: 1rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            font-size: 0.85rem;
+            max-width: 300px;
+            z-index: 1000;
+        }
+        
+        .shortcuts-help h6 {
+            font-weight: 700;
+            margin-bottom: 0.75rem;
+            color: var(--primary-color);
+        }
+        
+        .shortcuts-help .shortcut {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+        }
+        
+        .shortcuts-help kbd {
+            background: var(--primary-color);
+            color: white;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        
+        /* Print Styles */
+        @media print {
+            .sidebar,
+            .shortcuts-help,
+            .input-bar,
+            .btn {
+                display: none !important;
+            }
+            
+            .main-content {
+                padding: 0;
+            }
+            
+            .card {
+                box-shadow: none;
+                border: 1px solid #ddd;
+            }
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .sidebar {
+                position: fixed;
+                right: -100%;
+                top: 0;
+                width: 80%;
+                max-width: 300px;
+                z-index: 1050;
+                transition: right 0.3s ease;
+            }
+            
+            .sidebar.open {
+                right: 0;
+            }
+            
+            .mobile-menu-toggle {
+                position: fixed;
+                top: 1rem;
+                right: 1rem;
+                z-index: 1051;
+                background: white;
+                border: none;
+                width: 50px;
+                height: 50px;
+                border-radius: 50%;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 1.5rem;
+                color: var(--primary-color);
+            }
+            
+            .main-content {
+                padding: 1rem;
+                padding-top: 4rem;
+            }
+            
+            .member-header {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .balance-box {
+                font-size: 1.5rem;
+            }
+        }
+        
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Login Screen -->
+<div id="loginScreen" class="login-container">
+    <div class="login-card">
+        <h2>
+            <i class="bi bi-building"></i>
+            <div>קופת בית הכנסת</div>
+        </h2>
+        <div class="mb-3">
+            <label class="form-label">שם משתמש</label>
+            <input type="text" id="loginUsername" class="form-control" placeholder="הזן שם משתמש" autocomplete="username">
+        </div>
+        <div class="mb-3">
+            <label class="form-label">סיסמה</label>
+            <input type="password" id="loginPassword" class="form-control" placeholder="הזן סיסמה" autocomplete="current-password">
+        </div>
+        <div class="mb-3">
+            <label class="form-label">תפקיד</label>
+            <select id="loginRole" class="form-select">
+                <option value="admin">מנהל מלא</option>
+                <option value="editor">עורך חלקי</option>
+                <option value="viewer">צופה בלבד</option>
+            </select>
+        </div>
+        <button class="btn btn-primary btn-login" onclick="SynagogueApp.login()">כניסה למערכת</button>
+        <div class="text-center mt-3 small text-muted">
+            לדוגמה: admin/admin123 או viewer/viewer123
+        </div>
+    </div>
+</div>
+
+<!-- Main App -->
+<div id="mainApp" class="hidden">
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <nav class="col-md-3 col-lg-2 sidebar" id="sidebar">
+                <div class="sidebar-header">
+                    <h4>
+                        <i class="bi bi-building-fill"></i>
+                        קופת בית הכנסת
+                    </h4>
+                    <div class="user-info">
+                        <i class="bi bi-person-circle"></i>
+                        <span id="currentUserDisplay">---</span>
+                        <button class="btn btn-link text-danger btn-sm p-0 ms-2" onclick="SynagogueApp.logout()">
+                            <i class="bi bi-box-arrow-left"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Members Search & List -->
+                <div class="members-section">
+                    <label>חיפוש / הוספת מתפלל</label>
+                    <div class="input-group input-group-sm mt-2">
+                        <input type="text" id="memberSearchInput" class="form-control" 
+                               placeholder="שם מתפלל..." 
+                               onkeypress="if(event.key==='Enter') SynagogueApp.handleMemberSearch()">
+                        <button class="btn btn-primary" onclick="SynagogueApp.handleMemberSearch()">
+                            <i class="bi bi-search"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="members-list" id="membersList">
+                        <!-- Members will be rendered here -->
+                    </div>
+                </div>
+                
+                <!-- Navigation -->
+                <div class="nav-section">
+                    <a class="nav-link" onclick="SynagogueApp.showPage('summary')">
+                        <i class="bi bi-calculator"></i>
+                        <span>סיכום חובות</span>
+                    </a>
+                    <a class="nav-link" onclick="SynagogueApp.showPage('settings')">
+                        <i class="bi bi-gear"></i>
+                        <span>ניהול רשימות</span>
+                    </a>
+                </div>
+            </nav>
+            
+            <!-- Mobile Menu Toggle -->
+            <button class="mobile-menu-toggle d-md-none" onclick="SynagogueApp.toggleSidebar()">
+                <i class="bi bi-list"></i>
+            </button>
+            
+            <!-- Main Content -->
+            <main class="col-md-9 col-lg-10 main-content">
+                <!-- Welcome Page -->
+                <div id="page-welcome" class="page active welcome-page">
+                    <i class="bi bi-bank"></i>
+                    <h2>נא לבחור מתפלל מרשימת הצד</h2>
+                    <p class="text-muted mt-3">או חפש והוסף מתפלל חדש</p>
+                </div>
+                
+                <!-- Member Page -->
+                <div id="page-member" class="page">
+                    <div class="member-header">
+                        <div>
+                            <h2 id="memberName">---</h2>
+                            <div class="text-muted small mt-1">
+                                <span id="memberDetails">---</span>
+                            </div>
+                        </div>
+                        <div id="memberBalance" class="balance-box">₪ 0</div>
+                    </div>
+                    
+                    <!-- Tabs -->
+                    <ul class="nav nav-tabs" id="memberTabs">
+                        <li class="nav-item">
+                            <button class="nav-link active" onclick="SynagogueApp.switchTab('commitments')">
+                                <i class="bi bi-hand-holding-dollar"></i> התחייבויות
+                            </button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="nav-link" onclick="SynagogueApp.switchTab('payments')">
+                                <i class="bi bi-credit-card"></i> תשלומים
+                            </button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="nav-link" onclick="SynagogueApp.switchTab('ledger')">
+                                <i class="bi bi-journal-text"></i> חשבון מפורט
+                            </button>
+                        </li>
+                    </ul>
+                    
+                    <!-- Input Bar (for commitments & payments tabs) -->
+                    <div id="inputBar" class="input-bar">
+                        <div class="row g-2">
+                            <div class="col-md-2">
+                                <label>תאריך</label>
+                                <input type="date" id="input-date" class="form-control">
+                            </div>
+                            <div class="col-md-3">
+                                <label id="input-desc-label">פירוט</label>
+                                <select id="input-desc" class="form-select"></select>
+                            </div>
+                            <div class="col-md-3">
+                                <label id="input-ref-label">הערה</label>
+                                <input type="text" id="input-ref" class="form-control" placeholder="אסמכתא או הערה">
+                            </div>
+                            <div class="col-md-2">
+                                <label>סכום (₪)</label>
+                                <input type="number" id="input-amount" class="form-control" 
+                                       placeholder="0.00" step="0.01" min="0">
+                            </div>
+                            <div class="col-md-2 d-flex align-items-end">
+                                <button class="btn btn-success w-100" onclick="SynagogueApp.addRow()">
+                                    <i class="bi bi-plus-circle"></i> הוסף
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Tables Container -->
+                    <div class="card">
+                        <div id="mainTableContainer"></div>
+                    </div>
+                </div>
+                
+                <!-- Summary Page -->
+                <div id="page-summary" class="page">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>
+                                <i class="bi bi-calculator"></i>
+                                דוח יתרות כללי
+                            </h3>
+                        </div>
+                        <div class="card-body">
+                            <div id="summaryTable"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Settings Page -->
+                <div id="page-settings" class="page">
+                    <h2 class="mb-4">ניהול רשימות וערכים קבועים</h2>
+                    
+                    <div class="row">
+                        <div class="col-md-12 mb-4">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h3>רשימת מתפללים</h3>
+                                </div>
+                                <div class="card-body">
+                                    <button class="btn btn-primary mb-3" onclick="SynagogueApp.openMemberDialog()">
+                                        <i class="bi bi-plus-circle"></i> הוסף מתפלל חדש
+                                    </button>
+                                    <div id="membersManagementTable"></div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6 mb-4">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h3>סוגי הכנסה / מצוות</h3>
+                                </div>
+                                <div class="card-body">
+                                    <button class="btn btn-primary btn-sm mb-3" onclick="SynagogueApp.addListItem('mitzvot')">
+                                        <i class="bi bi-plus"></i> הוסף סוג הכנסה
+                                    </button>
+                                    <div id="mitzvotTable"></div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6 mb-4">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h3>אמצעי תשלום</h3>
+                                </div>
+                                <div class="card-body">
+                                    <button class="btn btn-primary btn-sm mb-3" onclick="SynagogueApp.addListItem('payMethods')">
+                                        <i class="bi bi-plus"></i> הוסף אמצעי תשלום
+                                    </button>
+                                    <div id="payMethodsTable"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+    
+    <!-- Keyboard Shortcuts Help -->
+    <div class="shortcuts-help" id="shortcutsHelp">
+        <h6><i class="bi bi-keyboard"></i> קיצורי מקלדת</h6>
+        <div class="shortcut">
+            <span>הוסף שורה</span>
+            <kbd>Enter</kbd>
+        </div>
+        <div class="shortcut">
+            <span>חזור לרשימה</span>
+            <kbd>Esc</kbd>
+        </div>
+        <div class="shortcut">
+            <span>התחייבויות</span>
+            <kbd>Alt+1</kbd>
+        </div>
+        <div class="shortcut">
+            <span>תשלומים</span>
+            <kbd>Alt+2</kbd>
+        </div>
+        <div class="shortcut">
+            <span>חשבון מפורט</span>
+            <kbd>Alt+3</kbd>
+        </div>
+        <div class="shortcut">
+            <span>הדפסה</span>
+            <kbd>Ctrl+P</kbd>
+        </div>
+    </div>
+</div>
+
+<!-- Scripts -->
+<script src="https://unpkg.com/tabulator-tables@5.5.0/dist/js/tabulator.min.js"></script>
+
+<script>
+// Main Application
+const SynagogueApp = (function() {
+    'use strict';
+    
+    // State
+    let state = {
+        currentUser: null,
+        currentMemberId: null,
+        currentTab: 'commitments',
+        lastDate: new Date().toISOString().split('T')[0],
+        data: {
+            users: [
+                { username: 'admin', password: 'admin123', role: 'admin', name: 'מנהל המערכת' },
+                { username: 'editor', password: 'editor123', role: 'editor', name: 'עורך' },
+                { username: 'viewer', password: 'viewer123', role: 'viewer', name: 'צופה' }
+            ],
+            members: [],
+            mitzvot: ["עליה לתורה", "פתיחת היכל", "הגבהה", "גלילה", "קידוש", "נדבה כללית"],
+            payMethods: ["מזומן", "אשראי", "העברה בנקאית", "צ'ק", "ביט", "פייבוקס"],
+            transactions: [] // {id, memberId, type, date, desc, ref, amount, createdAt}
+        }
+    };
+    
+    // Tables
+    let tables = {
+        main: null,
+        summary: null,
+        membersManagement: null,
+        mitzvot: null,
+        payMethods: null
+    };
+    
+    // Storage
+    function loadData() {
+        const stored = localStorage.getItem('shul_accounting_v2');
+        if (stored) {
+            try {
+                const parsed = JSON.parse(stored);
+                state.data = { ...state.data, ...parsed };
+            } catch (e) {
+                console.error('Failed to load data:', e);
+            }
+        }
+        
+        // Initialize sample data if needed
+        if (state.data.members.length === 0) {
+            state.data.members = [
+                { 
+                    id: uid(), 
+                    name: 'משה כהן', 
+                    nickname: 'משה בן יעקב',
+                    phone: '050-1234567',
+                    email: 'moshe@example.com',
+                    address: 'רחוב הרצל 10, ירושלים'
+                },
+                { 
+                    id: uid(), 
+                    name: 'דוד לוי', 
+                    nickname: 'דוד בן שלמה',
+                    phone: '052-9876543',
+                    email: 'david@example.com',
+                    address: 'רחוב יפו 25, תל אביב'
+                }
+            ];
+            saveData();
+        }
+    }
+    
+    function saveData() {
+        try {
+            localStorage.setItem('shul_accounting_v2', JSON.stringify(state.data));
+        } catch (e) {
+            console.error('Failed to save data:', e);
+            alert('שגיאה בשמירת נתונים');
+        }
+    }
+    
+    function uid() {
+        return Date.now().toString(36) + Math.random().toString(36).slice(2);
+    }
+    
+    function formatCurrency(value) {
+        return new Intl.NumberFormat('he-IL', {
+            style: 'currency',
+            currency: 'ILS',
+            maximumFractionDigits: 0
+        }).format(value || 0);
+    }
+    
+    // Authentication
+    function login() {
+        const username = document.getElementById('loginUsername').value.trim();
+        const password = document.getElementById('loginPassword').value;
+        const role = document.getElementById('loginRole').value;
+        
+        const user = state.data.users.find(u => 
+            u.username === username && 
+            u.password === password && 
+            u.role === role
+        );
+        
+        if (user) {
+            state.currentUser = user;
+            document.getElementById('loginScreen').classList.add('hidden');
+            document.getElementById('mainApp').classList.remove('hidden');
+            document.getElementById('currentUserDisplay').textContent = `${user.name} (${getRoleText(user.role)})`;
+            
+            renderMembers();
+            applyPermissions();
+        } else {
+            alert('שם משתמש, סיסמה או תפקיד שגויים');
+        }
+    }
+    
+    function logout() {
+        if (confirm('האם לצאת מהמערכת?')) {
+            state.currentUser = null;
+            state.currentMemberId = null;
+            document.getElementById('loginScreen').classList.remove('hidden');
+            document.getElementById('mainApp').classList.add('hidden');
+            document.getElementById('loginUsername').value = '';
+            document.getElementById('loginPassword').value = '';
+        }
+    }
+    
+    function getRoleText(role) {
+        const roles = {
+            'admin': 'מנהל מלא',
+            'editor': 'עורך',
+            'viewer': 'צופה'
+        };
+        return roles[role] || role;
+    }
+    
+    function applyPermissions() {
+        const role = state.currentUser?.role;
+        
+        if (role === 'viewer') {
+            // Viewers can only see their own data
+            // Hide add buttons and edit capabilities
+            document.querySelectorAll('.btn-success, .btn-primary').forEach(btn => {
+                if (btn.textContent.includes('הוסף')) {
+                    btn.style.display = 'none';
+                }
+            });
+        }
+    }
+    
+    // Members Management
+    function renderMembers() {
+        const searchTerm = document.getElementById('memberSearchInput').value.toLowerCase();
+        const container = document.getElementById('membersList');
+        
+        let members = state.data.members;
+        
+        // Filter if viewer role
+        if (state.currentUser?.role === 'viewer') {
+            // In real app, match by user ID
+            members = members.slice(0, 1); // Show only first member for demo
+        }
+        
+        // Filter by search
+        if (searchTerm) {
+            members = members.filter(m => 
+                m.name.toLowerCase().includes(searchTerm) ||
+                (m.nickname && m.nickname.toLowerCase().includes(searchTerm))
+            );
+        }
+        
+        container.innerHTML = members.map(member => {
+            const balance = calculateMemberBalance(member.id);
+            const isActive = member.id === state.currentMemberId;
+            
+            return `
+                <div class="member-item ${isActive ? 'active' : ''}" 
+                     onclick="SynagogueApp.selectMember('${member.id}')">
+                    <div class="member-name">
+                        ${escapeHtml(member.name)}
+                        ${member.nickname ? `<div class="small">${escapeHtml(member.nickname)}</div>` : ''}
+                    </div>
+                    <div class="member-balance" style="color: ${balance > 0 ? '#ef4444' : balance < 0 ? '#10b981' : '#64748b'}">
+                        ${formatCurrency(Math.abs(balance))}
+                    </div>
+                    ${state.currentUser?.role === 'admin' ? `
+                        <button class="btn-delete" onclick="event.stopPropagation(); SynagogueApp.deleteMember('${member.id}')">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    ` : ''}
+                </div>
+            `;
+        }).join('');
+        
+        if (members.length === 0) {
+            container.innerHTML = '<div class="text-center text-muted p-3">לא נמצאו מתפללים</div>';
+        }
+    }
+    
+    function handleMemberSearch() {
+        const name = document.getElementById('memberSearchInput').value.trim();
+        
+        if (!name) {
+            renderMembers();
+            return;
+        }
+        
+        // Check if member exists
+        const existing = state.data.members.find(m => 
+            m.name.toLowerCase() === name.toLowerCase()
+        );
+        
+        if (existing) {
+            selectMember(existing.id);
+        } else {
+            if (state.currentUser?.role !== 'admin') {
+                alert('אין לך הרשאה להוסיף מתפללים חדשים');
+                return;
+            }
+            
+            if (confirm(`האם להוסיף מתפלל חדש: ${name}?`)) {
+                const newMember = {
+                    id: uid(),
+                    name: name,
+                    nickname: '',
+                    phone: '',
+                    email: '',
+                    address: ''
+                };
+                
+                state.data.members.push(newMember);
+                saveData();
+                renderMembers();
+                selectMember(newMember.id);
+                
+                // Open edit dialog
+                setTimeout(() => openMemberDialog(newMember.id), 300);
+            }
+        }
+    }
+    
+    function selectMember(memberId) {
+        state.currentMemberId = memberId;
+        const member = state.data.members.find(m => m.id === memberId);
+        
+        if (!member) return;
+        
+        document.getElementById('memberName').textContent = member.name;
+        
+        let details = [];
+        if (member.nickname) details.push(member.nickname);
+        if (member.phone) details.push(member.phone);
+        document.getElementById('memberDetails').textContent = details.join(' • ') || 'אין פרטים נוספים';
+        
+        updateMemberBalance();
+        renderMembers();
+        showPage('member');
+        switchTab('commitments');
+        
+        // Focus on date input
+        setTimeout(() => {
+            document.getElementById('input-date').focus();
+        }, 100);
+    }
+    
+    function deleteMember(memberId) {
+        const member = state.data.members.find(m => m.id === memberId);
+        if (!member) return;
+        
+        const hasTransactions = state.data.transactions.some(t => t.memberId === memberId);
+        
+        let confirmMsg = `האם למחוק את ${member.name}?`;
+        if (hasTransactions) {
+            confirmMsg = `למתפלל ${member.name} יש התחייבויות ותשלומים.\nהמחיקה תסיר גם את כל הנתונים הקשורים.\nהאם להמשיך?`;
+        }
+        
+        if (!confirm(confirmMsg)) return;
+        
+        state.data.members = state.data.members.filter(m => m.id !== memberId);
+        state.data.transactions = state.data.transactions.filter(t => t.memberId !== memberId);
+        
+        if (state.currentMemberId === memberId) {
+            state.currentMemberId = null;
+            showPage('welcome');
+        }
+        
+        saveData();
+        renderMembers();
+    }
+    
+    function openMemberDialog(memberId = null) {
+        let member = memberId ? state.data.members.find(m => m.id === memberId) : null;
+        
+        const name = prompt('שם המתפלל:', member?.name || '');
+        if (!name) return;
+        
+        const nickname = prompt('כינוי (לדוגמה: משה בן יעקב):', member?.nickname || '');
+        const phone = prompt('טלפון:', member?.phone || '');
+        const email = prompt('אימייל:', member?.email || '');
+        const address = prompt('כתובת:', member?.address || '');
+        
+        if (member) {
+            // Update existing
+            member.name = name;
+            member.nickname = nickname;
+            member.phone = phone;
+            member.email = email;
+            member.address = address;
+        } else {
+            // Create new
+            const newMember = {
+                id: uid(),
+                name,
+                nickname,
+                phone,
+                email,
+                address
+            };
+            state.data.members.push(newMember);
+            state.currentMemberId = newMember.id;
+        }
+        
+        saveData();
+        renderMembers();
+        
+        if (state.currentMemberId) {
+            selectMember(state.currentMemberId);
+        }
+    }
+    
+    function calculateMemberBalance(memberId) {
+        const transactions = state.data.transactions.filter(t => t.memberId === memberId);
+        const commitments = transactions.filter(t => t.type === 'commitments')
+            .reduce((sum, t) => sum + (Number(t.amount) || 0), 0);
+        const payments = transactions.filter(t => t.type === 'payments')
+            .reduce((sum, t) => sum + (Number(t.amount) || 0), 0);
+        
+        return commitments - payments;
+    }
+    
+    function updateMemberBalance() {
+        if (!state.currentMemberId) return;
+        
+        const balance = calculateMemberBalance(state.currentMemberId);
+        const el = document.getElementById('memberBalance');
+        
+        el.textContent = formatCurrency(Math.abs(balance));
+        el.className = 'balance-box';
+        
+        if (balance > 0) {
+            el.classList.add('negative');
+        } else if (balance < 0) {
+            el.classList.add('positive');
+        }
+    }
+    
+    // Tabs and Pages
+    function showPage(pageId) {
+        document.querySelectorAll('.page').forEach(page => {
+            page.classList.remove('active');
+        });
+        
+        document.getElementById(`page-${pageId}`)?.classList.add('active');
+        
+        // Update nav links
+        document.querySelectorAll('.nav-link').forEach(link => {
+            link.classList.remove('active');
+        });
+        
+        // Special page handlers
+        if (pageId === 'summary') {
+            renderSummaryTable();
+        } else if (pageId === 'settings') {
+            renderSettingsTables();
+        }
+    }
+    
+    function switchTab(tabName) {
+        state.currentTab = tabName;
+        
+        // Update tab buttons
+        document.querySelectorAll('#memberTabs .nav-link').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        document.querySelector(`#memberTabs button[onclick*="${tabName}"]`)?.classList.add('active');
+        
+        // Show/hide input bar
+        const inputBar = document.getElementById('inputBar');
+        if (tabName === 'ledger') {
+            inputBar.style.display = 'none';
+        } else {
+            inputBar.style.display = 'block';
+            updateInputBar(tabName);
+        }
+        
+        renderMainTable();
+    }
+    
+    function updateInputBar(tabName) {
+        const descLabel = document.getElementById('input-desc-label');
+        const refLabel = document.getElementById('input-ref-label');
+        const descSelect = document.getElementById('input-desc');
+        
+        if (tabName === 'commitments') {
+            descLabel.textContent = 'סוג הכנסה';
+            refLabel.textContent = 'פירוט / הערה';
+            fillSelect(descSelect, state.data.mitzvot);
+        } else if (tabName === 'payments') {
+            descLabel.textContent = 'אמצעי תשלום';
+            refLabel.textContent = 'אסמכתא / הערה';
+            fillSelect(descSelect, state.data.payMethods);
+        }
+        
+        // Set date to last used or today
+        document.getElementById('input-date').value = state.lastDate;
+    }
+    
+    function fillSelect(selectEl, options) {
+        selectEl.innerHTML = options.map(opt => 
+            `<option value="${escapeHtml(opt)}">${escapeHtml(opt)}</option>`
+        ).join('');
+    }
+    
+    // Transactions
+    function addRow() {
+        if (!state.currentMemberId) {
+            alert('נא לבחור מתפלל תחילה');
+            return;
+        }
+        
+        if (state.currentUser?.role === 'viewer') {
+            alert('אין לך הרשאה להוסיף נתונים');
+            return;
+        }
+        
+        const date = document.getElementById('input-date').value;
+        const desc = document.getElementById('input-desc').value;
+        const ref = document.getElementById('input-ref').value;
+        const amount = parseFloat(document.getElementById('input-amount').value);
+        
+        if (!date) {
+            alert('נא להזין תאריך');
+            document.getElementById('input-date').focus();
+            return;
+        }
+        
+        if (!amount || amount <= 0) {
+            alert('נא להזין סכום תקין');
+            document.getElementById('input-amount').focus();
+            return;
+        }
+        
+        const transaction = {
+            id: uid(),
+            memberId: state.currentMemberId,
+            type: state.currentTab,
+            date: date,
+            desc: desc,
+            ref: ref,
+            amount: amount,
+            createdAt: new Date().toISOString()
+        };
+        
+        state.data.transactions.push(transaction);
+        state.lastDate = date;
+        
+        saveData();
+        renderMainTable();
+        updateMemberBalance();
+        renderMembers();
+        
+        // Clear only amount and ref, keep date and desc
+        document.getElementById('input-amount').value = '';
+        document.getElementById('input-ref').value = '';
+        document.getElementById('input-ref').focus();
+    }
+    
+    function deleteTransaction(id) {
+        if (state.currentUser?.role === 'viewer') {
+            alert('אין לך הרשאה למחוק נתונים');
+            return;
+        }
+        
+        if (!confirm('האם למחוק רשומה זו?')) return;
+        
+        state.data.transactions = state.data.transactions.filter(t => t.id !== id);
+        saveData();
+        renderMainTable();
+        updateMemberBalance();
+        renderMembers();
+    }
+    
+    // Tables Rendering
+    function renderMainTable() {
+        if (!state.currentMemberId) return;
+        
+        const container = document.getElementById('mainTableContainer');
+        
+        if (state.currentTab === 'ledger') {
+            renderLedgerTable();
+            return;
+        }
+        
+        const transactions = state.data.transactions
+            .filter(t => t.memberId === state.currentMemberId && t.type === state.currentTab)
+            .sort((a, b) => new Date(b.date) - new Date(a.date));
+        
+        if (tables.main) {
+            tables.main.destroy();
+        }
+        
+        tables.main = new Tabulator(container, {
+            data: transactions,
+            layout: "fitColumns",
+            height: "500px",
+            placeholder: "אין נתונים להצגה",
+            columns: [
+                {
+                    title: "תאריך",
+                    field: "date",
+                    width: 120,
+                    sorter: "date",
+                    sorterParams: { format: "YYYY-MM-DD" }
+                },
+                {
+                    title: state.currentTab === 'commitments' ? 'סוג הכנסה' : 'אמצעי תשלום',
+                    field: "desc",
+                    widthGrow: 2
+                },
+                {
+                    title: state.currentTab === 'commitments' ? 'פירוט' : 'אסמכתא',
+                    field: "ref",
+                    widthGrow: 2
+                },
+                {
+                    title: "סכום",
+                    field: "amount",
+                    width: 130,
+                    hozAlign: "right",
+                    formatter: cell => formatCurrency(cell.getValue()),
+                    bottomCalc: "sum",
+                    bottomCalcFormatter: cell => `<strong>${formatCurrency(cell.getValue())}</strong>`
+                },
+                {
+                    title: "פעולות",
+                    width: 100,
+                    hozAlign: "center",
+                    headerSort: false,
+                    formatter: () => {
+                        if (state.currentUser?.role === 'viewer') return '';
+                        return `
+                            <button class="btn btn-sm btn-outline-danger">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        `;
+                    },
+                    cellClick: (e, cell) => {
+                        if (state.currentUser?.role === 'viewer') return;
+                        deleteTransaction(cell.getData().id);
+                    }
+                }
+            ]
+        });
+    }
+    
+    function renderLedgerTable() {
+        if (!state.currentMemberId) return;
+        
+        const container = document.getElementById('mainTableContainer');
+        
+        // Get all transactions for this member
+        const allTransactions = state.data.transactions
+            .filter(t => t.memberId === state.currentMemberId)
+            .sort((a, b) => new Date(a.date) - new Date(b.date));
+        
+        // Calculate running balance
+        let balance = 0;
+        const ledgerData = allTransactions.map(t => {
+            const amount = t.type === 'commitments' ? t.amount : -t.amount;
+            balance += amount;
+            
+            return {
+                id: t.id,
+                date: t.date,
+                type: t.type === 'commitments' ? 'התחייבות' : 'תשלום',
+                desc: t.desc,
+                ref: t.ref,
+                debit: t.type === 'commitments' ? t.amount : 0,
+                credit: t.type === 'payments' ? t.amount : 0,
+                balance: balance,
+                originalType: t.type
+            };
+        });
+        
+        if (tables.main) {
+            tables.main.destroy();
+        }
+        
+        tables.main = new Tabulator(container, {
+            data: ledgerData,
+            layout: "fitColumns",
+            height: "600px",
+            placeholder: "אין נתונים להצגה",
+            columns: [
+                {
+                    title: "תאריך",
+                    field: "date",
+                    width: 120
+                },
+                {
+                    title: "סוג",
+                    field: "type",
+                    width: 100
+                },
+                {
+                    title: "תיאור",
+                    field: "desc",
+                    widthGrow: 2
+                },
+                {
+                    title: "הערה",
+                    field: "ref",
+                    widthGrow: 2
+                },
+                {
+                    title: "חובה",
+                    field: "debit",
+                    width: 120,
+                    hozAlign: "right",
+                    formatter: cell => cell.getValue() > 0 ? formatCurrency(cell.getValue()) : '-'
+                },
+                {
+                    title: "זכות",
+                    field: "credit",
+                    width: 120,
+                    hozAlign: "right",
+                    formatter: cell => cell.getValue() > 0 ? formatCurrency(cell.getValue()) : '-'
+                },
+                {
+                    title: "יתרה",
+                    field: "balance",
+                    width: 130,
+                    hozAlign: "right",
+                    formatter: cell => {
+                        const val = cell.getValue();
+                        const color = val > 0 ? '#ef4444' : val < 0 ? '#10b981' : '#64748b';
+                        return `<strong style="color: ${color}">${formatCurrency(Math.abs(val))}</strong>`;
+                    }
+                },
+                {
+                    title: "",
+                    width: 80,
+                    hozAlign: "center",
+                    headerSort: false,
+                    formatter: () => `<button class="btn btn-sm btn-outline-primary"><i class="bi bi-box-arrow-up-left"></i></button>`,
+                    cellClick: (e, cell) => {
+                        const data = cell.getData();
+                        switchTab(data.originalType);
+                    }
+                }
+            ]
+        });
+    }
+    
+    function renderSummaryTable() {
+        const summaryData = state.data.members.map(member => {
+            const balance = calculateMemberBalance(member.id);
+            const transactions = state.data.transactions.filter(t => t.memberId === member.id);
+            const commitments = transactions.filter(t => t.type === 'commitments')
+                .reduce((sum, t) => sum + t.amount, 0);
+            const payments = transactions.filter(t => t.type === 'payments')
+                .reduce((sum, t) => sum + t.amount, 0);
+            
+            return {
+                id: member.id,
+                name: member.name,
+                nickname: member.nickname,
+                commitments: commitments,
+                payments: payments,
+                balance: balance
+            };
+        }).filter(m => m.commitments > 0 || m.payments > 0)
+          .sort((a, b) => b.balance - a.balance);
+        
+        if (tables.summary) {
+            tables.summary.destroy();
+        }
+        
+        tables.summary = new Tabulator('#summaryTable', {
+            data: summaryData,
+            layout: "fitColumns",
+            height: "600px",
+            placeholder: "אין נתונים להצגה",
+            columns: [
+                {
+                    title: "שם",
+                    field: "name",
+                    widthGrow: 2,
+                    formatter: cell => {
+                        const data = cell.getData();
+                        let html = `<strong>${escapeHtml(data.name)}</strong>`;
+                        if (data.nickname) {
+                            html += `<br><small class="text-muted">${escapeHtml(data.nickname)}</small>`;
+                        }
+                        return html;
+                    }
+                },
+                {
+                    title: "התחייבויות",
+                    field: "commitments",
+                    width: 150,
+                    hozAlign: "right",
+                    formatter: cell => formatCurrency(cell.getValue()),
+                    bottomCalc: "sum",
+                    bottomCalcFormatter: cell => `<strong>${formatCurrency(cell.getValue())}</strong>`
+                },
+                {
+                    title: "תשלומים",
+                    field: "payments",
+                    width: 150,
+                    hozAlign: "right",
+                    formatter: cell => formatCurrency(cell.getValue()),
+                    bottomCalc: "sum",
+                    bottomCalcFormatter: cell => `<strong>${formatCurrency(cell.getValue())}</strong>`
+                },
+                {
+                    title: "יתרה",
+                    field: "balance",
+                    width: 150,
+                    hozAlign: "right",
+                    formatter: cell => {
+                        const val = cell.getValue();
+                        const color = val > 0 ? '#ef4444' : val < 0 ? '#10b981' : '#64748b';
+                        return `<strong style="color: ${color}">${formatCurrency(Math.abs(val))}</strong>`;
+                    },
+                    bottomCalc: "sum",
+                    bottomCalcFormatter: cell => `<strong>${formatCurrency(cell.getValue())}</strong>`
+                },
+                {
+                    title: "",
+                    width: 100,
+                    hozAlign: "center",
+                    headerSort: false,
+                    formatter: () => `<button class="btn btn-sm btn-outline-primary"><i class="bi bi-eye"></i> צפה</button>`,
+                    cellClick: (e, cell) => {
+                        selectMember(cell.getData().id);
+                    }
+                }
+            ]
+        });
+    }
+    
+    function renderSettingsTables() {
+        // Members Management
+        if (tables.membersManagement) {
+            tables.membersManagement.destroy();
+        }
+        
+        tables.membersManagement = new Tabulator('#membersManagementTable', {
+            data: state.data.members,
+            layout: "fitColumns",
+            height: "400px",
+            columns: [
+                { title: "שם", field: "name", editor: "input" },
+                { title: "כינוי", field: "nickname", editor: "input" },
+                { title: "טלפון", field: "phone", editor: "input" },
+                { title: "אימייל", field: "email", editor: "input" },
+                { title: "כתובת", field: "address", editor: "input" },
+                {
+                    title: "פעולות",
+                    width: 150,
+                    hozAlign: "center",
+                    formatter: () => `
+                        <button class="btn btn-sm btn-outline-primary me-1"><i class="bi bi-pencil"></i></button>
+                        <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                    `,
+                    cellClick: (e, cell) => {
+                        const target = e.target.closest('button');
+                        if (!target) return;
+                        
+                        const memberId = cell.getData().id;
+                        
+                        if (target.classList.contains('btn-outline-primary')) {
+                            openMemberDialog(memberId);
+                        } else if (target.classList.contains('btn-outline-danger')) {
+                            deleteMember(memberId);
+                        }
+                    }
+                }
+            ],
+            cellEdited: function(cell) {
+                saveData();
+                renderMembers();
+            }
+        });
+        
+        // Mitzvot
+        renderListTable('mitzvotTable', 'mitzvot', 'סוג הכנסה');
+        
+        // Payment Methods
+        renderListTable('payMethodsTable', 'payMethods', 'אמצעי תשלום');
+    }
+    
+    function renderListTable(containerId, dataKey, itemName) {
+        const data = state.data[dataKey].map(item => ({ value: item }));
+        
+        const table = new Tabulator(`#${containerId}`, {
+            data: data,
+            layout: "fitColumns",
+            height: "300px",
+            columns: [
+                {
+                    title: itemName,
+                    field: "value",
+                    editor: "input",
+                    widthGrow: 1
+                },
+                {
+                    title: "מחיקה",
+                    width: 80,
+                    hozAlign: "center",
+                    formatter: () => `<button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>`,
+                    cellClick: (e, cell) => {
+                        const value = cell.getData().value;
+                        if (confirm(`האם למחוק את "${value}"?`)) {
+                            const index = state.data[dataKey].indexOf(value);
+                            if (index > -1) {
+                                state.data[dataKey].splice(index, 1);
+                                saveData();
+                                renderListTable(containerId, dataKey, itemName);
+                            }
+                        }
+                    }
+                }
+            ],
+            cellEdited: function(cell) {
+                const oldValue = cell.getOldValue();
+                const newValue = cell.getValue();
+                
+                const index = state.data[dataKey].indexOf(oldValue);
+                if (index > -1) {
+                    state.data[dataKey][index] = newValue;
+                    saveData();
+                }
+            }
+        });
+        
+        if (dataKey === 'mitzvot') tables.mitzvot = table;
+        if (dataKey === 'payMethods') tables.payMethods = table;
+    }
+    
+    function addListItem(dataKey) {
+        const itemName = dataKey === 'mitzvot' ? 'סוג הכנסה' : 'אמצעי תשלום';
+        const value = prompt(`הזן ${itemName} חדש:`);
+        
+        if (!value || !value.trim()) return;
+        
+        if (state.data[dataKey].includes(value.trim())) {
+            alert('ערך זה כבר קיים');
+            return;
+        }
+        
+        state.data[dataKey].push(value.trim());
+        saveData();
+        renderSettingsTables();
+    }
+    
+    // Keyboard Shortcuts
+    function setupKeyboardShortcuts() {
+        document.addEventListener('keydown', (e) => {
+            // Enter in input fields
+            if (e.key === 'Enter') {
+                if (e.target.id === 'input-amount' || e.target.id === 'input-ref') {
+                    e.preventDefault();
+                    addRow();
+                } else if (e.target.id === 'memberSearchInput') {
+                    e.preventDefault();
+                    handleMemberSearch();
+                }
+            }
+            
+            // Escape to focus on member search
+            if (e.key === 'Escape') {
+                document.getElementById('memberSearchInput').focus();
+                document.getElementById('memberSearchInput').select();
+            }
+            
+            // Alt + Number for tabs
+            if (e.altKey) {
+                if (e.key === '1') {
+                    e.preventDefault();
+                    if (state.currentMemberId) switchTab('commitments');
+                } else if (e.key === '2') {
+                    e.preventDefault();
+                    if (state.currentMemberId) switchTab('payments');
+                } else if (e.key === '3') {
+                    e.preventDefault();
+                    if (state.currentMemberId) switchTab('ledger');
+                }
+            }
+        });
+        
+        // Tab navigation between input fields
+        document.getElementById('input-date').addEventListener('keydown', (e) => {
+            if (e.key === 'Tab' && !e.shiftKey) {
+                e.preventDefault();
+                document.getElementById('input-desc').focus();
+            }
+        });
+        
+        document.getElementById('input-desc').addEventListener('keydown', (e) => {
+            if (e.key === 'Tab' && !e.shiftKey) {
+                e.preventDefault();
+                document.getElementById('input-ref').focus();
+            }
+        });
+        
+        document.getElementById('input-ref').addEventListener('keydown', (e) => {
+            if (e.key === 'Tab' && !e.shiftKey) {
+                e.preventDefault();
+                document.getElementById('input-amount').focus();
+            }
+        });
+        
+        document.getElementById('input-amount').addEventListener('keydown', (e) => {
+            if (e.key === 'Tab' && !e.shiftKey) {
+                e.preventDefault();
+                addRow();
+            }
+        });
+    }
+    
+    // Mobile
+    function toggleSidebar() {
+        document.getElementById('sidebar').classList.toggle('open');
+    }
+    
+    // Utilities
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+    
+    // Initialize
+    function init() {
+        loadData();
+        setupKeyboardShortcuts();
+        
+        // Check if already logged in (for development)
+        // In production, remove this or add proper session management
+        if (localStorage.getItem('auto_login') === 'true') {
+            state.currentUser = state.data.users[0];
+            document.getElementById('loginScreen').classList.add('hidden');
+            document.getElementById('mainApp').classList.remove('hidden');
+            document.getElementById('currentUserDisplay').textContent = 
+                `${state.currentUser.name} (${getRoleText(state.currentUser.role)})`;
+            renderMembers();
+            applyPermissions();
+        }
+        
+        console.log('Synagogue Accounting System initialized');
+    }
+    
+    // Public API
+    return {
+        init,
+        login,
+        logout,
+        renderMembers,
+        handleMemberSearch,
+        selectMember,
+        deleteMember,
+        openMemberDialog,
+        showPage,
+        switchTab,
+        addRow,
+        addListItem,
+        toggleSidebar
+    };
+})();
+
+// Initialize on DOM ready
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+        setTimeout(() => {
+            if (typeof Tabulator === 'undefined') {
+                console.error('Tabulator failed to load');
+                alert('שגיאה בטעינת המערכת. נא לרענן את הדף.');
+                return;
+            }
+            SynagogueApp.init();
+        }, 100);
+    });
+} else {
+    setTimeout(() => {
+        if (typeof Tabulator === 'undefined') {
+            console.error('Tabulator failed to load');
+            alert('שגיאה בטעינת המערכת. נא לרענן את הדף.');
+            return;
+        }
+        SynagogueApp.init();
+    }, 100);
+}
+</script>
+
+</body>
+</html>

@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ניהול חשבונות בית כנסת</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
+    <link href="https://unpkg.com/tabulator-tables@5.5.0/dist/css/tabulator_bootstrap5.min.css" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://unpkg.com/tabulator-tables@5.5.0/dist/js/tabulator.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+    <style>
+        body { background-color: #f8f9fa; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .sidebar { height: 100vh; background: white; border-left: 1px solid #dee2e6; position: sticky; top: 0; }
+        .member-list { max-height: 60vh; overflow-y: auto; }
+        .tabulator { border: none !important; font-size: 14px; }
+        .input-row-card { background: #e9ecef; border-radius: 8px; padding: 15px; margin-bottom: 15px; }
+        [x-cloak] { display: none !important; }
+        @media print {
+            .no-print { display: none !important; }
+            .sidebar { display: none; }
+            main { width: 100%; margin: 0; padding: 0; }
+        }
+    </style>
+</head>
+<body x-data="synagogueApp()">
+
+<div class="container-fluid">
+    <div class="row">
+        <nav class="col-md-3 col-lg-2 sidebar d-flex flex-column p-3 no-print shadow-sm">
+            <h4 class="mb-3 text-primary">ניהול בית כנסת</h4>
+            
+            <div class="mb-3">
+                <input type="text" id="memberSearch" x-model="memberSearch" class="form-control" placeholder="חיפוש מתפלל (Esc)">
+            </div>
+
+            <div class="member-list list-group list-group-flush border-bottom mb-3">
+                <template x-for="m in filteredMembers" :key="m.id">
+                    <button @click="selectMember(m)" 
+                            class="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
+                            :class="selectedMember?.id === m.id ? 'active' : ''">
+                        <div>
+                            <span x-text="m.name"></span>
+                            <small class="d-block opacity-75" x-text="m.nickname"></small>
+                        </div>
+                    </button>
+                </template>
+            </div>
+
+            <div class="mt-auto">
+                <button @click="view = 'globalSummary'" class="btn btn-outline-primary w-100 mb-2 text-start">📊 סיכום חובות כללי</button>
+                <button @click="view = 'management'" class="btn btn-outline-secondary w-100 text-start">⚙️ ניהול רשימות</button>
+                <div class="mt-3 p-2 border rounded bg-light">
+                    <small class="text-muted d-block">הרשאה נוכחית:</small>
+                    <select x-model="role" class="form-select form-select-sm">
+                        <option value="admin">מנהל</option>
+                        <option value="editor">עורך (חלקי)</option>
+                        <option value="viewer">צופה (מתפלל)</option>
+                    </select>
+                </div>
+            </div>
+        </nav>
+
+        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
+            
+            <div x-show="view === 'account' && selectedMember" x-cloak>
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2>כרטיס: <span x-text="selectedMember?.name"></span> <small class="text-muted" x-text="'('+selectedMember?.nickname+')'"></small></h2>
+                    <button class="btn btn-dark no-print" onclick="window.print()">🖨️ הדפס</button>
+                </div>
+
+                <ul class="nav nav-pills mb-3 no-print">
+                    <li class="nav-item"><button class="nav-link" :class="activeTab === 'obligations' ? 'active' : ''" @click="setTab('obligations')">התחייבויות</button></li>
+                    <li class="nav-item"><button class="nav-link" :class="activeTab === 'payments' ? 'active' : ''" @click="setTab('payments')">תשלומים</button></li>
+                    <li class="nav-item"><button class="nav-link" :class="activeTab === 'summary' ? 'active' : ''" @click="setTab('summary')">סיכום אישי</button></li>
+                </ul>
+
+                <div class="input-row-card no-print" x-show="activeTab !== 'summary' && role !== 'viewer'">
+                    <div class="row g-2" @keydown.enter="addNewEntry()">
+                        <div class="col-md-2">
+                            <label class="small">תאריך</label>
+                            <input type="date" x-model="newEntry.date" class="form-control" id="entryFirstInput">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="small" x-text="activeTab === 'obligations' ? 'סוג הכנסה' : 'אמצעי תשלום'"></label>
+                            <select x-model="newEntry.type" class="form-select">
+                                <template x-for="item in (activeTab === 'obligations' ? incomeTypes : paymentMethods)">
+                                    <option :value="item" x-text="item"></option>
+                                </template>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="small">פירוט</label>
+                            <input type="text" x-model="newEntry.description" class="form-control" placeholder="תיאור חופשי...">
+                        </div>
+                        <div class="col-md-2">
+                            <label class="small">סכום</label>
+                            <input type="number" x-model="newEntry.amount" class="form-control" placeholder="0.00">
+                        </div>
+                        <div class="col-md-1 d-flex align-items-end">
+                            <button @click="addNewEntry()" class="btn btn-primary w-100">הוסף</button>
+                        </div>
+                    </div>
+                    <small class="text-muted mt-2 d-block">טיפ: הקש Enter להוספה מהירה. תאריך נשמר בין הזנות.</small>
+                </div>
+
+                <div id="mainTable"></div>
+            </div>
+
+            <div x-show="view === 'management'" x-cloak>
+                <h2 class="mb-4">⚙️ ניהול רשימות</h2>
+                <div class="row">
+                    <div class="col-md-6 mb-4">
+                        <div class="card shadow-sm">
+                            <div class="card-header bg-white"><strong>ניהול מתפללים</strong></div>
+                            <div class="card-body">
+                                <div class="input-group mb-3">
+                                    <input type="text" x-model="newMemberName" class="form-control" placeholder="שם מלא">
+                                    <input type="text" x-model="newMemberNick" class="form-control" placeholder="כינוי">
+                                    <button @click="addMember()" class="btn btn-success">הוסף</button>
+                                </div>
+                                <div class="table-responsive" style="max-height: 300px;">
+                                    <table class="table table-sm">
+                                        <thead><tr><th>שם</th><th>כינוי</th><th>פעולות</th></tr></thead>
+                                        <tbody>
+                                            <template x-for="m in members" :key="m.id">
+                                                <tr>
+                                                    <td x-text="m.name"></td>
+                                                    <td x-text="m.nickname"></td>
+                                                    <td><button @click="deleteMember(m.id)" class="btn btn-sm text-danger">🗑️</button></td>
+                                                </tr>
+                                            </template>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                         <div class="card shadow-sm mb-4">
+                            <div class="card-header bg-white"><strong>סוגי הכנסה / אמצעי תשלום</strong></div>
+                            <div class="card-body">
+                                <label>סוגי הכנסה (מופרדים בפסיק):</label>
+                                <textarea class="form-control mb-3" x-model="incomeTypesRaw" @change="updateLists()"></textarea>
+                                <label>אמצעי תשלום (מופרדים בפסיק):</label>
+                                <textarea class="form-control" x-model="paymentMethodsRaw" @change="updateLists()"></textarea>
+                            </div>
+                         </div>
+                    </div>
+                </div>
+            </div>
+
+            <div x-show="view === 'globalSummary'" x-cloak>
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2>📊 סיכום חובות כללי</h2>
+                    <button class="btn btn-dark no-print" onclick="window.print()">🖨️ הדפס דוח</button>
+                </div>
+                <div id="summaryTable"></div>
+            </div>
+
+        </main>
+    </div>
+</div>
+
+<script>
+function synagogueApp() {
+    return {
+        view: 'account',
+        activeTab: 'obligations',
+        role: 'admin',
+        memberSearch: '',
+        selectedMember: null,
+        
+        // Data
+        members: JSON.parse(localStorage.getItem('syn_members')) || [
+            {id: 1, name: 'יעקב כהן', nickname: 'יענקל', phone: '050-1234567', email: 'y@gmail.com'},
+            {id: 2, name: 'משה לוי', nickname: 'משה הגבאי', phone: '052-7654321', email: 'm@gmail.com'}
+        ],
+        incomeTypes: ['עלייה לתורה', 'פתיחת ההיכל', 'יזכור', 'נדבה', 'דמי חבר'],
+        paymentMethods: ['מזומן', 'אשראי', 'העברה בנקאית', 'צ׳ק'],
+        incomeTypesRaw: 'עלייה לתורה, פתיחת ההיכל, יזכור, נדבה, דמי חבר',
+        paymentMethodsRaw: 'מזומן, אשראי, העברה בנקאית, צ׳ק',
+        
+        transactions: JSON.parse(localStorage.getItem('syn_tx')) || [],
+        
+        newEntry: { date: new Date().toISOString().split('T')[0], type: 'עלייה לתורה', description: '', amount: '' },
+        newMemberName: '',
+        newMemberNick: '',
+        
+        tabulator: null,
+
+        init() {
+            this.$watch('view', () => this.renderTable());
+            this.$watch('activeTab', () => this.renderTable());
+            
+            // Global Keyboard Listeners
+            window.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    document.getElementById('memberSearch').focus();
+                }
+            });
+
+            // Initial focus
+            setTimeout(() => document.getElementById('memberSearch').focus(), 500);
+        },
+
+        get filteredMembers() {
+            if (!this.memberSearch) return this.members;
+            return this.members.filter(m => m.name.includes(this.memberSearch) || m.nickname.includes(this.memberSearch));
+        },
+
+        selectMember(member) {
+            this.selectedMember = member;
+            this.view = 'account';
+            this.renderTable();
+        },
+
+        setTab(tab) {
+            this.activeTab = tab;
+            this.newEntry.type = (tab === 'obligations' ? this.incomeTypes[0] : this.paymentMethods[0]);
+        },
+
+        addNewEntry() {
+            if (!this.newEntry.amount) return;
+            
+            const entry = {
+                id: Date.now(),
+                memberId: this.selectedMember.id,
+                date: this.newEntry.date,
+                type: this.newEntry.type,
+                description: this.newEntry.description,
+                amount: parseFloat(this.newEntry.amount),
+                kind: this.activeTab // 'obligations' or 'payments'
+            };
+
+            this.transactions.push(entry);
+            this.saveData();
+            
+            // Reset fields but keep date
+            this.newEntry.description = '';
+            this.newEntry.amount = '';
+            this.renderTable();
+            document.getElementById('entryFirstInput').focus();
+        },
+
+        renderTable() {
+            if (this.view === 'globalSummary') {
+                this.renderGlobalSummary();
+                return;
+            }
+            if (this.view !== 'account' || !this.selectedMember) return;
+
+            let data = this.transactions.filter(t => t.memberId === this.selectedMember.id);
+            let columns = [];
+
+            if (this.activeTab === 'summary') {
+                // Logic for Summary Tab with Running Balance
+                let runningBalance = 0;
+                let summaryData = data.sort((a,b) => new Date(a.date) - new Date(b.date)).map(t => {
+                    const amt = t.kind === 'obligations' ? t.amount : -t.amount;
+                    runningBalance += amt;
+                    return {...t, balance: runningBalance};
+                });
+                
+                columns = [
+                    {title: "תאריך", field: "date", sorter: "date"},
+                    {title: "סוג", field: "kind", formatter: cell => cell.getValue() === 'obligations' ? 'חיוב' : 'תשלום'},
+                    {title: "פירוט", field: "description"},
+                    {title: "סכום", field: "amount", formatter: "money", hozAlign: "left"},
+                    {title: "יתרה", field: "balance", formatter: "money", hozAlign: "left", cssClass: "fw-bold"}
+                ];
+                
+                this.tabulator = new Tabulator("#mainTable", {
+                    data: summaryData,
+                    layout: "fitColumns",
+                    columns: columns,
+                });
+            } else {
+                // Obligations or Payments
+                const currentKind = this.activeTab;
+                columns = [
+                    {title: "תאריך", field: "date", editor: "input"},
+                    {title: this.activeTab === 'obligations' ? "סוג הכנסה" : "אמצעי תשלום", field: "type", editor: "list", editorParams: {values: this.activeTab === 'obligations' ? this.incomeTypes : this.paymentMethods}},
+                    {title: "פירוט", field: "description", editor: "input"},
+                    {title: "סכום", field: "amount", editor: "number", formatter: "money", hozAlign: "left"}
+                ];
+
+                this.tabulator = new Tabulator("#mainTable", {
+                    data: data.filter(t => t.kind === currentKind),
+                    layout: "fitColumns",
+                    columns: columns,
+                    movableColumns: true,
+                    persistence: true, // Saves column order to local storage
+                    cellEdited: (cell) => {
+                        this.saveData();
+                    }
+                });
+            }
+        },
+
+        renderGlobalSummary() {
+            const summary = this.members.map(m => {
+                const mTx = this.transactions.filter(t => t.memberId === m.id);
+                const totalObligations = mTx.filter(t => t.kind === 'obligations').reduce((sum, t) => sum + t.amount, 0);
+                const totalPayments = mTx.filter(t => t.kind === 'payments').reduce((sum, t) => sum + t.amount, 0);
+                return {
+                    name: m.name,
+                    nickname: m.nickname,
+                    total: totalObligations - totalPayments
+                };
+            });
+
+            new Tabulator("#summaryTable", {
+                data: summary,
+                layout: "fitColumns",
+                columns: [
+                    {title: "שם המתפלל", field: "name"},
+                    {title: "כינוי", field: "nickname"},
+                    {title: "יתרת חוב", field: "total", formatter: "money", hozAlign: "left", bottomCalc: "sum"}
+                ]
+            });
+        },
+
+        // Management Actions
+        addMember() {
+            if (!this.newMemberName) return;
+            this.members.push({
+                id: Date.now(),
+                name: this.newMemberName,
+                nickname: this.newMemberNick
+            });
+            this.newMemberName = ''; this.newMemberNick = '';
+            this.saveData();
+        },
+
+        deleteMember(id) {
+            if(confirm('האם אתה בטוח? כל הפעולות של המתפלל יימחקו.')) {
+                this.members = this.members.filter(m => m.id !== id);
+                this.transactions = this.transactions.filter(t => t.memberId !== id);
+                this.saveData();
+            }
+        },
+
+        updateLists() {
+            this.incomeTypes = this.incomeTypesRaw.split(',').map(s => s.trim());
+            this.paymentMethods = this.paymentMethodsRaw.split(',').map(s => s.trim());
+            this.saveData();
+        },
+
+        saveData() {
+            localStorage.setItem('syn_members', JSON.stringify(this.members));
+            localStorage.setItem('syn_tx', JSON.stringify(this.transactions));
+        }
+    }
+}
+</script>
+
+</body>
+</html>
