@@ -1,0 +1,194 @@
+CLAUDE יש דברים לתקן:
+* בפרטים של מתפלל, ריכוז תנועות מחשב את השורה התחתונה לא נכון - צריך: payemnt-commitment=total difference
+זה משפיע ויוצא לא נכון על סיכום חובות. אם התחייבתי 10 ושילמתי 100 אני צריך להיות בזכות 90 ולא במינוס 90.
+
+*תיבת חיפוש חכם - תוסיף X ניקוי
+* תסיר את "כרטיס מלא" כי זה אותו דבר כמו ריכוז תנועות
+
+*דף הבית - תעשה ש-"חיפוש חכם" יוצג מקופל, ניתן להרחבה.
+* עריכת שורה בטבלאות לא עובדת - תתקן
+
+* כשעוברים ללשונית כלשהי - התחייבויות או תשלומים, אז צריך שיהיה פוקוס על שדה הזנה ראשון.
+* כשלוחצים על משתמש חדש אז הערך שהיה בתיבת החיפוש צריך לעבור לתיבת "שם", ופוקוס על תיבת שם
+
+* Tabulator רספונסיבי - במובייל, העמודות ש"נחנקות" יתקפלו תחת כפתור (+) קטן. 
+
+*תוסיף אפשרות שליחה למתפלל של קישור עבור קריאה בלבד
+
+יש הרבה שגיאות בקונסול:
+cdn.min.js:1 Alpine Expression Error: Cannot read properties of null (reading 'name')
+
+Expression: "selectedMember[field.key]"
+
+ <input type=​"text" x-model=​"selectedMember[field.key]​" class=​"form-control" @input=​"saveMembersData()​">​
+Wn @ cdn.min.js:1
+cdn.min.js:1 Alpine Expression Error: Cannot read properties of null (reading 'memberUniqueId')
+
+Expression: "selectedMember[field.key]"
+
+ <input type=​"text" x-model=​"selectedMember[field.key]​" class=​"form-control" @input=​"saveMembersData()​">​
+Wn @ cdn.min.js:1
+cdn.min.js:1 Alpine Expression Error: Cannot read properties of null (reading 'phone')
+
+Expression: "selectedMember[field.key]"
+
+ <input type=​"text" x-model=​"selectedMember[field.key]​" class=​"form-control" @input=​"saveMembersData()​">​
+Wn @ cdn.min.js:1
+cdn.min.js:1 Alpine Expression Error: Cannot read properties of null (reading 'email')
+
+Expression: "selectedMember[field.key]"
+
+ <input type=​"text" x-model=​"selectedMember[field.key]​" class=​"form-control" @input=​"saveMembersData()​">​
+Wn @ cdn.min.js:1
+cdn.min.js:1 Alpine Expression Error: Cannot read properties of null (reading 'name')
+
+Expression: "editingMember[field.key]"
+
+ <input type=​"text" x-model=​"editingMember[field.key]​" class=​"form-control form-control-sm">​
+Wn @ cdn.min.js:1
+cdn.min.js:1 Alpine Expression Error: Cannot read properties of null (reading 'memberUniqueId')
+
+Expression: "editingMember[field.key]"
+
+ <input type=​"text" x-model=​"editingMember[field.key]​" class=​"form-control form-control-sm">​
+Wn @ cdn.min.js:1
+cdn.min.js:1 Alpine Expression Error: Cannot read properties of null (reading 'phone')
+
+Expression: "editingMember[field.key]"
+
+ <input type=​"text" x-model=​"editingMember[field.key]​" class=​"form-control form-control-sm">​
+Wn @ cdn.min.js:1
+cdn.min.js:1 Alpine Expression Error: Cannot read properties of null (reading 'email')
+
+Expression: "editingMember[field.key]"
+
+ <input type=​"text" x-model=​"editingMember[field.key]​" class=​"form-control form-control-sm">​
+Wn @ cdn.min.js:1
+cdn.min.js:5 Uncaught TypeError: Cannot read properties of null (reading 'name')
+cdn.min.js:5 Uncaught TypeError: Cannot read properties of null (reading 'memberUniqueId')
+cdn.min.js:5 Uncaught TypeError: Cannot read properties of null (reading 'phone')
+cdn.min.js:5 Uncaught TypeError: Cannot read properties of null (reading 'email')
+cdn.min.js:5 Uncaught TypeError: Cannot read properties of null (reading 'name')
+cdn.min.js:5 Uncaught TypeError: Cannot read properties of null (reading 'memberUniqueId')
+cdn.min.js:5 Uncaught TypeError: Cannot read properties of null (reading 'phone')
+cdn.min.js:5 Uncaught TypeError: Cannot read properties of null (reading 'email')
+InteractionMonitor.js:280 Event Target Lookup Error - The row this cell is attached to cannot be found, has the table been reinitialized without being destroyed first?
+bindComponents @ InteractionMonitor.js:280
+InteractionMonitor.js:280 Event Target Lookup Error - The row this cell is attached to cannot be found, has the table been reinitialized without being destroyed first?
+bindComponents @ InteractionMonitor.js:280
+InteractionMonitor.js:280 Event Target Lookup Error - The row this cell is attached to cannot be found, has the table been reinitialized without being destroyed first?
+bindComponents @ InteractionMonitor.js:280
+InteractionMonitor.js:280 Event Target Lookup Error - The row this cell is attached to cannot be found, has the table been reinitialized without being destroyed first?
+bindComponents @ InteractionMonitor.js:280
+InteractionMonitor.js:280 Event Target Lookup Error - The row this cell is attached to cannot be found, has the table been reinitialized without being destroyed first?
+bindComponents @ InteractionMonitor.js:280
+InteractionMonitor.js:280 Event Target Lookup Error - The row this cell is attached to cannot be found, has the table been reinitialized without being destroyed first?
+bindComponents @ InteractionMonitor.js:280
+InteractionMonitor.js:280 Event Target Lookup Error - The row this cell is attached to cannot be found, has the table been reinitialized without being destroyed first?
+bindComponents @ InteractionMonitor.js:280
+InteractionMonitor.js:280 Event Target Lookup Error - The row this cell is attached to cannot be found, has the table been reinitialized without being destroyed first?
+bindComponents @ InteractionMonitor.js:280
+InteractionMonitor.js:280 Event Target Lookup Error - The row this cell is attached to cannot be found, has the table been reinitialized without being destroyed first?
+bindComponents @ InteractionMonitor.js:280
+InteractionMonitor.js:280 Event Target Lookup Error - The row this cell is attached to cannot be found, has the table been reinitialized without being destroyed first?
+bindComponents @ InteractionMonitor.js:280
+InteractionMonitor.js:280 Event Target Lookup Error - The row this cell is attached to cannot be found, has the table been reinitialized without being destroyed first?
+bindComponents @ InteractionMonitor.js:280
+InteractionMonitor.js:280 Event Target Lookup Error - The row this cell is attached to cannot be found, has the table been reinitialized without being destroyed first?
+bindComponents @ InteractionMonitor.js:280
+InteractionMonitor.js:280 Event Target Lookup Error - The row this cell is attached to cannot be found, has the table been reinitialized without being destroyed first?
+bindComponents @ InteractionMonitor.js:280
+InteractionMonitor.js:280 Event Target Lookup Error - The row this cell is attached to cannot be found, has the table been reinitialized without being destroyed first?
+bindComponents @ InteractionMonitor.js:280
+InteractionMonitor.js:280 Event Target Lookup Error - The row this cell is attached to cannot be found, has the table been reinitialized without being destroyed first?
+bindComponents @ InteractionMonitor.js:280
+InteractionMonitor.js:280 Event Target Lookup Error - The row this cell is attached to cannot be found, has the table been reinitialized without being destroyed first?
+bindComponents @ InteractionMonitor.js:280
+InteractionMonitor.js:280 Event Target Lookup Error - The row this cell is attached to cannot be found, has the table been reinitialized without being destroyed first?
+bindComponents @ InteractionMonitor.js:280
+InteractionMonitor.js:280 Event Target Lookup Error - The row this cell is attached to cannot be found, has the table been reinitialized without being destroyed first?
+bindComponents @ InteractionMonitor.js:280
+InteractionMonitor.js:280 Event Target Lookup Error - The row this cell is attached to cannot be found, has the table been reinitialized without being destroyed first?
+bindComponents @ InteractionMonitor.js:280
+InteractionMonitor.js:280 Event Target Lookup Error - The row this cell is attached to cannot be found, has the table been reinitialized without being destroyed first?
+bindComponents @ InteractionMonitor.js:280
+InteractionMonitor.js:280 Event Target Lookup Error - The row this cell is attached to cannot be found, has the table been reinitialized without being destroyed first?
+bindComponents @ InteractionMonitor.js:280
+InteractionMonitor.js:280 Event Target Lookup Error - The row this cell is attached to cannot be found, has the table been reinitialized without being destroyed first?
+bindComponents @ InteractionMonitor.js:280
+InteractionMonitor.js:280 Event Target Lookup Error - The row this cell is attached to cannot be found, has the table been reinitialized without being destroyed first?
+bindComponents @ InteractionMonitor.js:280
+InteractionMonitor.js:280 Event Target Lookup Error - The row this cell is attached to cannot be found, has the table been reinitialized without being destroyed first?
+bindComponents @ InteractionMonitor.js:280
+InteractionMonitor.js:280 Event Target Lookup Error - The row this cell is attached to cannot be found, has the table been reinitialized without being destroyed first?
+bindComponents @ InteractionMonitor.js:280
+InteractionMonitor.js:280 Event Target Lookup Error - The row this cell is attached to cannot be found, has the table been reinitialized without being destroyed first?
+bindComponents @ InteractionMonitor.js:280
+InteractionMonitor.js:280 Event Target Lookup Error - The row this cell is attached to cannot be found, has the table been reinitialized without being destroyed first?
+bindComponents @ InteractionMonitor.js:280
+InteractionMonitor.js:280 Event Target Lookup Error - The row this cell is attached to cannot be found, has the table been reinitialized without being destroyed first?
+bindComponents @ InteractionMonitor.js:280
+InteractionMonitor.js:280 Event Target Lookup Error - The row this cell is attached to cannot be found, has the table been reinitialized without being destroyed first?
+bindComponents @ InteractionMonitor.js:280
+InteractionMonitor.js:280 Event Target Lookup Error - The row this cell is attached to cannot be found, has the table been reinitialized without being destroyed first?
+bindComponents @ InteractionMonitor.js:280
+InteractionMonitor.js:280 Event Target Lookup Error - The row this cell is attached to cannot be found, has the table been reinitialized without being destroyed first?
+bindComponents @ InteractionMonitor.js:280
+InteractionMonitor.js:280 Event Target Lookup Error - The row this cell is attached to cannot be found, has the table been reinitialized without being destroyed first?
+bindComponents @ InteractionMonitor.js:280
+InteractionMonitor.js:280 Event Target Lookup Error - The row this cell is attached to cannot be found, has the table been reinitialized without being destroyed first?
+bindComponents @ InteractionMonitor.js:280
+InteractionMonitor.js:280 Event Target Lookup Error - The row this cell is attached to cannot be found, has the table been reinitialized without being destroyed first?
+bindComponents @ InteractionMonitor.js:280
+InteractionMonitor.js:280 Event Target Lookup Error - The row this cell is attached to cannot be found, has the table been reinitialized without being destroyed first?
+bindComponents @ InteractionMonitor.js:280
+InteractionMonitor.js:280 Event Target Lookup Error - The row this cell is attached to cannot be found, has the table been reinitialized without being destroyed first?
+bindComponents @ InteractionMonitor.js:280
+InteractionMonitor.js:280 Event Target Lookup Error - The row this cell is attached to cannot be found, has the table been reinitialized without being destroyed first?
+bindComponents @ InteractionMonitor.js:280
+InteractionMonitor.js:280 Event Target Lookup Error - The row this cell is attached to cannot be found, has the table been reinitialized without being destroyed first?
+bindComponents @ InteractionMonitor.js:280
+InteractionMonitor.js:280 Event Target Lookup Error - The row this cell is attached to cannot be found, has the table been reinitialized without being destroyed first?
+bindComponents @ InteractionMonitor.js:280
+InteractionMonitor.js:280 Event Target Lookup Error - The row this cell is attached to cannot be found, has the table been reinitialized without being destroyed first?
+bindComponents @ InteractionMonitor.js:280
+InteractionMonitor.js:280 Event Target Lookup Error - The row this cell is attached to cannot be found, has the table been reinitialized without being destroyed first?
+bindComponents @ InteractionMonitor.js:280
+InteractionMonitor.js:280 Event Target Lookup Error - The row this cell is attached to cannot be found, has the table been reinitialized without being destroyed first?
+bindComponents @ InteractionMonitor.js:280
+InteractionMonitor.js:280 Event Target Lookup Error - The row this cell is attached to cannot be found, has the table been reinitialized without being destroyed first?
+bindComponents @ InteractionMonitor.js:280
+InteractionMonitor.js:280 Event Target Lookup Error - The row this cell is attached to cannot be found, has the table been reinitialized without being destroyed first?
+bindComponents @ InteractionMonitor.js:280
+InteractionMonitor.js:280 Event Target Lookup Error - The row this cell is attached to cannot be found, has the table been reinitialized without being destroyed first?
+bindComponents @ InteractionMonitor.js:280
+InteractionMonitor.js:280 Event Target Lookup Error - The row this cell is attached to cannot be found, has the table been reinitialized without being destroyed first?
+bindComponents @ InteractionMonitor.js:280
+cdn.min.js:1 Alpine Expression Error: Cannot read properties of null (reading 'name')
+
+Expression: "editingMember[field.key]"
+
+ <input type=​"text" x-model=​"editingMember[field.key]​" class=​"form-control form-control-sm">​
+Wn @ cdn.min.js:1
+cdn.min.js:1 Alpine Expression Error: Cannot read properties of null (reading 'memberUniqueId')
+
+Expression: "editingMember[field.key]"
+
+ <input type=​"text" x-model=​"editingMember[field.key]​" class=​"form-control form-control-sm">​
+Wn @ cdn.min.js:1
+cdn.min.js:1 Alpine Expression Error: Cannot read properties of null (reading 'phone')
+
+Expression: "editingMember[field.key]"
+
+ <input type=​"text" x-model=​"editingMember[field.key]​" class=​"form-control form-control-sm">​
+Wn @ cdn.min.js:1
+cdn.min.js:1 Alpine Expression Error: Cannot read properties of null (reading 'email')
+
+Expression: "editingMember[field.key]"
+
+ <input type=​"text" x-model=​"editingMember[field.key]​" class=​"form-control form-control-sm">​
+Wn @ cdn.min.js:1
+cdn.min.js:5 Uncaught TypeError: Cannot read properties of null (reading 'name')
+cdn.min.js:5 Uncaught TypeError: Cannot read properties of null (reading 'memberUniqueId')
+cdn.min.js:5 Uncaught TypeError: Cannot read properties of null (reading 'phone')
+cdn.min.js:5 Uncaught TypeError: Cannot read properties of null (reading 'email')
