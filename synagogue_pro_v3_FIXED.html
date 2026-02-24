@@ -1,0 +1,2377 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl" x-data="synagogueApp()" :data-bs-theme="darkMode ? 'dark' : 'light'" :style="customStyle">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ניהול קהילה PRO</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
+    <link href="https://unpkg.com/tabulator-tables@5.5.0/dist/css/tabulator_bootstrap5.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+    
+    <style>
+        :root { 
+            --primary-color: #0d6efd; 
+            --bg-color: #f8f9fa; 
+            --sidebar-bg: #ffffff; 
+            --sidebar-font: #333333;
+            --card-bg: #ffffff;
+            --card-font: #212529;
+            --table-bg: #ffffff;
+            --table-header-bg: #e9ecef;
+            --table-font: #212529;
+            --primary-dark: #0d6efd;
+            --bg-dark: #212529;
+            --sidebar-bg-dark: #2c3034;
+            --sidebar-font-dark: #e9ecef;
+            --card-bg-dark: #2c3034;
+            --card-font-dark: #e9ecef;
+            --table-bg-dark: #2c3034;
+            --table-header-bg-dark: #1a1d20;
+            --table-font-dark: #e9ecef;
+        }
+        
+        [data-bs-theme="dark"] {
+            --primary-color: var(--primary-dark);
+            --bg-color: var(--bg-dark);
+            --sidebar-bg: var(--sidebar-bg-dark);
+            --sidebar-font: var(--sidebar-font-dark);
+            --card-bg: var(--card-bg-dark);
+            --card-font: var(--card-font-dark);
+            --table-bg: var(--table-bg-dark);
+            --table-header-bg: var(--table-header-bg-dark);
+            --table-font: var(--table-font-dark);
+        }
+        
+        [x-cloak] { display: none !important; }
+        body { 
+            font-family: 'Segoe UI', system-ui, sans-serif; 
+            background-color: var(--bg-color);
+            transition: background-color 0.3s ease;
+        }
+        
+        .app-container { display: flex; min-height: 100vh; width: 100vw; }
+        .sidebar { 
+            width: 300px; 
+            flex-shrink: 0; 
+            border-left: 1px solid var(--bs-border-color);
+            background-color: var(--sidebar-bg) !important; 
+            color: var(--sidebar-font) !important;
+            display: flex; 
+            flex-direction: column; 
+            z-index: 1000;
+            transition: transform 0.3s ease, background-color 0.3s ease;
+        }
+        
+        .member-list-container {
+            max-height: 50vh;
+            overflow-y: auto;
+            border-radius: 8px;
+        }
+        
+        .main-content { 
+            flex-grow: 1; 
+            min-width: 0; 
+            padding: 25px; 
+            height: 100vh; 
+            overflow-y: auto; 
+        }
+        
+        .login-overlay { 
+            position: fixed; 
+            inset: 0; 
+            z-index: 9999; 
+            background: var(--primary-color); 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+        }
+        
+        .card {
+            background-color: var(--card-bg) !important;
+            color: var(--card-font) !important;
+            transition: all 0.3s ease;
+        }
+        
+        .card-header { 
+            cursor: pointer; 
+            user-select: none;
+            transition: background-color 0.2s ease;
+        }
+        .card-header:hover { background-color: rgba(0,0,0,0.05); }
+        
+        .card-body {
+            transition: max-height 0.3s ease, opacity 0.3s ease, padding 0.3s ease;
+        }
+        
+        .card-body.collapsed {
+            max-height: 0;
+            opacity: 0;
+            padding: 0 !important;
+            overflow: hidden;
+        }
+        
+        .tabulator {
+            background-color: var(--table-bg) !important;
+            color: var(--table-font) !important;
+        }
+        
+        .tabulator-row .tabulator-cell {
+            padding: 8px;
+            color: var(--table-font);
+        }
+        
+        .tabulator .tabulator-header .tabulator-col {
+            background-color: var(--table-header-bg) !important;
+            color: var(--table-font) !important;
+        }
+        
+        .delete-btn, .edit-btn, .goto-btn {
+            cursor: pointer;
+            font-weight: bold;
+            padding: 2px 8px;
+            border-radius: 3px;
+            transition: all 0.2s ease;
+        }
+        
+        .delete-btn {
+            color: #dc3545;
+        }
+        
+        .delete-btn:hover {
+            background-color: rgba(220, 53, 69, 0.1);
+        }
+        
+        .edit-btn {
+            color: #0d6efd;
+        }
+        
+        .edit-btn:hover {
+            background-color: rgba(13, 110, 253, 0.1);
+        }
+        
+        .goto-btn {
+            color: #198754;
+        }
+        
+        .goto-btn:hover {
+            background-color: rgba(25, 135, 84, 0.1);
+        }
+        
+        .highlight-row {
+            animation: highlightFade 3s ease;
+        }
+        
+        @keyframes highlightFade {
+            0% { background-color: rgba(255, 193, 7, 0.5); }
+            100% { background-color: transparent; }
+        }
+        
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            background: var(--card-bg);
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        
+        .page-header h1 {
+            margin: 0;
+            font-size: 1.5rem;
+        }
+        
+        .filter-badge {
+            display: inline-block;
+            padding: 5px 12px;
+            margin: 3px;
+            border-radius: 20px;
+            background: var(--primary-color);
+            color: white;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 0.85rem;
+        }
+        
+        .filter-badge:hover {
+            opacity: 0.8;
+            transform: scale(1.05);
+        }
+        
+        .filter-badge.active {
+            background: #198754;
+        }
+        
+        .purpose-badge {
+            display: inline-block;
+            padding: 3px 10px;
+            margin: 2px;
+            border-radius: 15px;
+            background: rgba(13, 110, 253, 0.1);
+            color: var(--primary-color);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 0.8rem;
+        }
+        
+        .purpose-badge:hover {
+            background: var(--primary-color);
+            color: white;
+            transform: scale(1.05);
+        }
+        
+        .purpose-badge.selected {
+            background: var(--primary-color);
+            color: white;
+        }
+        
+        .move-btn {
+            cursor: pointer;
+            padding: 2px 6px;
+            color: #6c757d;
+            transition: all 0.2s ease;
+        }
+        
+        .move-btn:hover {
+            color: var(--primary-color);
+            transform: scale(1.2);
+        }
+        
+        .theme-preset {
+            padding: 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 2px solid transparent;
+        }
+        
+        .theme-preset:hover {
+            border-color: var(--primary-color);
+            transform: scale(1.02);
+        }
+        
+        .theme-preset.active {
+            border-color: #198754;
+            box-shadow: 0 0 10px rgba(25, 135, 84, 0.3);
+        }
+        
+        @media (max-width: 992px) {
+            .sidebar { 
+                position: fixed; 
+                right: 0; 
+                transform: translateX(100%); 
+                transition: transform 0.3s ease;
+                height: 100vh;
+                box-shadow: -5px 0 15px rgba(0,0,0,0.3);
+            }
+            .sidebar.show { 
+                transform: translateX(0); 
+            }
+            
+            .main-content {
+                padding: 15px;
+            }
+            
+            .page-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .page-header h1 {
+                font-size: 1.2rem;
+            }
+            
+            .keyboard-shortcut {
+                display: none !important;
+            }
+        }
+        
+        @media print {
+            .no-print, .sidebar, .btn, .nav-pills, .card-header i, .delete-btn, .edit-btn, .goto-btn { 
+                display: none !important; 
+            }
+            .main-content { 
+                padding: 0 !important; 
+                width: 100% !important; 
+                overflow: visible; 
+            }
+            .card-body { 
+                display: block !important; 
+            }
+        }
+    </style>
+</head>
+<body>
+    
+    <div class="login-overlay no-print" x-show="!isLoggedIn" x-cloak>
+        <div class="card shadow-lg p-4 text-center" style="width: 350px; border-radius: 15px;">
+            <h3 class="mb-4">ניהול קהילה</h3>
+            <input type="text" x-model="loginForm.user" class="form-control mb-2" placeholder="משתמש">
+            <input type="password" x-model="loginForm.pass" class="form-control mb-3" placeholder="סיסמה" @keydown.enter="login()">
+            <button @click="login()" class="btn btn-primary w-100 fw-bold">כניסה</button>
+        </div>
+    </div>
+    
+    <div class="app-container" x-show="isLoggedIn" x-cloak>
+        
+        <aside class="sidebar p-3 shadow-sm no-print" :class="mobileMenuOpen ? 'show' : ''">
+            <h4 class="fw-bold mb-4">מערכת קהילה</h4>
+            
+            <div class="input-group mb-2">
+                <input type="text" id="memberSearch" x-model="memberSearch" class="form-control" placeholder="חיפוש (ESC)" @keydown.escape="memberSearch = ''">
+                <button class="btn btn-outline-success" @click="if(!quickAdd) { nm.name = memberSearch; memberSearch = ''; } quickAdd = !quickAdd; setTimeout(() => document.querySelector('#quickAddName')?.focus(), 100);">
+                    <i class="bi bi-person-plus"></i>
+                </button>
+            </div>
+            
+            <div x-show="quickAdd" class="card p-2 mb-2 bg-light border-0" x-cloak x-transition>
+                <input type="text" id="quickAddName" x-model="nm.name" class="form-control form-control-sm mb-1" placeholder="שם מלא *">
+                <input type="text" x-model="nm.nickname" class="form-control form-control-sm mb-2" placeholder="כינוי (אנגלית, אופציונלי)" @keydown.enter="addMember(); quickAdd = false">
+                <button @click="addMember(); quickAdd = false" class="btn btn-success btn-sm w-100">שמור</button>
+            </div>
+            
+            <div class="member-list-container border rounded bg-white">
+                <div class="list-group list-group-flush">
+                    <template x-for="m in filteredMembers" :key="m.memberUniqueId">
+                        <button @click="selectMember(m); mobileMenuOpen = false" 
+                                class="list-group-item list-group-item-action border-0" 
+                                :class="selectedMember?.memberUniqueId === m.memberUniqueId ? 'active' : ''">
+                            <div class="fw-bold" x-text="m.name"></div>
+                            <small class="opacity-75" x-text="m.nickname"></small>
+                        </button>
+                    </template>
+                </div>
+            </div>
+            
+            <div class="pt-3 border-top mt-auto">
+                <button @click="navigate('home')" class="btn btn-light w-100 mb-2 text-start">
+                    🏠 דף הבית <span class="keyboard-shortcut text-muted small ms-auto">(Alt+H)</span>
+                </button>
+                <button @click="navigate('summary')" class="btn btn-light w-100 mb-2 text-start">
+                    📊 סיכום חובות <span class="keyboard-shortcut text-muted small ms-auto">(Alt+S)</span>
+                </button>
+                <button @click="navigate('reports')" class="btn btn-light w-100 mb-2 text-start">
+                    📄 דוחות <span class="keyboard-shortcut text-muted small ms-auto">(Alt+R)</span>
+                </button>
+                <button @click="navigate('management')" class="btn btn-light w-100 mb-3 text-start">
+                    ⚙️ הגדרות <span class="keyboard-shortcut text-muted small ms-auto">(Alt+G)</span>
+                </button>
+                <div class="d-flex justify-content-between">
+                    <button class="btn btn-sm btn-outline-secondary" @click="toggleDarkMode()"><i class="bi bi-moon"></i></button>
+                    <button class="btn btn-sm btn-outline-warning" @click="resetAllData()"><i class="bi bi-arrow-clockwise"></i></button>
+                    <button class="btn btn-sm btn-danger" @click="logout()">צא</button>
+                </div>
+            </div>
+        </aside>
+        
+        <main class="main-content">
+            <!-- Mobile Header -->
+            <div class="d-lg-none mb-3 no-print">
+                <div class="page-header">
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-building fs-4 me-2"></i>
+                        <h1>ניהול קהילה PRO</h1>
+                    </div>
+                    <button class="btn btn-primary" @click="mobileMenuOpen = !mobileMenuOpen">
+                        <i class="bi bi-list"></i> תפריט
+                    </button>
+                </div>
+            </div>
+            
+            <!-- דף הבית - תנועות אחרונות -->
+            <div x-show="view === 'home'" x-cloak>
+                <div class="page-header">
+                    <h1><i class="bi bi-house-door me-2"></i>דף הבית - תנועות אחרונות</h1>
+                    <div class="d-flex gap-2">
+                        <button @click="exportToPDF('homeTable', 'תנועות_אחרונות')" class="btn btn-danger no-print">
+                            <i class="bi bi-file-pdf"></i> PDF
+                        </button>
+                        <button @click="exportToExcel('homeTable', 'תנועות_אחרונות')" class="btn btn-success no-print">
+                            <i class="bi bi-file-earmark-excel"></i> Excel
+                        </button>
+                        <button class="btn btn-dark no-print" onclick="window.print()">
+                            <i class="bi bi-printer"></i> הדפס
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- סינון מהיר -->
+                <div class="card mb-3 no-print">
+                    <div class="card-header bg-transparent d-flex justify-content-between" 
+                         @click="ui.homeSearchOpen = !ui.homeSearchOpen"
+                         style="cursor: pointer;">
+                        <h6 class="mb-0">🔍 חיפוש וסינון מתקדם</h6>
+                        <i class="bi" :class="ui.homeSearchOpen ? 'bi-chevron-up' : 'bi-chevron-down'"></i>
+                    </div>
+                    <div class="card-body" :class="!ui.homeSearchOpen ? 'collapsed' : ''" x-transition>
+                        <div class="row g-3">
+                            <!-- חיפוש חכם -->
+                            <div class="col-md-6">
+                                <label class="small fw-bold mb-1">🔍 חיפוש חכם</label>
+                                <div class="input-group">
+                                    <input type="text" 
+                                           x-model="homeFilters.search" 
+                                           class="form-control" 
+                                           placeholder="חפש לפי שם מתפלל, מטרה, או סכום..."
+                                           @input="filterHomeTransactions()">
+                                    <button class="btn btn-outline-secondary" 
+                                            @click="homeFilters.search = ''; filterHomeTransactions()"
+                                            x-show="homeFilters.search">
+                                        <i class="bi bi-x"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <!-- סינון לפי סוג -->
+                            <div class="col-md-6">
+                                <label class="small fw-bold mb-1">סוג תנועה</label>
+                                <div>
+                                    <span class="filter-badge" 
+                                          :class="homeFilters.type === 'all' ? 'active' : ''"
+                                          @click="homeFilters.type = 'all'; filterHomeTransactions()">
+                                        הכל
+                                    </span>
+                                    <span class="filter-badge" 
+                                          :class="homeFilters.type === 'obligations' ? 'active' : ''"
+                                          @click="homeFilters.type = 'obligations'; filterHomeTransactions()">
+                                        התחייבויות
+                                    </span>
+                                    <span class="filter-badge" 
+                                          :class="homeFilters.type === 'payments' ? 'active' : ''"
+                                          @click="homeFilters.type = 'payments'; filterHomeTransactions()">
+                                        תשלומים
+                                    </span>
+                                </div>
+                            </div>
+                            
+                            <!-- סינון לפי תקופה -->
+                            <div class="col-md-12">
+                                <label class="small fw-bold mb-1">תקופה</label>
+                                <div class="d-flex gap-2 align-items-center flex-wrap">
+                                    <span class="filter-badge" 
+                                          :class="homeFilters.period === 'today' ? 'active' : ''"
+                                          @click="homeFilters.period = 'today'; filterHomeTransactions()">
+                                        היום
+                                    </span>
+                                    <span class="filter-badge" 
+                                          :class="homeFilters.period === 'week' ? 'active' : ''"
+                                          @click="homeFilters.period = 'week'; filterHomeTransactions()">
+                                        השבוע
+                                    </span>
+                                    <span class="filter-badge" 
+                                          :class="homeFilters.period === 'month' ? 'active' : ''"
+                                          @click="homeFilters.period = 'month'; filterHomeTransactions()">
+                                        החודש
+                                    </span>
+                                    <span class="filter-badge" 
+                                          :class="homeFilters.period === 'custom' ? 'active' : ''"
+                                          @click="homeFilters.period = 'custom'; filterHomeTransactions()">
+                                        בחר תאריכים
+                                    </span>
+                                    
+                                    <template x-if="homeFilters.period === 'custom'">
+                                        <div class="d-flex gap-2">
+                                            <input type="date" 
+                                                   x-model="homeFilters.fromDate" 
+                                                   class="form-control form-control-sm"
+                                                   @change="filterHomeTransactions()">
+                                            <input type="date" 
+                                                   x-model="homeFilters.toDate" 
+                                                   class="form-control form-control-sm"
+                                                   @change="filterHomeTransactions()">
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- כרטיסיות הוספה -->
+                <ul class="nav nav-tabs mb-3 no-print">
+                    <li class="nav-item">
+                        <button class="nav-link" 
+                                :class="homeActiveTab === 'obligations' ? 'active' : ''"
+                                @click="homeActiveTab = 'obligations'">
+                            הוסף התחייבות
+                        </button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link" 
+                                :class="homeActiveTab === 'payments' ? 'active' : ''"
+                                @click="homeActiveTab = 'payments'">
+                            הוסף תשלום
+                        </button>
+                    </li>
+                </ul>
+                
+                <!-- טופס הוספה -->
+                <div class="card p-3 mb-4 bg-body-tertiary border-0 no-print shadow-sm">
+                    <div class="row g-2 align-items-end" @keydown.enter="addHomeEntry()">
+                        <!-- בחירת מתפלל -->
+                        <div class="col-md">
+                            <label class="small fw-bold mb-1">מתפלל</label>
+                            <select x-model="homeEntry.memberId" class="form-select form-select-sm">
+                                <option value="">בחר מתפלל...</option>
+                                <template x-for="m in members" :key="m.memberUniqueId">
+                                    <option :value="m.memberUniqueId" x-text="m.name"></option>
+                                </template>
+                            </select>
+                        </div>
+                        
+                        <!-- שאר השדות לפי סוג -->
+                        <template x-for="col in (homeActiveTab === 'obligations' ? config.obligationColumns : config.paymentColumns)" :key="col.columnId">
+                            <div class="col-md">
+                                <label class="small fw-bold mb-1" x-text="col.title"></label>
+                                <template x-if="col.type === 'date'">
+                                    <input type="date" x-model="homeEntry[col.field]" class="form-control form-control-sm">
+                                </template>
+                                <template x-if="col.type === 'money'">
+                                    <input type="number" x-model="homeEntry[col.field]" class="form-control form-control-sm" step="0.01">
+                                </template>
+                                <template x-if="col.type === 'text'">
+                                    <input type="text" x-model="homeEntry[col.field]" class="form-control form-control-sm">
+                                </template>
+                                <template x-if="col.type === 'list'">
+                                    <select x-model="homeEntry[col.field]" class="form-select form-select-sm">
+                                        <option value="">בחר...</option>
+                                        <template x-for="opt in (col.options || '').split(',').filter(o => o.trim())" :key="opt">
+                                            <option :value="opt.trim()" x-text="opt.trim()"></option>
+                                        </template>
+                                    </select>
+                                </template>
+                            </div>
+                        </template>
+                        
+                        <div class="col-md-auto">
+                            <button @click="addHomeEntry()" class="btn btn-primary btn-sm px-4">הוסף</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="homeTable" class="bg-body shadow-sm rounded"></div>
+            </div>
+            
+            <!-- דף חשבון מתפלל -->
+            <div x-show="view === 'account' && selectedMember" x-cloak>
+                <div class="card shadow-sm border-0 p-4 mb-4 d-flex flex-row justify-content-between align-items-center">
+                    <div>
+                        <h2 class="mb-0" x-text="selectedMember?.name"></h2>
+                        <small class="text-muted">
+                            <span x-text="selectedMember?.phone || selectedMember?.nickname"></span>
+                            <span class="badge bg-secondary ms-2" x-text="'ID: ' + selectedMember?.memberUniqueId"></span>
+                        </small>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button @click="shareReadOnlyLink()" class="btn btn-info no-print" title="שלח קישור למתפלל">
+                            <i class="bi bi-share"></i> שתף קישור
+                        </button>
+                        <button @click="exportToPDF('mainTable', selectedMember?.name)" class="btn btn-danger no-print">
+                            <i class="bi bi-file-pdf"></i> PDF
+                        </button>
+                        <button @click="exportToExcel('mainTable', selectedMember?.name)" class="btn btn-success no-print">
+                            <i class="bi bi-file-earmark-excel"></i> Excel
+                        </button>
+                        <button class="btn btn-dark no-print" onclick="window.print()">
+                            <i class="bi bi-printer"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <ul class="nav nav-pills mb-4 no-print shadow-sm p-1 rounded bg-body-tertiary">
+                    <li class="nav-item">
+                        <button class="nav-link" :class="activeTab === 'obligations' ? 'active' : ''" @click="setTab('obligations')">
+                            התחייבויות <span class="keyboard-shortcut">(1)</span>
+                        </button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link" :class="activeTab === 'payments' ? 'active' : ''" @click="setTab('payments')">
+                            תשלומים <span class="keyboard-shortcut">(2)</span>
+                        </button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link" :class="activeTab === 'movements' ? 'active' : ''" @click="setTab('movements')">
+                            ריכוז תנועות <span class="keyboard-shortcut">(3)</span>
+                        </button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link" :class="activeTab === 'edit' ? 'active' : ''" @click="setTab('edit')">
+                            עריכת פרטים <span class="keyboard-shortcut">(4)</span>
+                        </button>
+                    </li>
+                </ul>
+                
+                <div x-show="['obligations', 'payments'].includes(activeTab)">
+                    <div class="card p-3 mb-4 bg-body-tertiary border-0 no-print shadow-sm">
+                        <div class="row g-2 align-items-end" @keydown.enter="addNewEntry()">
+                            <template x-for="col in (activeTab === 'obligations' ? config.obligationColumns : config.paymentColumns)" :key="col.columnId">
+                                <div class="col-md">
+                                    <label class="small fw-bold mb-1" x-text="col.title"></label>
+                                    <template x-if="col.type === 'date'">
+                                        <input type="date" x-model="newEntry[col.field]" class="form-control form-control-sm">
+                                    </template>
+                                    <template x-if="col.type === 'money'">
+                                        <input type="number" x-model="newEntry[col.field]" class="form-control form-control-sm" step="0.01">
+                                    </template>
+                                    <template x-if="col.type === 'text'">
+                                        <input type="text" x-model="newEntry[col.field]" class="form-control form-control-sm">
+                                    </template>
+                                    <template x-if="col.type === 'list'">
+                                        <select x-model="newEntry[col.field]" class="form-select form-select-sm">
+                                            <option value="">בחר...</option>
+                                            <template x-for="opt in (col.options || '').split(',').filter(o => o.trim())" :key="opt">
+                                                <option :value="opt.trim()" x-text="opt.trim()"></option>
+                                            </template>
+                                        </select>
+                                    </template>
+                                </div>
+                            </template>
+                            <div class="col-md-auto">
+                                <button @click="addNewEntry()" class="btn btn-primary btn-sm px-4">הוסף</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div x-show="activeTab === 'edit'" class="card p-4 border-0 shadow-sm">
+                    <h5>עריכת מתפלל</h5>
+                    <div class="row g-3">
+                        <template x-for="field in config.memberFields" :key="field.fieldId">
+                            <div class="col-md-6" x-show="selectedMember">
+                                <label class="small fw-bold" x-text="field.name"></label>
+                                <input type="text" 
+                                       x-model="selectedMember[field.key]" 
+                                       class="form-control" 
+                                       @input="saveMembersData()">
+                            </div>
+                        </template>
+                    </div>
+                </div>
+                
+                <div x-show="activeTab !== 'edit' && activeTab !== 'movements'" id="mainTable" class="bg-body shadow-sm rounded"></div>
+                
+                <div x-show="activeTab === 'movements'" x-cloak>
+                    <div id="movementsTable" class="bg-body shadow-sm rounded"></div>
+                </div>
+            </div>
+            
+            <!-- דף דוחות -->
+            <div x-show="view === 'reports'" x-cloak>
+                <div class="page-header">
+                    <h1><i class="bi bi-file-text me-2"></i>מחולל דוחות</h1>
+                </div>
+                
+                <div class="card p-4 border-0 shadow-sm mb-4 no-print">
+                    <div class="row g-3">
+                        <!-- מטרת תשלום עם המלצות -->
+                        <div class="col-md-12">
+                            <label class="small fw-bold">מטרת תשלום 
+                                <i class="bi bi-info-circle text-primary" 
+                                   title="ניתן לבחור כמה ערכים. הפרד בפסיק למטרות נוספות"></i>
+                            </label>
+                            <input type="text" 
+                                   x-model="reportParams.purpose" 
+                                   class="form-control mb-2" 
+                                   placeholder="למשל: גמח, שיעור, תרומה">
+                            <div x-show="availablePurposes.length > 0">
+                                <small class="text-muted">בחר מהקיימות:</small>
+                                <div class="mt-2">
+                                    <template x-for="purpose in availablePurposes" :key="purpose">
+                                        <span class="purpose-badge"
+                                              :class="reportParams.selectedPurposes.includes(purpose) ? 'selected' : ''"
+                                              @click="togglePurpose(purpose)"
+                                              x-text="purpose"></span>
+                                    </template>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- תאריכים -->
+                        <div class="col-md-4">
+                            <label class="small fw-bold">מתאריך:</label>
+                            <input type="date" x-model="reportParams.fromDate" class="form-control">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="small fw-bold">עד תאריך:</label>
+                            <input type="date" x-model="reportParams.toDate" class="form-control">
+                        </div>
+                        
+                        <!-- כפתור הפקה -->
+                        <div class="col-md-4">
+                            <label class="small fw-bold d-block">&nbsp;</label>
+                            <button @click="generateReport()" class="btn btn-primary w-100">הפק דוח</button>
+                        </div>
+                        
+                        <!-- בחירת מתפללים -->
+                        <div class="col-md-12">
+                            <label class="small fw-bold">בחר מתפללים (ריק = הכל):</label>
+                            <div class="d-flex gap-2 flex-wrap">
+                                <template x-for="m in members" :key="m.memberUniqueId">
+                                    <label class="btn btn-sm btn-outline-primary">
+                                        <input type="checkbox" 
+                                               :value="m.memberUniqueId" 
+                                               x-model="reportParams.selectedMembers" 
+                                               class="me-1">
+                                        <span x-text="m.name"></span>
+                                    </label>
+                                </template>
+                            </div>
+                        </div>
+                        
+                        <!-- שמירת דוח מועדף -->
+                        <div class="col-md-12 border-top pt-3">
+                            <div class="d-flex gap-2 align-items-center">
+                                <input type="text" 
+                                       x-model="reportParams.saveName" 
+                                       class="form-control" 
+                                       placeholder="שם הדוח (לשמירה)">
+                                <button @click="saveFavoriteReport()" class="btn btn-success">
+                                    <i class="bi bi-star"></i> שמור מועדף
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- דוחות מועדפים -->
+                        <div class="col-md-12" x-show="favoriteReports.length > 0">
+                            <label class="small fw-bold">דוחות מועדפים:</label>
+                            <div class="d-flex gap-2 flex-wrap">
+                                <template x-for="fav in favoriteReports" :key="fav.id">
+                                    <div class="btn-group" role="group">
+                                        <button @click="loadFavoriteReport(fav)" class="btn btn-sm btn-outline-secondary">
+                                            <i class="bi bi-star-fill text-warning"></i>
+                                            <span x-text="fav.name"></span>
+                                        </button>
+                                        <button @click="deleteFavoriteReport(fav.id)" class="btn btn-sm btn-outline-danger">
+                                            <i class="bi bi-x"></i>
+                                        </button>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="d-flex gap-2 mb-3 no-print">
+                    <button @click="exportToPDF('reportTable', 'דוח')" class="btn btn-danger">
+                        <i class="bi bi-file-pdf"></i> PDF
+                    </button>
+                    <button @click="exportToExcel('reportTable', 'דוח')" class="btn btn-success">
+                        <i class="bi bi-file-earmark-excel"></i> Excel
+                    </button>
+                    <button @click="printReport()" class="btn btn-dark">
+                        <i class="bi bi-printer"></i> הדפס
+                    </button>
+                </div>
+                
+                <div id="reportTable" class="bg-body shadow-sm rounded"></div>
+            </div>
+            
+            <!-- דף הגדרות -->
+            <div x-show="view === 'management'" x-cloak>
+                <div class="page-header">
+                    <h1><i class="bi bi-gear me-2"></i>הגדרות מערכת</h1>
+                </div>
+                
+                <div class="row g-4">
+                    <div class="col-md-7">
+                        <!-- ערכות צבעים מוכנות -->
+                        <div class="card border-0 shadow-sm mb-3">
+                            <div class="card-header bg-transparent d-flex justify-content-between" @click="ui.themesOpen = !ui.themesOpen">
+                                <h6 class="mb-0">🎨 ערכות צבעים מוכנות</h6>
+                                <i class="bi" :class="ui.themesOpen ? 'bi-chevron-up' : 'bi-chevron-down'"></i>
+                            </div>
+                            <div class="card-body" :class="!ui.themesOpen ? 'collapsed' : ''" x-transition>
+                                <div class="row g-2">
+                                    <template x-for="preset in themePresets" :key="preset.name">
+                                        <div class="col-md-3">
+                                            <div class="theme-preset text-center"
+                                                 :class="currentThemePreset === preset.name ? 'active' : ''"
+                                                 :style="`background: linear-gradient(135deg, ${preset.colors.primary} 0%, ${preset.colors.bg} 100%)`"
+                                                 @click="applyThemePreset(preset)">
+                                                <div class="fw-bold" x-text="preset.name"></div>
+                                            </div>
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- הגדרת צבעים מותאמת -->
+                        <div class="card border-0 shadow-sm mb-3">
+                            <div class="card-header bg-transparent d-flex justify-content-between" @click="ui.colorsOpen = !ui.colorsOpen">
+                                <h6 class="mb-0">🎨 הגדרת צבעים מותאמת</h6>
+                                <i class="bi" :class="ui.colorsOpen ? 'bi-chevron-up' : 'bi-chevron-down'"></i>
+                            </div>
+                            <div class="card-body" :class="!ui.colorsOpen ? 'collapsed' : ''" x-transition>
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label class="small fw-bold">צבע ראשי (Light)</label>
+                                        <input type="color" x-model="config.theme.primary" class="form-control form-control-color w-100" @change="saveConfigData()">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="small fw-bold">צבע ראשי (Dark)</label>
+                                        <input type="color" x-model="config.theme.primaryDark" class="form-control form-control-color w-100" @change="saveConfigData()">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="small fw-bold">רקע דף (Light)</label>
+                                        <input type="color" x-model="config.theme.bg" class="form-control form-control-color w-100" @change="saveConfigData()">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="small fw-bold">רקע דף (Dark)</label>
+                                        <input type="color" x-model="config.theme.bgDark" class="form-control form-control-color w-100" @change="saveConfigData()">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="small fw-bold">רקע כרטיסים (Light)</label>
+                                        <input type="color" x-model="config.theme.cardBg" class="form-control form-control-color w-100" @change="saveConfigData()">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="small fw-bold">רקע כרטיסים (Dark)</label>
+                                        <input type="color" x-model="config.theme.cardBgDark" class="form-control form-control-color w-100" @change="saveConfigData()">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="small fw-bold">טקסט כרטיסים (Light)</label>
+                                        <input type="color" x-model="config.theme.cardFont" class="form-control form-control-color w-100" @change="saveConfigData()">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="small fw-bold">טקסט כרטיסים (Dark)</label>
+                                        <input type="color" x-model="config.theme.cardFontDark" class="form-control form-control-color w-100" @change="saveConfigData()">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="small fw-bold">רקע טבלאות (Light)</label>
+                                        <input type="color" x-model="config.theme.tableBg" class="form-control form-control-color w-100" @change="saveConfigData()">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="small fw-bold">רקע טבלאות (Dark)</label>
+                                        <input type="color" x-model="config.theme.tableBgDark" class="form-control form-control-color w-100" @change="saveConfigData()">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="small fw-bold">טקסט טבלאות (Light)</label>
+                                        <input type="color" x-model="config.theme.tableFont" class="form-control form-control-color w-100" @change="saveConfigData()">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="small fw-bold">טקסט טבלאות (Dark)</label>
+                                        <input type="color" x-model="config.theme.tableFontDark" class="form-control form-control-color w-100" @change="saveConfigData()">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- עמודות התחייבויות -->
+                        <div class="card border-0 shadow-sm mb-3">
+                            <div class="card-header bg-transparent d-flex justify-content-between" @click="ui.obOpen = !ui.obOpen">
+                                <h6 class="mb-0">עמודות התחייבויות</h6>
+                                <i class="bi" :class="ui.obOpen ? 'bi-chevron-up' : 'bi-chevron-down'"></i>
+                            </div>
+                            <div class="card-body" :class="!ui.obOpen ? 'collapsed' : ''" x-transition>
+                                <div class="list-group mb-2">
+                                    <template x-for="(col, index) in config.obligationColumns" :key="col.columnId">
+                                        <div class="list-group-item d-flex gap-2 p-2 align-items-center">
+                                            <div class="d-flex flex-column">
+                                                <span class="move-btn" @click="moveColumn('obligation', index, -1)" :class="index === 0 ? 'invisible' : ''">
+                                                    <i class="bi bi-chevron-up"></i>
+                                                </span>
+                                                <span class="move-btn" @click="moveColumn('obligation', index, 1)" :class="index === config.obligationColumns.length - 1 ? 'invisible' : ''">
+                                                    <i class="bi bi-chevron-down"></i>
+                                                </span>
+                                            </div>
+                                            <input type="text" x-model="col.title" class="form-control form-control-sm" @change="saveConfigData()">
+                                            <select x-model="col.type" class="form-select form-select-sm" @change="saveConfigData()">
+                                                <option value="text">טקסט</option>
+                                                <option value="money">כסף</option>
+                                                <option value="date">תאריך</option>
+                                                <option value="list">רשימה</option>
+                                            </select>
+                                            <input x-show="col.type === 'list'" 
+                                                   type="text" 
+                                                   x-model="col.options" 
+                                                   class="form-control form-control-sm" 
+                                                   placeholder="ערכים מופרדים בפסיק"
+                                                   @change="saveConfigData()">
+                                            <button @click="deleteColumn('obligation', index)" 
+                                                    class="btn btn-sm text-danger" 
+                                                    :disabled="col.fixed">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </div>
+                                    </template>
+                                </div>
+                                <button @click="addColumn('obligation')" class="btn btn-sm btn-outline-primary">הוסף עמודה</button>
+                            </div>
+                        </div>
+                        
+                        <!-- עמודות תשלומים -->
+                        <div class="card border-0 shadow-sm mb-3">
+                            <div class="card-header bg-transparent d-flex justify-content-between" @click="ui.payOpen = !ui.payOpen">
+                                <h6 class="mb-0">עמודות תשלומים</h6>
+                                <i class="bi" :class="ui.payOpen ? 'bi-chevron-up' : 'bi-chevron-down'"></i>
+                            </div>
+                            <div class="card-body" :class="!ui.payOpen ? 'collapsed' : ''" x-transition>
+                                <div class="list-group mb-2">
+                                    <template x-for="(col, index) in config.paymentColumns" :key="col.columnId">
+                                        <div class="list-group-item d-flex gap-2 p-2 align-items-center">
+                                            <div class="d-flex flex-column">
+                                                <span class="move-btn" @click="moveColumn('payment', index, -1)" :class="index === 0 ? 'invisible' : ''">
+                                                    <i class="bi bi-chevron-up"></i>
+                                                </span>
+                                                <span class="move-btn" @click="moveColumn('payment', index, 1)" :class="index === config.paymentColumns.length - 1 ? 'invisible' : ''">
+                                                    <i class="bi bi-chevron-down"></i>
+                                                </span>
+                                            </div>
+                                            <input type="text" x-model="col.title" class="form-control form-control-sm" @change="saveConfigData()">
+                                            <select x-model="col.type" class="form-select form-select-sm" @change="saveConfigData()">
+                                                <option value="text">טקסט</option>
+                                                <option value="money">כסף</option>
+                                                <option value="date">תאריך</option>
+                                                <option value="list">רשימה</option>
+                                            </select>
+                                            <input x-show="col.type === 'list'" 
+                                                   type="text" 
+                                                   x-model="col.options" 
+                                                   class="form-control form-control-sm" 
+                                                   placeholder="ערכים מופרדים בפסיק"
+                                                   @change="saveConfigData()">
+                                            <button @click="deleteColumn('payment', index)" 
+                                                    class="btn btn-sm text-danger" 
+                                                    :disabled="col.fixed">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </div>
+                                    </template>
+                                </div>
+                                <button @click="addColumn('payment')" class="btn btn-sm btn-outline-success">הוסף עמודה</button>
+                            </div>
+                        </div>
+                        
+                        <!-- הגדרת שדות מתפלל -->
+                        <div class="card border-0 shadow-sm mb-3">
+                            <div class="card-header bg-transparent d-flex justify-content-between" @click="ui.fieldsOpen = !ui.fieldsOpen">
+                                <h6 class="mb-0">הגדרת שדות מתפלל</h6>
+                                <i class="bi" :class="ui.fieldsOpen ? 'bi-chevron-up' : 'bi-chevron-down'"></i>
+                            </div>
+                            <div class="card-body" :class="!ui.fieldsOpen ? 'collapsed' : ''" x-transition>
+                                <template x-for="(f, i) in config.memberFields" :key="f.fieldId">
+                                    <div class="d-flex gap-2 mb-2 align-items-center">
+                                        <div class="d-flex flex-column">
+                                            <span class="move-btn" @click="moveMemberField(i, -1)" :class="i === 0 ? 'invisible' : ''">
+                                                <i class="bi bi-chevron-up"></i>
+                                            </span>
+                                            <span class="move-btn" @click="moveMemberField(i, 1)" :class="i === config.memberFields.length - 1 ? 'invisible' : ''">
+                                                <i class="bi bi-chevron-down"></i>
+                                            </span>
+                                        </div>
+                                        <input type="text" x-model="f.name" class="form-control form-control-sm" @change="saveConfigData()">
+                                        <button @click="deleteMemberField(i)" class="btn btn-sm text-danger" :disabled="f.required">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </div>
+                                </template>
+                                <button @click="addMemberField()" class="btn btn-sm btn-outline-primary">הוסף שדה חדש</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-5">
+                        <!-- עריכת מתפלל -->
+                        <div x-show="editingMember" class="card p-4 border-0 shadow-sm mb-4 bg-primary-subtle border-primary" x-cloak x-transition>
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h5 class="mb-0">עריכת מתפלל</h5>
+                                <button class="btn-close" @click="editingMember = null"></button>
+                            </div>
+                            <template x-for="field in config.memberFields" :key="field.fieldId">
+                                <div class="mb-2" x-show="editingMember">
+                                    <label class="small fw-bold" x-text="field.name"></label>
+                                    <input type="text" 
+                                           x-model="editingMember[field.key]" 
+                                           class="form-control form-control-sm">
+                                </div>
+                            </template>
+                            <button @click="updateMember()" class="btn btn-primary btn-sm w-100 mt-2">עדכן ושמור</button>
+                        </div>
+                        
+                        <!-- רשימת מתפללים -->
+                        <div class="card border-0 shadow-sm">
+                            <div class="card-header bg-transparent"><h6>רשימת מתפללים לעריכה</h6></div>
+                            <div class="card-body p-0">
+                                <div class="list-group list-group-flush" style="max-height: 400px; overflow-y: auto;">
+                                    <template x-for="m in members" :key="m.memberUniqueId">
+                                        <div class="list-group-item d-flex justify-content-between align-items-center p-2">
+                                            <div>
+                                                <div x-text="m.name"></div>
+                                                <small class="text-muted" x-text="'ID: ' + m.memberUniqueId"></small>
+                                            </div>
+                                            <div>
+                                                <button @click="editingMember = {...m}" class="btn btn-sm btn-outline-primary">
+                                                    <i class="bi bi-pencil"></i>
+                                                </button>
+                                                <button @click="deleteMember(m.memberUniqueId)" class="btn btn-sm btn-outline-danger">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- דף סיכום חובות -->
+            <div x-show="view === 'summary'" x-cloak>
+                <div class="page-header">
+                    <h1><i class="bi bi-bar-chart me-2"></i>סיכום חובות כללי</h1>
+                    <div class="d-flex gap-2">
+                        <button @click="exportToPDF('summaryTable', 'סיכום_חובות')" class="btn btn-danger no-print">
+                            <i class="bi bi-file-pdf"></i> PDF
+                        </button>
+                        <button @click="exportToExcel('summaryTable', 'סיכום_חובות')" class="btn btn-success no-print">
+                            <i class="bi bi-file-earmark-excel"></i> Excel
+                        </button>
+                        <button class="btn btn-dark no-print" onclick="window.print()">
+                            <i class="bi bi-printer"></i> הדפס
+                        </button>
+                    </div>
+                </div>
+                <div id="summaryTable" class="bg-body shadow-sm rounded"></div>
+            </div>
+        </main>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://unpkg.com/tabulator-tables@5.5.0/dist/js/tabulator.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    
+    <script>
+    function synagogueApp() {
+        return {
+            // Authentication
+            isLoggedIn: localStorage.getItem('synagogue_auth') === 'true',
+            loginForm: { user: '', pass: '' },
+            readOnlyMode: false,
+            
+            // Navigation
+            view: 'home',
+            activeTab: 'obligations',
+            mobileMenuOpen: false,
+            
+            // Members
+            selectedMember: null,
+            editingMember: null,
+            memberSearch: '',
+            quickAdd: false,
+            nm: { name: '', nickname: '' },
+            
+            // Home page
+            homeActiveTab: 'obligations',
+            homeEntry: {},
+            homeFilters: {
+                search: '',
+                type: 'all', // 'all', 'obligations', 'payments'
+                period: 'month', // 'today', 'week', 'month', 'custom'
+                fromDate: '',
+                toDate: ''
+            },
+            filteredHomeTransactions: [],
+            highlightedRowId: null,
+            
+            // Reports
+            reportParams: {
+                purpose: '',
+                selectedPurposes: [],
+                fromDate: '',
+                toDate: '',
+                selectedMembers: [],
+                saveName: ''
+            },
+            favoriteReports: JSON.parse(localStorage.getItem('synagogue_favorite_reports')) || [],
+            availablePurposes: [],
+            
+            // UI State
+            darkMode: localStorage.getItem('synagogue_dark_mode') === 'true',
+            currentThemePreset: localStorage.getItem('synagogue_theme_preset') || 'custom',
+            ui: { 
+                obOpen: false, 
+                payOpen: false, 
+                fieldsOpen: false,
+                colorsOpen: false,
+                themesOpen: false,
+                homeSearchOpen: false
+            },
+            
+            // Theme presets
+            themePresets: [
+                {
+                    name: 'קלאסי',
+                    colors: {
+                        primary: '#0d6efd',
+                        bg: '#f8f9fa',
+                        cardBg: '#ffffff',
+                        cardFont: '#212529',
+                        tableBg: '#ffffff',
+                        tableFont: '#212529',
+                        primaryDark: '#0d6efd',
+                        bgDark: '#212529',
+                        cardBgDark: '#2c3034',
+                        cardFontDark: '#e9ecef',
+                        tableBgDark: '#2c3034',
+                        tableFontDark: '#e9ecef'
+                    }
+                },
+                {
+                    name: 'מודרני',
+                    colors: {
+                        primary: '#6366f1',
+                        bg: '#f5f5f5',
+                        cardBg: '#ffffff',
+                        cardFont: '#1f2937',
+                        tableBg: '#ffffff',
+                        tableFont: '#1f2937',
+                        primaryDark: '#818cf8',
+                        bgDark: '#111827',
+                        cardBgDark: '#1f2937',
+                        cardFontDark: '#f3f4f6',
+                        tableBgDark: '#1f2937',
+                        tableFontDark: '#f3f4f6'
+                    }
+                },
+                {
+                    name: 'כהה',
+                    colors: {
+                        primary: '#10b981',
+                        bg: '#111827',
+                        cardBg: '#1f2937',
+                        cardFont: '#f3f4f6',
+                        tableBg: '#1f2937',
+                        tableFont: '#f3f4f6',
+                        primaryDark: '#34d399',
+                        bgDark: '#030712',
+                        cardBgDark: '#111827',
+                        cardFontDark: '#f9fafb',
+                        tableBgDark: '#111827',
+                        tableFontDark: '#f9fafb'
+                    }
+                },
+                {
+                    name: 'בהיר',
+                    colors: {
+                        primary: '#f59e0b',
+                        bg: '#fffbeb',
+                        cardBg: '#ffffff',
+                        cardFont: '#78350f',
+                        tableBg: '#ffffff',
+                        tableFont: '#78350f',
+                        primaryDark: '#fbbf24',
+                        bgDark: '#1c1917',
+                        cardBgDark: '#292524',
+                        cardFontDark: '#fef3c7',
+                        tableBgDark: '#292524',
+                        tableFontDark: '#fef3c7'
+                    }
+                }
+            ],
+            
+            // Configuration
+            config: JSON.parse(localStorage.getItem('synagogue_config')) || {
+                obligationColumns: [
+                    { columnId: 'ob_date', title: 'תאריך', field: 'obligationDate', type: 'date', fixed: true },
+                    { columnId: 'ob_purpose', title: 'מטרת תשלום', field: 'purpose', type: 'text', fixed: false },
+                    { columnId: 'ob_amount', title: 'סכום', field: 'obligationAmount', type: 'money', fixed: true }
+                ],
+                paymentColumns: [
+                    { columnId: 'pay_date', title: 'תאריך', field: 'paymentDate', type: 'date', fixed: true },
+                    { columnId: 'pay_purpose', title: 'מטרת תשלום', field: 'purpose', type: 'text', fixed: false },
+                    { columnId: 'pay_method', title: 'אופן תשלום', field: 'paymentMethod', type: 'list', options: 'מזומן,העברה,צ׳ק,אשראי', fixed: false },
+                    { columnId: 'pay_reference', title: 'אסמכתא', field: 'reference', type: 'text', fixed: false },
+                    { columnId: 'pay_amount', title: 'סכום', field: 'paymentAmount', type: 'money', fixed: true }
+                ],
+                memberFields: [
+                    { fieldId: 'field_name', name: 'שם מלא', key: 'name', required: true },
+                    { fieldId: 'field_nickname', name: 'כינוי/מזהה', key: 'memberUniqueId', required: true },
+                    { fieldId: 'field_phone', name: 'טלפון', key: 'phone', required: false },
+                    { fieldId: 'field_email', name: 'אימייל', key: 'email', required: false }
+                ],
+                theme: { 
+                    primary: '#0d6efd',
+                    bg: '#f8f9fa',
+                    sidebarBg: '#ffffff',
+                    sidebarFont: '#333333',
+                    cardBg: '#ffffff',
+                    cardFont: '#212529',
+                    tableBg: '#ffffff',
+                    tableHeaderBg: '#e9ecef',
+                    tableFont: '#212529',
+                    primaryDark: '#0d6efd',
+                    bgDark: '#212529',
+                    sidebarBgDark: '#2c3034',
+                    sidebarFontDark: '#e9ecef',
+                    cardBgDark: '#2c3034',
+                    cardFontDark: '#e9ecef',
+                    tableBgDark: '#2c3034',
+                    tableHeaderBgDark: '#1a1d20',
+                    tableFontDark: '#e9ecef'
+                }
+            },
+            
+            // Data
+            members: JSON.parse(localStorage.getItem('synagogue_members')) || [],
+            transactions: JSON.parse(localStorage.getItem('synagogue_transactions')) || [],
+            newEntry: {},
+            
+            // Tabulator instances
+            currentTable: null,
+            
+            init() {
+                // Check for read-only mode in URL
+                const params = new URLSearchParams(window.location.hash.substring(1));
+                if (params.get('readonly') === 'true') {
+                    this.readOnlyMode = true;
+                }
+                
+                this.resetEntry();
+                this.resetHomeEntry();
+                this.handleRouting();
+                this.extractAvailablePurposes();
+                this.setDefaultReportDates();
+                
+                // Watch config changes
+                this.$watch('config', () => {
+                    this.saveConfigData();
+                    this.renderTable();
+                }, { deep: true });
+                
+                // Keyboard shortcuts
+                window.addEventListener('keydown', (e) => {
+                    if (!this.isLoggedIn) return;
+                    
+                    if (e.key === 'Escape') {
+                        e.preventDefault();
+                        const searchInput = document.getElementById('memberSearch');
+                        if (searchInput) searchInput.focus();
+                    }
+                    
+                    if (e.altKey && e.key === 'h') { e.preventDefault(); this.navigate('home'); }
+                    if (e.altKey && e.key === 's') { e.preventDefault(); this.navigate('summary'); }
+                    if (e.altKey && e.key === 'g') { e.preventDefault(); this.navigate('management'); }
+                    if (e.altKey && e.key === 'r') { e.preventDefault(); this.navigate('reports'); }
+                    if (e.altKey && e.key === '1') { e.preventDefault(); this.setTab('obligations'); }
+                    if (e.altKey && e.key === '2') { e.preventDefault(); this.setTab('payments'); }
+                    if (e.altKey && e.key === '3') { e.preventDefault(); this.setTab('summary'); }
+                    if (e.altKey && e.key === '4') { e.preventDefault(); this.setTab('edit'); }
+                    if (e.altKey && e.key === '5') { e.preventDefault(); this.setTab('movements'); }
+                });
+                
+                window.addEventListener('hashchange', () => this.handleRouting());
+            },
+            
+            handleRouting() {
+                const hash = window.location.hash.substring(1);
+                const params = new URLSearchParams(hash);
+                
+                if (params.get('view')) this.view = params.get('view');
+                if (params.get('member')) {
+                    const memberId = params.get('member');
+                    this.selectedMember = this.members.find(m => m.memberUniqueId == memberId);
+                }
+                if (params.get('tab')) this.activeTab = params.get('tab');
+                if (params.get('highlight')) this.highlightedRowId = params.get('highlight');
+                
+                setTimeout(() => this.renderTable(), 100);
+            },
+            
+            updateURL() {
+                let params = new URLSearchParams();
+                
+                // Don't add anything for home page
+                if (this.view !== 'home') {
+                    params.set('view', this.view);
+                }
+                
+                if (this.selectedMember && this.view === 'account') {
+                    params.set('member', this.selectedMember.memberUniqueId);
+                    params.set('tab', this.activeTab);
+                }
+                
+                if (this.readOnlyMode) {
+                    params.set('readonly', 'true');
+                }
+                
+                window.location.hash = params.toString();
+            },
+            
+            navigate(v) { 
+                this.view = v;
+                if (v === 'home') {
+                    // Clear URL for home page
+                    window.location.hash = '';
+                } else {
+                    this.updateURL();
+                }
+                setTimeout(() => this.renderTable(), 50);
+            },
+            
+            setTab(t) { 
+                this.activeTab = t;
+                this.updateURL();
+                setTimeout(() => {
+                    this.renderTable();
+                    if (['obligations', 'payments'].includes(t)) {
+                        setTimeout(() => {
+                            const firstInput = document.querySelector('.card.bg-body-tertiary input:not([type="hidden"]), .card.bg-body-tertiary select');
+                            if (firstInput) firstInput.focus();
+                        }, 100);
+                    }
+                }, 50);
+            },
+            
+            selectMember(m) { 
+                this.selectedMember = m; 
+                this.view = 'account'; 
+                this.activeTab = 'obligations';
+                this.updateURL();
+            },
+            
+            goToMemberTransaction(memberId, transactionId) {
+                const member = this.members.find(m => m.memberUniqueId === memberId);
+                if (!member) return;
+                
+                this.selectedMember = member;
+                this.view = 'account';
+                const transaction = this.transactions.find(t => t.transactionId === transactionId);
+                this.activeTab = transaction ? transaction.transactionType : 'obligations';
+                this.highlightedRowId = transactionId;
+                
+                // Update URL with highlight
+                let params = new URLSearchParams();
+                params.set('view', 'account');
+                params.set('member', memberId);
+                params.set('tab', this.activeTab);
+                params.set('highlight', transactionId);
+                window.location.hash = params.toString();
+                
+                setTimeout(() => {
+                    this.renderTable();
+                    setTimeout(() => {
+                        const row = document.querySelector(`[data-transaction-id="${transactionId}"]`);
+                        if (row) {
+                            row.classList.add('highlight-row');
+                            row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                            setTimeout(() => row.classList.remove('highlight-row'), 3000);
+                        }
+                        this.highlightedRowId = null;
+                    }, 200);
+                }, 100);
+            },
+            
+            get customStyle() {
+                const isDark = this.darkMode;
+                return `
+                    --primary-color: ${isDark ? this.config.theme.primaryDark : this.config.theme.primary};
+                    --bg-color: ${isDark ? this.config.theme.bgDark : this.config.theme.bg};
+                    --sidebar-bg: ${isDark ? this.config.theme.sidebarBgDark : this.config.theme.sidebarBg};
+                    --sidebar-font: ${isDark ? this.config.theme.sidebarFontDark : this.config.theme.sidebarFont};
+                    --card-bg: ${isDark ? this.config.theme.cardBgDark : this.config.theme.cardBg};
+                    --card-font: ${isDark ? this.config.theme.cardFontDark : this.config.theme.cardFont};
+                    --table-bg: ${isDark ? this.config.theme.tableBgDark : this.config.theme.tableBg};
+                    --table-header-bg: ${isDark ? this.config.theme.tableHeaderBgDark : this.config.theme.tableHeaderBg};
+                    --table-font: ${isDark ? this.config.theme.tableFontDark : this.config.theme.tableFont};
+                `;
+            },
+            
+            // Authentication
+            login() {
+                if (this.loginForm.user === 'admin' && this.loginForm.pass === '1234') {
+                    this.isLoggedIn = true;
+                    localStorage.setItem('synagogue_auth', 'true');
+                    this.navigate('home');
+                }
+            },
+            
+            logout() {
+                this.isLoggedIn = false;
+                localStorage.removeItem('synagogue_auth');
+                window.location.hash = '';
+            },
+            
+            toggleDarkMode() {
+                this.darkMode = !this.darkMode;
+                localStorage.setItem('synagogue_dark_mode', this.darkMode);
+            },
+            
+            async resetAllData() {
+                const result = await Swal.fire({
+                    title: 'איפוס כל הנתונים?',
+                    text: 'פעולה זו תמחק את כל המתפללים, התנועות וההגדרות. האם להמשיך?',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'כן, אפס הכל',
+                    cancelButtonText: 'ביטול',
+                    confirmButtonColor: '#dc3545',
+                    input: 'checkbox',
+                    inputValue: 0,
+                    inputPlaceholder: 'אני מבין שפעולה זו בלתי הפיכה'
+                });
+                
+                if (result.isConfirmed && result.value) {
+                    localStorage.removeItem('synagogue_members');
+                    localStorage.removeItem('synagogue_transactions');
+                    localStorage.removeItem('synagogue_config');
+                    localStorage.removeItem('synagogue_favorite_reports');
+                    localStorage.removeItem('synagogue_theme_preset');
+                    await Swal.fire('הושלם!', 'כל הנתונים נמחקו', 'success');
+                    location.reload();
+                }
+            },
+            
+            // Theme presets
+            applyThemePreset(preset) {
+                this.config.theme = {...preset.colors};
+                this.currentThemePreset = preset.name;
+                localStorage.setItem('synagogue_theme_preset', preset.name);
+                this.saveConfigData();
+            },
+            
+            // Members
+            get filteredMembers() {
+                return this.members.filter(m => 
+                    m.name.includes(this.memberSearch) || 
+                    (m.memberUniqueId && m.memberUniqueId.toString().includes(this.memberSearch))
+                );
+            },
+            
+            generateMemberUniqueId() {
+                let id;
+                do {
+                    id = String(Math.floor(1000 + Math.random() * 9000));
+                } while (this.members.some(m => m.memberUniqueId === id));
+                return id;
+            },
+            
+            addMember() {
+                if (!this.nm.name) {
+                    Swal.fire('שגיאה', 'נא למלא שם', 'error');
+                    return;
+                }
+                
+                // Validate nickname is English only if provided
+                if (this.nm.nickname && !/^[a-zA-Z0-9]+$/.test(this.nm.nickname)) {
+                    Swal.fire('שגיאה', 'הכינוי חייב להיות באנגלית בלבד (אותיות ומספרים)', 'error');
+                    return;
+                }
+                
+                // Check if nickname already exists
+                if (this.nm.nickname && this.members.some(m => m.memberUniqueId === this.nm.nickname)) {
+                    Swal.fire('שגיאה', 'כינוי זה כבר קיים במערכת', 'error');
+                    return;
+                }
+                
+                const memberUniqueId = this.nm.nickname || this.generateMemberUniqueId();
+                
+                const m = {
+                    memberUniqueId: memberUniqueId,
+                    name: this.nm.name,
+                    nickname: memberUniqueId
+                };
+                
+                // Add all custom fields
+                this.config.memberFields.forEach(f => {
+                    if (!m[f.key]) m[f.key] = '';
+                });
+                
+                this.members.push(m);
+                this.saveMembersData();
+                this.selectMember(m);
+                this.nm = { name: '', nickname: '' };
+            },
+            
+            updateMember() {
+                const idx = this.members.findIndex(m => m.memberUniqueId === this.editingMember.memberUniqueId);
+                if (idx !== -1) {
+                    // Validate nickname if changed
+                    const newId = this.editingMember.memberUniqueId;
+                    const oldId = this.members[idx].memberUniqueId;
+                    
+                    if (newId !== oldId) {
+                        if (!/^[a-zA-Z0-9]+$/.test(newId)) {
+                            Swal.fire('שגיאה', 'הכינוי חייב להיות באנגלית בלבד (אותיות ומספרים)', 'error');
+                            return;
+                        }
+                        
+                        if (this.members.some(m => m.memberUniqueId === newId && m.memberUniqueId !== oldId)) {
+                            Swal.fire('שגיאה', 'כינוי זה כבר קיים במערכת', 'error');
+                            return;
+                        }
+                        
+                        // Update all transactions with new ID
+                        this.transactions.forEach(t => {
+                            if (t.memberId === oldId) {
+                                t.memberId = newId;
+                            }
+                        });
+                        this.saveTransactionsData();
+                    }
+                    
+                    this.members[idx] = {...this.editingMember};
+                    this.saveMembersData();
+                    this.editingMember = null;
+                    
+                    if (this.selectedMember && this.selectedMember.memberUniqueId === oldId) {
+                        this.selectedMember = this.members[idx];
+                    }
+                }
+            },
+            
+            async deleteMember(memberId) {
+                const result = await Swal.fire({
+                    title: 'האם למחוק מתפלל?',
+                    text: 'פעולה זו תמחק גם את כל התנועות של המתפלל',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'כן, מחק',
+                    cancelButtonText: 'ביטול',
+                    confirmButtonColor: '#dc3545'
+                });
+                
+                if (result.isConfirmed) {
+                    this.members = this.members.filter(m => m.memberUniqueId !== memberId);
+                    this.transactions = this.transactions.filter(t => t.memberId !== memberId);
+                    this.saveMembersData();
+                    this.saveTransactionsData();
+                    
+                    if (this.selectedMember && this.selectedMember.memberUniqueId === memberId) {
+                        this.selectedMember = null;
+                        this.navigate('home');
+                    }
+                }
+            },
+            
+            // Columns management
+            addColumn(type) {
+                const timestamp = Date.now();
+                const newColumn = {
+                    columnId: `col_${timestamp}`,
+                    title: 'עמודה חדשה',
+                    field: `field_${timestamp}`,
+                    type: 'text',
+                    fixed: false
+                };
+                
+                if (type === 'obligation') {
+                    this.config.obligationColumns.push(newColumn);
+                } else if (type === 'payment') {
+                    this.config.paymentColumns.push(newColumn);
+                }
+                
+                this.saveConfigData();
+            },
+            
+            async deleteColumn(type, index) {
+                const column = type === 'obligation' 
+                    ? this.config.obligationColumns[index]
+                    : this.config.paymentColumns[index];
+                    
+                if (column.fixed) return;
+                
+                const result = await Swal.fire({
+                    title: 'האם למחוק עמודה?',
+                    text: 'הנתונים בעמודה זו יימחקו',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'כן, מחק',
+                    cancelButtonText: 'ביטול',
+                    confirmButtonColor: '#dc3545'
+                });
+                
+                if (result.isConfirmed) {
+                    if (type === 'obligation') {
+                        this.config.obligationColumns.splice(index, 1);
+                    } else {
+                        this.config.paymentColumns.splice(index, 1);
+                    }
+                    this.saveConfigData();
+                }
+            },
+            
+            moveColumn(type, index, direction) {
+                const columns = type === 'obligation' ? this.config.obligationColumns : this.config.paymentColumns;
+                const newIndex = index + direction;
+                
+                if (newIndex < 0 || newIndex >= columns.length) return;
+                
+                [columns[index], columns[newIndex]] = [columns[newIndex], columns[index]];
+                this.saveConfigData();
+            },
+            
+            addMemberField() {
+                const timestamp = Date.now();
+                this.config.memberFields.push({
+                    fieldId: `field_${timestamp}`,
+                    name: 'שדה חדש',
+                    key: `key_${timestamp}`,
+                    required: false
+                });
+                this.saveConfigData();
+            },
+            
+            async deleteMemberField(index) {
+                const field = this.config.memberFields[index];
+                if (field.required) return;
+                
+                const result = await Swal.fire({
+                    title: 'האם למחוק שדה?',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'כן, מחק',
+                    cancelButtonText: 'ביטול',
+                    confirmButtonColor: '#dc3545'
+                });
+                
+                if (result.isConfirmed) {
+                    this.config.memberFields.splice(index, 1);
+                    this.saveConfigData();
+                }
+            },
+            
+            moveMemberField(index, direction) {
+                const newIndex = index + direction;
+                
+                if (newIndex < 0 || newIndex >= this.config.memberFields.length) return;
+                
+                [this.config.memberFields[index], this.config.memberFields[newIndex]] = 
+                [this.config.memberFields[newIndex], this.config.memberFields[index]];
+                this.saveConfigData();
+            },
+            
+            // Home page transactions
+            resetHomeEntry() {
+                const cols = this.homeActiveTab === 'obligations' 
+                    ? this.config.obligationColumns 
+                    : this.config.paymentColumns;
+                    
+                this.homeEntry = { memberId: '' };
+                cols.forEach(c => {
+                    this.homeEntry[c.field] = (c.type === 'date' ? new Date().toISOString().split('T')[0] : '');
+                });
+            },
+            
+            addHomeEntry() {
+                if (!this.homeEntry.memberId) {
+                    Swal.fire('שגיאה', 'נא לבחור מתפלל', 'error');
+                    return;
+                }
+                
+                const amountField = this.homeActiveTab === 'obligations' ? 'obligationAmount' : 'paymentAmount';
+                if (!this.homeEntry[amountField]) {
+                    Swal.fire('שגיאה', 'נא להזין סכום', 'error');
+                    return;
+                }
+                
+                const transaction = {
+                    transactionId: Date.now(),
+                    memberId: this.homeEntry.memberId,
+                    transactionType: this.homeActiveTab,
+                    ...this.homeEntry
+                };
+                
+                delete transaction.memberId; // Will be re-added
+                transaction.memberId = this.homeEntry.memberId;
+                
+                this.transactions.unshift(transaction);
+                this.saveTransactionsData();
+                this.resetHomeEntry();
+                this.filterHomeTransactions();
+                this.renderTable();
+                
+                Swal.fire({
+                    icon: 'success',
+                    title: 'נוסף!',
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 2000
+                });
+            },
+            
+            filterHomeTransactions() {
+                let filtered = [...this.transactions];
+                
+                // Filter by type
+                if (this.homeFilters.type !== 'all') {
+                    filtered = filtered.filter(t => t.transactionType === this.homeFilters.type);
+                }
+                
+                // Filter by period
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                
+                switch (this.homeFilters.period) {
+                    case 'today':
+                        filtered = filtered.filter(t => {
+                            const date = new Date(t.obligationDate || t.paymentDate);
+                            date.setHours(0, 0, 0, 0);
+                            return date.getTime() === today.getTime();
+                        });
+                        break;
+                    case 'week':
+                        const weekAgo = new Date(today);
+                        weekAgo.setDate(weekAgo.getDate() - 7);
+                        filtered = filtered.filter(t => {
+                            const date = new Date(t.obligationDate || t.paymentDate);
+                            return date >= weekAgo;
+                        });
+                        break;
+                    case 'month':
+                        const monthAgo = new Date(today);
+                        monthAgo.setMonth(monthAgo.getMonth() - 1);
+                        filtered = filtered.filter(t => {
+                            const date = new Date(t.obligationDate || t.paymentDate);
+                            return date >= monthAgo;
+                        });
+                        break;
+                    case 'custom':
+                        if (this.homeFilters.fromDate) {
+                            filtered = filtered.filter(t => {
+                                const date = t.obligationDate || t.paymentDate;
+                                return date >= this.homeFilters.fromDate;
+                            });
+                        }
+                        if (this.homeFilters.toDate) {
+                            filtered = filtered.filter(t => {
+                                const date = t.obligationDate || t.paymentDate;
+                                return date <= this.homeFilters.toDate;
+                            });
+                        }
+                        break;
+                }
+                
+                // Smart search
+                if (this.homeFilters.search) {
+                    const search = this.homeFilters.search.toLowerCase();
+                    filtered = filtered.filter(t => {
+                        const member = this.members.find(m => m.memberUniqueId === t.memberId);
+                        const memberName = member ? member.name.toLowerCase() : '';
+                        const purpose = (t.purpose || '').toLowerCase();
+                        const amount = String(t.obligationAmount || t.paymentAmount || '');
+                        
+                        return memberName.includes(search) || 
+                               purpose.includes(search) || 
+                               amount.includes(search);
+                    });
+                }
+                
+                this.filteredHomeTransactions = filtered;
+                
+                // Re-render if table exists
+                if (this.view === 'home') {
+                    setTimeout(() => this.renderTable(), 50);
+                }
+            },
+            
+            // Transactions
+            resetEntry() {
+                const cols = this.activeTab === 'obligations' 
+                    ? this.config.obligationColumns 
+                    : this.config.paymentColumns;
+                    
+                this.newEntry = {};
+                cols.forEach(c => {
+                    this.newEntry[c.field] = (c.type === 'date' ? new Date().toISOString().split('T')[0] : '');
+                });
+            },
+            
+            addNewEntry() {
+                const amountField = this.activeTab === 'obligations' ? 'obligationAmount' : 'paymentAmount';
+                if (!this.newEntry[amountField]) {
+                    Swal.fire('שגיאה', 'נא להזין סכום', 'error');
+                    return;
+                }
+                
+                const transaction = {
+                    transactionId: Date.now(),
+                    memberId: this.selectedMember.memberUniqueId,
+                    transactionType: this.activeTab,
+                    ...this.newEntry
+                };
+                
+                this.transactions.unshift(transaction);
+                this.saveTransactionsData();
+                this.resetEntry();
+                this.renderTable();
+            },
+            
+            async deleteTransaction(transactionId) {
+                if (this.readOnlyMode) {
+                    Swal.fire('שגיאה', 'מצב קריאה בלבד', 'error');
+                    return;
+                }
+                
+                const result = await Swal.fire({
+                    title: 'האם למחוק תנועה?',
+                    text: 'לחץ ENTER לאישור',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'מחק',
+                    cancelButtonText: 'ביטול',
+                    confirmButtonColor: '#dc3545',
+                    focusConfirm: true
+                });
+                
+                if (result.isConfirmed) {
+                    this.transactions = this.transactions.filter(t => t.transactionId !== transactionId);
+                    this.saveTransactionsData();
+                    this.renderTable();
+                    this.filterHomeTransactions();
+                }
+            },
+            
+            // Data persistence
+            saveConfigData() {
+                localStorage.setItem('synagogue_config', JSON.stringify(this.config));
+            },
+            
+            saveMembersData() {
+                localStorage.setItem('synagogue_members', JSON.stringify(this.members));
+            },
+            
+            saveTransactionsData() {
+                localStorage.setItem('synagogue_transactions', JSON.stringify(this.transactions));
+            },
+            
+            // Reports
+            extractAvailablePurposes() {
+                const purposes = new Set();
+                this.transactions.forEach(t => {
+                    if (t.purpose) purposes.add(t.purpose);
+                });
+                this.availablePurposes = Array.from(purposes);
+            },
+            
+            setDefaultReportDates() {
+                const today = new Date();
+                const monthAgo = new Date(today);
+                monthAgo.setMonth(monthAgo.getMonth() - 1);
+                
+                this.reportParams.toDate = today.toISOString().split('T')[0];
+                this.reportParams.fromDate = monthAgo.toISOString().split('T')[0];
+            },
+            
+            togglePurpose(purpose) {
+                const index = this.reportParams.selectedPurposes.indexOf(purpose);
+                if (index > -1) {
+                    this.reportParams.selectedPurposes.splice(index, 1);
+                } else {
+                    this.reportParams.selectedPurposes.push(purpose);
+                }
+                
+                // Update text field
+                this.reportParams.purpose = this.reportParams.selectedPurposes.join(', ');
+            },
+            
+            generateReport() {
+                let filtered = [...this.transactions];
+                
+                // Filter by purpose
+                if (this.reportParams.purpose || this.reportParams.selectedPurposes.length > 0) {
+                    const purposes = this.reportParams.selectedPurposes.length > 0 
+                        ? this.reportParams.selectedPurposes 
+                        : this.reportParams.purpose.split(',').map(p => p.trim()).filter(p => p);
+                    
+                    filtered = filtered.filter(t => 
+                        purposes.some(p => t.purpose && t.purpose.toLowerCase().includes(p.toLowerCase()))
+                    );
+                }
+                
+                // Filter by date range
+                if (this.reportParams.fromDate) {
+                    filtered = filtered.filter(t => {
+                        const date = t.obligationDate || t.paymentDate || '';
+                        return date >= this.reportParams.fromDate;
+                    });
+                }
+                
+                if (this.reportParams.toDate) {
+                    filtered = filtered.filter(t => {
+                        const date = t.obligationDate || t.paymentDate || '';
+                        return date <= this.reportParams.toDate;
+                    });
+                }
+                
+                // Filter by members
+                if (this.reportParams.selectedMembers.length > 0) {
+                    filtered = filtered.filter(t => 
+                        this.reportParams.selectedMembers.includes(t.memberId)
+                    );
+                }
+                
+                // Add member names
+                const reportData = filtered.map(t => {
+                    const member = this.members.find(m => m.memberUniqueId === t.memberId);
+                    return {
+                        ...t,
+                        memberName: member ? member.name : 'לא ידוע',
+                        date: t.obligationDate || t.paymentDate || '',
+                        amount: t.obligationAmount || t.paymentAmount || 0,
+                        typeLabel: t.transactionType === 'obligations' ? 'התחייבות' : 'תשלום'
+                    };
+                });
+                
+                this.currentTable = new Tabulator("#reportTable", {
+                    data: reportData,
+                    layout: "fitColumns",
+                    responsiveLayout: "collapse",
+                    responsiveLayoutCollapseStartOpen: false,
+                    columns: [
+                        { title: "מתפלל", field: "memberName", responsive: 0 },
+                        { title: "תאריך", field: "date", responsive: 0 },
+                        { title: "סוג", field: "typeLabel", responsive: 1 },
+                        { title: "מטרה", field: "purpose", responsive: 1 },
+                        { title: "סכום", field: "amount", formatter: "money", bottomCalc: "sum", responsive: 0 }
+                    ]
+                });
+            },
+            
+            saveFavoriteReport() {
+                if (!this.reportParams.saveName) {
+                    Swal.fire('שגיאה', 'נא להזין שם לדוח', 'error');
+                    return;
+                }
+                
+                const favorite = {
+                    id: Date.now(),
+                    name: this.reportParams.saveName,
+                    params: {
+                        purpose: this.reportParams.purpose,
+                        selectedPurposes: [...this.reportParams.selectedPurposes],
+                        fromDate: this.reportParams.fromDate,
+                        toDate: this.reportParams.toDate,
+                        selectedMembers: [...this.reportParams.selectedMembers]
+                    }
+                };
+                
+                this.favoriteReports.push(favorite);
+                localStorage.setItem('synagogue_favorite_reports', JSON.stringify(this.favoriteReports));
+                
+                Swal.fire({
+                    icon: 'success',
+                    title: 'נשמר!',
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 2000
+                });
+                
+                this.reportParams.saveName = '';
+            },
+            
+            loadFavoriteReport(fav) {
+                this.reportParams = {
+                    ...this.reportParams,
+                    ...fav.params,
+                    saveName: ''
+                };
+                this.generateReport();
+            },
+            
+            async deleteFavoriteReport(id) {
+                const result = await Swal.fire({
+                    title: 'למחוק דוח מועדף?',
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonText: 'מחק',
+                    cancelButtonText: 'ביטול'
+                });
+                
+                if (result.isConfirmed) {
+                    this.favoriteReports = this.favoriteReports.filter(f => f.id !== id);
+                    localStorage.setItem('synagogue_favorite_reports', JSON.stringify(this.favoriteReports));
+                }
+            },
+            
+            printReport() {
+                window.print();
+            },
+            
+            shareReadOnlyLink() {
+                if (!this.selectedMember) return;
+                
+                const url = `${window.location.origin}${window.location.pathname}#view=account&member=${this.selectedMember.memberUniqueId}&readonly=true`;
+                
+                Swal.fire({
+                    title: 'קישור למתפלל (קריאה בלבד)',
+                    html: `
+                        <p class="mb-3">העתק והדבק את הקישור הזה למתפלל:</p>
+                        <div class="input-group">
+                            <input type="text" class="form-control" value="${url}" id="readonlyLink" readonly>
+                            <button class="btn btn-primary" onclick="
+                                navigator.clipboard.writeText(document.getElementById('readonlyLink').value);
+                                this.innerHTML = '<i class=\\'bi bi-check\\'>✓</i> הועתק!';
+                                setTimeout(() => this.innerHTML = 'העתק', 2000);
+                            ">העתק</button>
+                        </div>
+                        <small class="text-muted mt-2 d-block">המתפלל יוכל לראות רק את הנתונים שלו, ללא אפשרות עריכה</small>
+                    `,
+                    showConfirmButton: false,
+                    showCloseButton: true,
+                    width: 600
+                });
+            },
+            
+            // Export functions
+            exportToExcel(tableId, filename) {
+                if (!this.currentTable) {
+                    Swal.fire('שגיאה', 'אין טבלה לייצוא', 'error');
+                    return;
+                }
+                
+                this.currentTable.download("xlsx", `${filename}_${new Date().toISOString().split('T')[0]}.xlsx`, {
+                    sheetName: filename
+                });
+            },
+            
+            exportToPDF(tableId, filename) {
+                if (!this.currentTable) {
+                    Swal.fire('שגיאה', 'אין טבלה לייצוא', 'error');
+                    return;
+                }
+                
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF('p', 'mm', 'a4');
+                
+                // Add Hebrew font support (if available)
+                // Note: For proper Hebrew support, you'd need to include a Hebrew font
+                
+                // Add title
+                doc.setFontSize(16);
+                doc.text(filename, 105, 15, { align: 'center' });
+                
+                // Add date
+                doc.setFontSize(10);
+                doc.text(`תאריך: ${new Date().toLocaleDateString('he-IL')}`, 105, 25, { align: 'center' });
+                
+                // Get table data
+                const tableData = this.currentTable.getData();
+                const columns = this.currentTable.getColumns().map(col => ({
+                    header: col.getDefinition().title,
+                    dataKey: col.getField()
+                }));
+                
+                // Generate table
+                doc.autoTable({
+                    startY: 35,
+                    head: [columns.map(c => c.header)],
+                    body: tableData.map(row => columns.map(col => row[col.dataKey] || '')),
+                    styles: { 
+                        font: 'helvetica',
+                        halign: 'right'
+                    },
+                    headStyles: {
+                        fillColor: [13, 110, 253],
+                        textColor: 255
+                    }
+                });
+                
+                // Save
+                doc.save(`${filename}_${new Date().toISOString().split('T')[0]}.pdf`);
+            },
+            
+            // Rendering tables
+            renderTable() {
+                // Destroy existing table first
+                if (this.currentTable) {
+                    try {
+                        this.currentTable.destroy();
+                    } catch (e) {
+                        console.log('Table cleanup:', e);
+                    }
+                    this.currentTable = null;
+                }
+                
+                if (this.view === 'summary') {
+                    this.renderGlobalSummary();
+                    return;
+                }
+                
+                if (this.view === 'home') {
+                    this.renderHomePage();
+                    return;
+                }
+                
+                if (this.view === 'reports') {
+                    return;
+                }
+                
+                if (!this.selectedMember || this.view !== 'account' || this.activeTab === 'edit') {
+                    return;
+                }
+                
+                if (this.activeTab === 'movements') {
+                    this.renderMovementsTable();
+                    return;
+                }
+                
+                const curCols = this.activeTab === 'obligations' 
+                    ? this.config.obligationColumns 
+                    : this.config.paymentColumns;
+                
+                let cols = curCols.map(c => ({
+                    title: c.title,
+                    field: c.field,
+                    editor: this.readOnlyMode ? false : (c.fixed ? false : 'input'),
+                    formatter: c.type === 'money' ? 'money' : undefined,
+                    editorParams: c.type === 'list' && c.options 
+                        ? { values: c.options.split(',').map(o => o.trim()) } 
+                        : {},
+                    responsive: 0
+                }));
+                
+                if (!this.readOnlyMode) {
+                    cols.push({
+                        title: 'עריכה',
+                        field: 'edit',
+                        width: 60,
+                        headerSort: false,
+                        responsive: 0,
+                        formatter: () => '<span class="edit-btn">✎</span>',
+                        cellClick: (e, cell) => {
+                            const row = cell.getRow();
+                            row.getElement().classList.add('highlight-row');
+                            setTimeout(() => row.getElement().classList.remove('highlight-row'), 3000);
+                        }
+                    });
+                    
+                    cols.push({
+                        title: 'מחק',
+                        field: 'delete',
+                        width: 60,
+                        headerSort: false,
+                        responsive: 0,
+                        formatter: () => '<span class="delete-btn">×</span>',
+                        cellClick: (e, cell) => {
+                            this.deleteTransaction(cell.getRow().getData().transactionId);
+                        }
+                    });
+                }
+                
+                let data = this.transactions.filter(t => 
+                    t.memberId === this.selectedMember.memberUniqueId && 
+                    t.transactionType === this.activeTab
+                );
+                
+                if (this.activeTab === 'summary') {
+                    let balance = 0;
+                    let summaryData = [...data].sort((a, b) => a.transactionId - b.transactionId).map(t => {
+                        const amount = Number(t.obligationAmount || t.paymentAmount || 0);
+                        balance += (t.transactionType === 'obligations' ? amount : -amount);
+                        return {
+                            ...t,
+                            balance: balance
+                        };
+                    });
+                    
+                    this.currentTable = new Tabulator("#mainTable", {
+                        data: summaryData.reverse(),
+                        layout: "fitColumns",
+                        responsiveLayout: "collapse",
+                        responsiveLayoutCollapseStartOpen: false,
+                        rowFormatter: (row) => {
+                            if (this.highlightedRowId && row.getData().transactionId === this.highlightedRowId) {
+                                row.getElement().setAttribute('data-transaction-id', this.highlightedRowId);
+                            }
+                        },
+                        columns: [
+                            { title: "תאריך", field: "obligationDate", responsive: 0 },
+                            { title: "תאריך", field: "paymentDate", responsive: 0 },
+                            { title: "יתרה", field: "balance", formatter: "money", cssClass: "fw-bold", responsive: 0 }
+                        ]
+                    });
+                } else {
+                    this.currentTable = new Tabulator("#mainTable", {
+                        data: data,
+                        layout: "fitColumns",
+                        responsiveLayout: "collapse",
+                        responsiveLayoutCollapseStartOpen: false,
+                        rowFormatter: (row) => {
+                            if (this.highlightedRowId && row.getData().transactionId === this.highlightedRowId) {
+                                row.getElement().setAttribute('data-transaction-id', this.highlightedRowId);
+                            }
+                        },
+                        columns: cols,
+                        cellEdited: (cell) => {
+                            if (!this.readOnlyMode) {
+                                this.saveTransactionsData();
+                            }
+                        }
+                    });
+                }
+            },
+            
+            renderMovementsTable() {
+                if (!this.selectedMember) return;
+                
+                const memberTransactions = this.transactions.filter(t => 
+                    t.memberId === this.selectedMember.memberUniqueId
+                );
+                
+                // יצירת מפת נתונים מצטברת לפי תאריך ומטרה
+                const aggregatedData = {};
+                
+                memberTransactions.forEach(t => {
+                    const date = t.obligationDate || t.paymentDate || '';
+                    const purpose = t.purpose || '';
+                    const key = `${date}_${purpose}`;
+                    
+                    if (!aggregatedData[key]) {
+                        aggregatedData[key] = {
+                            transactionId: t.transactionId,
+                            date: date,
+                            purpose: purpose,
+                            paymentType: t.paymentMethod || '',
+                            reference: t.reference || '',
+                            obligationAmount: 0,
+                            paymentAmount: 0
+                        };
+                    }
+                    
+                    if (t.transactionType === 'obligations') {
+                        aggregatedData[key].obligationAmount += Number(t.obligationAmount) || 0;
+                    } else if (t.transactionType === 'payments') {
+                        aggregatedData[key].paymentAmount += Number(t.paymentAmount) || 0;
+                        if (t.paymentMethod) aggregatedData[key].paymentType = t.paymentMethod;
+                        if (t.reference) aggregatedData[key].reference = t.reference;
+                    }
+                });
+                
+                const movementsData = Object.values(aggregatedData).map(item => ({
+                    ...item,
+                    difference: item.paymentAmount - item.obligationAmount
+                }));
+                
+                this.currentTable = new Tabulator("#movementsTable", {
+                    data: movementsData,
+                    layout: "fitColumns",
+                    responsiveLayout: "collapse",
+                    responsiveLayoutCollapseStartOpen: false,
+                    columns: [
+                        { title: "תאריך", field: "date", responsive: 0 },
+                        { title: "מטרת התשלום", field: "purpose", responsive: 1 },
+                        { title: "סוג תשלום", field: "paymentType", responsive: 2 },
+                        { title: "אסמכתא", field: "reference", responsive: 2 },
+                        { title: "סכום התחייבות", field: "obligationAmount", formatter: "money", bottomCalc: "sum", responsive: 0 },
+                        { title: "תשלום בפועל", field: "paymentAmount", formatter: "money", bottomCalc: "sum", responsive: 0 },
+                        { title: "הפרש", field: "difference", formatter: "money", bottomCalc: "sum", responsive: 0 }
+                    ]
+                });
+            },
+            
+            renderHomePage() {
+                this.filterHomeTransactions();
+                
+                const displayData = this.filteredHomeTransactions.slice(0, 50).map(t => {
+                    const member = this.members.find(m => m.memberUniqueId === t.memberId);
+                    return {
+                        ...t,
+                        memberName: member ? member.name : 'לא ידוע',
+                        date: t.obligationDate || t.paymentDate || '',
+                        amount: t.obligationAmount || t.paymentAmount || 0,
+                        typeLabel: t.transactionType === 'obligations' ? 'התחייבות' : 'תשלום'
+                    };
+                });
+                
+                const columns = [
+                    { title: "תאריך", field: "date", responsive: 0 },
+                    { title: "מתפלל", field: "memberName", responsive: 0 },
+                    { title: "סוג", field: "typeLabel", responsive: 1 },
+                    { title: "מטרה", field: "purpose", responsive: 2 },
+                    { title: "סכום", field: "amount", formatter: "money", responsive: 0 }
+                ];
+                
+                if (!this.readOnlyMode) {
+                    columns.push({
+                        title: 'עבור אל',
+                        field: 'goto',
+                        width: 80,
+                        headerSort: false,
+                        responsive: 0,
+                        formatter: () => '<span class="goto-btn">➜</span>',
+                        cellClick: (e, cell) => {
+                            const data = cell.getRow().getData();
+                            this.goToMemberTransaction(data.memberId, data.transactionId);
+                        }
+                    });
+                    
+                    columns.push({
+                        title: 'מחק',
+                        field: 'delete',
+                        width: 60,
+                        headerSort: false,
+                        responsive: 0,
+                        formatter: () => '<span class="delete-btn">×</span>',
+                        cellClick: (e, cell) => {
+                            this.deleteTransaction(cell.getRow().getData().transactionId);
+                        }
+                    });
+                }
+                
+                this.currentTable = new Tabulator("#homeTable", {
+                    data: displayData,
+                    layout: "fitColumns",
+                    responsiveLayout: "collapse",
+                    responsiveLayoutCollapseStartOpen: false,
+                    columns: columns
+                });
+            },
+            
+            renderGlobalSummary() {
+                const summaryData = this.members.map(m => {
+                    const memberTransactions = this.transactions.filter(t => t.memberId === m.memberUniqueId);
+                    const balance = memberTransactions.reduce((sum, t) => {
+                        const amount = Number(t.obligationAmount || t.paymentAmount || 0);
+                        return sum + (t.transactionType === 'payments' ? amount : -amount); // תשלום חיובי, התחייבות שלילי
+                    }, 0);
+                    
+                    return {
+                        name: m.name,
+                        memberUniqueId: m.memberUniqueId,
+                        balance: balance
+                    };
+                });
+                
+                this.currentTable = new Tabulator("#summaryTable", {
+                    data: summaryData,
+                    layout: "fitColumns",
+                    responsiveLayout: "collapse",
+                    responsiveLayoutCollapseStartOpen: false,
+                    columns: [
+                        { 
+                            title: "שם", 
+                            field: "name", 
+                            widthGrow: 2,
+                            responsive: 0,
+                            cellClick: (e, cell) => {
+                                if (!this.readOnlyMode) {
+                                    const data = cell.getRow().getData();
+                                    const member = this.members.find(m => m.memberUniqueId === data.memberUniqueId);
+                                    if (member) this.selectMember(member);
+                                }
+                            }
+                        },
+                        { 
+                            title: "חוב", 
+                            field: "balance", 
+                            formatter: "money", 
+                            bottomCalc: "sum",
+                            responsive: 0
+                        }
+                    ]
+                });
+            }
+        }
+    }
+    </script>
+</body>
+</html>
