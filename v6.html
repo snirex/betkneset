@@ -389,13 +389,13 @@
             <button class="navbar-toggler d-lg-none" type="button" @click.stop="mobileMenuOpen = !mobileMenuOpen">
                 <span class="navbar-toggler-icon"></span>
             </button>
-    
+
             <span class="navbar-brand mb-0 h1 me-2 ms-lg-0">ניהול קהילה PRO</span>
-    
+
             <div class="d-none d-lg-flex text-white align-items-center flex-grow-1">
                 <span x-text="selectedMember ? 'מתפלל: ' + selectedMember.name : 'דף הבית'"></span>
             </div>
-    
+
             <div class="ms-auto d-flex align-items-center">
                 <button class="btn btn-outline-light btn-sm shadow-none border-0" @click="toggleDarkMode()">
                     <i class="bi" :class="darkMode ? 'bi-sun-fill' : 'bi-moon-stars-fill'"></i>
@@ -414,19 +414,26 @@
 
             <h4 class="fw-bold mb-4">מערכת קהילה</h4>
 
+
+
             <div class="input-group mb-2">
                 <input type="text" id="memberSearch" x-model="memberSearch" class="form-control"
-                    placeholder="חיפוש (ESC)" @keydown.escape="memberSearch = ''">
+                    placeholder="חיפוש (ESC)" @keydown.escape="memberSearch = ''" @keydown.enter="if(filteredMembers.length === 0 && memberSearch.trim() !== '') { 
+                        nm.name = memberSearch; 
+                        memberSearch = ''; 
+                        quickAdd = true; 
+                        $nextTick(() => $refs.quickAddName.focus());
+                    }">
                 <button class="btn btn-outline-success"
-                    @click="if(!quickAdd) { nm.name = memberSearch; memberSearch = ''; } quickAdd = !quickAdd; setTimeout(() => document.querySelector('#quickAddName')?.focus(), 100);">
+                    @click="if(!quickAdd) { nm.name = memberSearch; memberSearch = ''; } quickAdd = !quickAdd; $nextTick(() => $refs.quickAddName.focus());">
                     <i class="bi bi-person-plus"></i>
                 </button>
             </div>
-
             <div x-show="quickAdd" class="card p-2 mb-2 bg-light border-0" x-cloak x-transition>
                 <div class="position-relative mb-2">
-                    <input type="text" id="quickAddName" x-model="nm.name" class="form-control form-control-sm mb-1"
-                        placeholder="שם מלא *">
+                    <input type="text" id="quickAddName" x-ref="quickAddName" x-model="nm.name"
+                        class="form-control form-control-sm mb-1" placeholder="שם מלא *"
+                        @keydown.enter="if(nm.name.trim() !== '') $refs.quickAddNickname.focus()">
                     <button x-show="nm.name" @click="nm.name = ''" type="button"
                         class="btn position-absolute top-50 end-0 translate-middle-y border-0">
                         &times;
@@ -434,15 +441,19 @@
                 </div>
 
                 <div class="position-relative mb-2">
-                    <input type="text" x-model="nm.nickname" class="form-control form-control-sm mb-2"
-                        placeholder="כינוי (אנגלית, אופציונלי)" @keydown.enter="addMember(); quickAdd = false">
+                    <input type="text" x-ref="quickAddNickname" x-model="nm.nickname"
+                        class="form-control form-control-sm mb-2" placeholder="כינוי (אופציונלי)"
+                        @keydown.enter="if(nm.name.trim() !== '') { addMember(); quickAdd = false; }">
                     <button x-show="nm.nickname" @click="nm.nickname = ''" type="button"
                         class="btn position-absolute top-50 end-0 translate-middle-y border-0">
                         &times;
                     </button>
                 </div>
-                <button @click="addMember(); quickAdd = false" class="btn btn-success btn-sm w-100">שמור</button>
+                <button @click="addMember(); quickAdd = false" class="btn btn-success btn-sm w-100"
+                    :disabled="!nm.name.trim()">שמור</button>
             </div>
+
+
 
             <div class="member-list-container border rounded bg-white">
                 <div class="list-group list-group-flush">
@@ -461,18 +472,21 @@
                 <button @click="navigate('home'); mobileMenuOpen = false" class="btn btn-light w-100 mb-2 text-start">
                     🏠 דף הבית <span class="keyboard-shortcut text-muted small ms-auto">(Alt+H)</span>
                 </button>
-                <button @click="navigate('summary'); mobileMenuOpen = false" class="btn btn-light w-100 mb-2 text-start">
+                <button @click="navigate('summary'); mobileMenuOpen = false"
+                    class="btn btn-light w-100 mb-2 text-start">
                     📊 סיכום חובות <span class="keyboard-shortcut text-muted small ms-auto">(Alt+S)</span>
                 </button>
-                <button @click="navigate('reports'); mobileMenuOpen = false" class="btn btn-light w-100 mb-2 text-start">
+                <button @click="navigate('reports'); mobileMenuOpen = false"
+                    class="btn btn-light w-100 mb-2 text-start">
                     📄 דוחות <span class="keyboard-shortcut text-muted small ms-auto">(Alt+R)</span>
                 </button>
-                <button @click="navigate('management'); mobileMenuOpen = false" class="btn btn-light w-100 mb-3 text-start">
+                <button @click="navigate('management'); mobileMenuOpen = false"
+                    class="btn btn-light w-100 mb-3 text-start">
                     ⚙️ הגדרות <span class="keyboard-shortcut text-muted small ms-auto">(Alt+G)</span>
                 </button>
                 <div class="d-flex justify-content-between">
-                    <button class="btn btn-sm btn-outline-secondary" @click="toggleDarkMode(); mobileMenuOpen = false"><i
-                            class="bi bi-moon"></i></button>
+                    <button class="btn btn-sm btn-outline-secondary"
+                        @click="toggleDarkMode(); mobileMenuOpen = false"><i class="bi bi-moon"></i></button>
                     <button class="btn btn-sm btn-danger" @click="logout()">צא</button>
                 </div>
             </div>
@@ -910,23 +924,24 @@
                     <h1><i class="bi bi-gear me-2"></i>הגדרות מערכת</h1>
                 </div>
 
-<div class="card p-4 border-danger shadow-sm mb-4" style="display: none;">
-    <h5 class="text-danger mb-3"><i class="bi bi-exclamation-triangle"></i> אזור סכנה - איפוס נתונים</h5>
-    <div class="d-flex flex-wrap gap-2">
-        <button @click="resetData('finances')" class="btn btn-outline-danger">
-            <i class="bi bi-currency-dollar"></i> איפוס כספים
-        </button>
-        <button @click="resetData('members')" class="btn btn-outline-danger">
-            <i class="bi bi-people"></i> איפוס מתפללים
-        </button>
-        <button @click="resetData('settings')" class="btn btn-outline-danger">
-            <i class="bi bi-gear"></i> איפוס הגדרות עמודות
-        </button>
-        <button @click="resetData('colors')" class="btn btn-outline-danger">
-            <i class="bi bi-palette"></i> איפוס עיצוב וצבעים
-        </button>
-    </div>
-</div>
+                <div class="card p-4 border-danger shadow-sm mb-4" style="display: none;">
+                    <h5 class="text-danger mb-3"><i class="bi bi-exclamation-triangle"></i> אזור סכנה - איפוס נתונים
+                    </h5>
+                    <div class="d-flex flex-wrap gap-2">
+                        <button @click="resetData('finances')" class="btn btn-outline-danger">
+                            <i class="bi bi-currency-dollar"></i> איפוס כספים
+                        </button>
+                        <button @click="resetData('members')" class="btn btn-outline-danger">
+                            <i class="bi bi-people"></i> איפוס מתפללים
+                        </button>
+                        <button @click="resetData('settings')" class="btn btn-outline-danger">
+                            <i class="bi bi-gear"></i> איפוס הגדרות עמודות
+                        </button>
+                        <button @click="resetData('colors')" class="btn btn-outline-danger">
+                            <i class="bi bi-palette"></i> איפוס עיצוב וצבעים
+                        </button>
+                    </div>
+                </div>
                 <div class="row g-4">
                     <div class="col-md-7">
                         <!-- ערכות צבעים מוכנות -->
@@ -1058,8 +1073,9 @@
                                             <input x-show="col.type === 'list'" type="text" x-model="col.options"
                                                 class="form-control form-control-sm" placeholder="ערכים מופרדים בפסיק"
                                                 @change="saveConfigData()">
-                                            <button @click="deleteColumn('obligation', index)"
-                                                class="btn btn-sm" :class="col.fixed ? 'text-secondary' : 'text-danger'" :disabled="col.fixed">
+                                            <button @click="deleteColumn('obligation', index)" class="btn btn-sm"
+                                                :class="col.fixed ? 'text-secondary' : 'text-danger'"
+                                                :disabled="col.fixed">
                                                 <i class="bi bi-trash"></i>
                                             </button>
                                         </div>
@@ -1103,8 +1119,9 @@
                                             <input x-show="col.type === 'list'" type="text" x-model="col.options"
                                                 class="form-control form-control-sm" placeholder="ערכים מופרדים בפסיק"
                                                 @change="saveConfigData()">
-                                            <button @click="deleteColumn('payment', index)"
-                                                class="btn btn-sm" :class="col.fixed ? 'text-secondary' : 'text-danger'" :disabled="col.fixed">
+                                            <button @click="deleteColumn('payment', index)" class="btn btn-sm"
+                                                :class="col.fixed ? 'text-secondary' : 'text-danger'"
+                                                :disabled="col.fixed">
                                                 <i class="bi bi-trash"></i>
                                             </button>
                                         </div>
@@ -1144,14 +1161,16 @@
                                                 <option value="money">כסף</option>
                                                 <option value="date">תאריך</option>
                                             </select>
-                                            <button @click="deleteColumn('movement', index)"
-                                                class="btn btn-sm" :class="col.fixed ? 'text-secondary' : 'text-danger'" :disabled="col.fixed">
+                                            <button @click="deleteColumn('movement', index)" class="btn btn-sm"
+                                                :class="col.fixed ? 'text-secondary' : 'text-danger'"
+                                                :disabled="col.fixed">
                                                 <i class="bi bi-trash"></i>
                                             </button>
                                         </div>
                                     </template>
                                 </div>
-                                <small class="text-muted d-block">ניתן למחוק עמודות שאינן קבועות. ערכים בעמודות שנמחקו יוצגו בסמל ⚠️ בטבלה.</small>
+                                <small class="text-muted d-block">ניתן למחוק עמודות שאינן קבועות. ערכים בעמודות שנמחקו
+                                    יוצגו בסמל ⚠️ בטבלה.</small>
                             </div>
                         </div>
 
@@ -1545,7 +1564,8 @@
                         if (e.key === 'Escape') {
                             e.preventDefault();
                             const searchInput = document.getElementById('memberSearch');
-                            if (searchInput) searchInput.focus();
+                            if (searchInput) 
+                            searchInput.focus();
                         }
 
                         if (e.altKey && (e.key === 'h' || e.key === 'י')) { e.preventDefault(); this.navigate('home'); }
@@ -1871,8 +1891,8 @@
                     const column = type === 'obligation'
                         ? this.config.obligationColumns[index]
                         : type === 'payment'
-                        ? this.config.paymentColumns[index]
-                        : this.config.movementColumns[index];
+                            ? this.config.paymentColumns[index]
+                            : this.config.movementColumns[index];
 
                     if (column.fixed) return;
 
@@ -1899,9 +1919,9 @@
                 },
 
                 moveColumn(type, index, direction) {
-                    const columns = type === 'obligation' ? this.config.obligationColumns 
-                                  : type === 'payment' ? this.config.paymentColumns
-                                  : this.config.movementColumns;
+                    const columns = type === 'obligation' ? this.config.obligationColumns
+                        : type === 'payment' ? this.config.paymentColumns
+                            : this.config.movementColumns;
                     const newIndex = index + direction;
 
                     if (newIndex < 0 || newIndex >= columns.length) return;
@@ -2555,7 +2575,7 @@
                     }));
 
                     // All possible movement fields
-                    const allMovFields = ['date','purpose','paymentType','reference','obligationAmount','paymentAmount','difference'];
+                    const allMovFields = ['date', 'purpose', 'paymentType', 'reference', 'obligationAmount', 'paymentAmount', 'difference'];
                     const activeFields = (this.config.movementColumns || []).map(c => c.field);
                     const deletedFields = allMovFields.filter(f => !activeFields.includes(f));
 
