@@ -319,7 +319,8 @@
                 font-size: 1.2rem;
             }
 
-            .keyboard-shortcut {
+            .keyboard-shortcut,
+            .mitpalel_fields {
                 display: none !important;
             }
         }
@@ -1178,7 +1179,14 @@
                         <div class="card border-0 shadow-sm mb-3">
                             <div class="card-header bg-transparent d-flex justify-content-between"
                                 @click="ui.fieldsOpen = !ui.fieldsOpen">
-                                <h6 class="mb-0">הגדרת שדות מתפלל</h6>
+                                <h6 class="mb-0">הגדרת שדות מתפלל
+                                    <span class="mitpalel_fields">
+                                        <small style="color: blue;">(
+                                            <template x-for="f in config.memberFields" :key="f.key"><span
+                                                    x-text="f.name + ', '"></span></template>
+                                            )</small>
+                                    </span>
+                                </h6>
                                 <i class="bi" :class="ui.fieldsOpen ? 'bi-chevron-up' : 'bi-chevron-down'"></i>
                             </div>
                             <div class="card-body" :class="!ui.fieldsOpen ? 'collapsed' : ''" x-transition>
@@ -1238,20 +1246,20 @@
                             </div>
                             <div class="card-body" :class="!ui.batchAddOpen ? 'collapsed' : ''" x-transition>
                                 <p class="small text-muted mb-2">
-                                    הזינו מתפללים בפורמט הבא: (פסיק בין שדות):
+                                    הזן רשימת מתפללים בפורמט הבא: (פסיק בין שדות, נקודה בין מתפללים):
                                     <br />
                                 <div class="alert alert-info py-2 small mb-3">
                                     <!-- <template x-for="f in config.memberFields" :key="f.key"><span
                                             x-text="f.name + ', '"></span></template> -->
                                     שם מלא,כינוי.
                                 </div>
-                                הפרדה בין מתפללים ע"י נקודה (.)
+
                                 </p>
                                 <textarea x-model="batchString" class="form-control mb-2" rows="4"
-                                    placeholder="ישראל ישראלי,הגבאי,0501234567.משה כהן,משה,0527654321."></textarea>
+                                    placeholder="ישראל ישראלי,gabay.משה כהן.שניר."></textarea>
                                 <button @click="processBatchAdd()" class="btn btn-primary btn-sm w-100"
                                     :disabled="!batchString.trim()">
-                                    בצע ייבוא רשימה
+                                    הוסף רשימת מתפללים
                                 </button>
                             </div>
                         </div>
