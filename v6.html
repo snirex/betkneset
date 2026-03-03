@@ -1229,6 +1229,34 @@
                                 ושמור</button>
                         </div>
 
+
+                        <div class="card mb-3 no-print">
+                            <div class="card-header bg-transparent d-flex justify-content-between align-items-center"
+                                @click="ui.batchAddOpen = !ui.batchAddOpen">
+                                <h6 class="mb-0">📥 הוספת רשימת מתפללים</h6>
+                                <i class="bi" :class="ui.batchAddOpen ? 'bi-chevron-up' : 'bi-chevron-down'"></i>
+                            </div>
+                            <div class="card-body" :class="!ui.batchAddOpen ? 'collapsed' : ''" x-transition>
+                                <p class="small text-muted mb-2">
+                                    הזינו מתפללים בפורמט הבא: (פסיק בין שדות):
+                                    <br />
+                                <div class="alert alert-info py-2 small mb-3">
+                                    <!-- <template x-for="f in config.memberFields" :key="f.key"><span
+                                            x-text="f.name + ', '"></span></template> -->
+                                    שם מלא,כינוי.
+                                </div>
+                                הפרדה בין מתפללים ע"י נקודה (.)
+                                </p>
+                                <textarea x-model="batchString" class="form-control mb-2" rows="4"
+                                    placeholder="ישראל ישראלי,הגבאי,0501234567.משה כהן,משה,0527654321."></textarea>
+                                <button @click="processBatchAdd()" class="btn btn-primary btn-sm w-100"
+                                    :disabled="!batchString.trim()">
+                                    בצע ייבוא רשימה
+                                </button>
+                            </div>
+                        </div>
+
+
                         <!-- רשימת מתפללים -->
                         <div class="card border-0 shadow-sm">
                             <div class="card-header bg-transparent">
@@ -1343,8 +1371,12 @@
                     colorsOpen: false,
                     themesOpen: false,
                     homeSearchOpen: false,
-                    homeAddOpen: false
+                    homeAddOpen: false,
+
+                    batchAddOpen: false,
                 },
+                // Batch add Mitpalelim
+                batchString: '',
 
                 // Theme presets
                 themePresets: [
@@ -1443,7 +1475,7 @@
                     ],
                     memberFields: [
                         { fieldId: 'field_name', name: 'שם מלא', key: 'name', required: true },
-                        { fieldId: 'field_nickname', name: 'כינוי/מזהה', key: 'memberUniqueId', required: true },
+                        { fieldId: 'field_nickname', name: 'כינוי', key: 'memberUniqueId', required: true },
                         { fieldId: 'field_phone', name: 'טלפון', key: 'phone', required: false },
                         { fieldId: 'field_email', name: 'אימייל', key: 'email', required: false }
                     ],
@@ -1564,8 +1596,8 @@
                         if (e.key === 'Escape') {
                             e.preventDefault();
                             const searchInput = document.getElementById('memberSearch');
-                            if (searchInput) 
-                            searchInput.focus();
+                            if (searchInput)
+                                searchInput.focus();
                         }
 
                         if (e.altKey && (e.key === 'h' || e.key === 'י')) { e.preventDefault(); this.navigate('home'); }
@@ -1784,18 +1816,23 @@
                         Swal.fire('שגיאה', 'כינוי זה כבר קיים במערכת', 'error');
                         return;
                     }
+                    this.addMemberValues(this.nm.name, this.nm.nickname);
+                },
 
-                    const memberUniqueId = this.nm.nickname || this.generateMemberUniqueId();
+                addMemberValues(_name, _nickname) {
+                    const memberUniqueId = _nickname || this.generateMemberUniqueId();
 
                     const m = {
                         memberUniqueId: memberUniqueId,
-                        name: this.nm.name,
+                        name: _name,
                         nickname: memberUniqueId
                     };
+                    console.log("add mitpalel: name: " + _name + " nick: " + memberUniqueId);
 
                     // Add all custom fields
                     this.config.memberFields.forEach(f => {
-                        if (!m[f.key]) m[f.key] = '';
+                        if (!m[f.key])
+                            m[f.key] = '';
                     });
 
                     this.members.push(m);
@@ -1803,6 +1840,40 @@
                     this.selectMember(m);
                     this.nm = { name: '', nickname: '' };
                 },
+
+                processBatchAdd() {
+                    if (!this.batchString.trim()) return;
+
+                    // פיצול לפי נקודה לקבלת כל מתפלל בנפרד
+                    const rawMembers = this.batchString.split('.').filter(m => m.trim());
+                    let addedCount = 0;
+
+                    rawMembers.forEach(memberStr => {
+                        // פיצול לפי פסיק לקבלת השדות
+                        const values = memberStr.split(',').map(v => v.trim());
+
+
+                        if (values.length > 0 && values[0] !== "") {
+                            this.addMemberValues(values[0], values[1]);
+                            addedCount++;
+                        }
+                    });
+
+                    if (addedCount > 0) {
+                        this.saveMembersData();
+                        this.batchString = '';
+                        this.ui.batchAddOpen = false;
+
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'הייבוא הושלם',
+                            text: `נוספו ${addedCount} מתפללים חדשים בהצלחה!`,
+                            timer: 2000,
+                            showConfirmButton: false
+                        });
+                    }
+                },
+
 
                 updateMember() {
                     const idx = this.members.findIndex(m => m.memberUniqueId === this.editingMember.memberUniqueId);
