@@ -825,12 +825,13 @@
                             <!-- column hint bar -->
 
                             <div class="batch-help mb-2 p-2 rounded bg-light">
-                                <strong>פורמט:</strong> שורה אחת לכל תנועה: <code>שם מתפלל, שדה1, שדה2, ...</code><br>
+                                <strong>פורמט:</strong> שורה אחת לכל תנועה.<br>
                                 <span>סדר השדות: </span>
+                                <code>שם מתפלל,</code>
                                 <template
                                     x-for="col in (batchTxType==='obligations' ? config.obligationColumns : config.paymentColumns)"
                                     :key="col.columnId">
-                                    <code x-text="col.title + ' '"></code>
+                                    <code x-text="col.title + ', '"></code>
                                 </template><br>
                                 <span class="text-muted">לדוגמה:
                                     <code>ישראל ישראלי, 2024-01-15, תרומה, 500</code></span>
@@ -2122,7 +2123,7 @@
                             } else {
                                 this.batchPopupY = coords.y + 2;
                             }
-                            this.batchPopupX = Math.max(4, coords.x - 20);
+                            this.batchPopupX = Math.max(4, coords.x - 180);
                         } catch (e) { }
                     }
                 },
@@ -2192,7 +2193,8 @@
                         ? this.config.obligationColumns
                         : this.config.paymentColumns;
 
-                    const lines = this.batchTxString.split('\n').filter(l => l.trim());
+                    //const lines = this.batchTxString.split('\n').filter(l => l.trim());
+                    const lines = this.batchTxString.split('\n').filter(line => line.trim() !== "");
                     let addedCount = 0;
                     const errors = [];
 
@@ -2200,6 +2202,7 @@
                         const values = line.split(',').map(v => v.trim());
                         if (!values[0]) return;
 
+                        //check member exists by name or memberUniqueId (case-insensitive)
                         const memberSearch = values[0];
                         const member = this.members.find(m =>
                             m.memberUniqueId === memberSearch ||
@@ -2211,6 +2214,16 @@
                             errors.push(`שורה ${lineIdx + 1}: מתפלל "${memberSearch}" לא נמצא`);
                             return;
                         }
+                        // הוספת ולידציה לשדות רשימה (הקוד החדש)
+                        cols.forEach((col, colIdx) => {
+                            const val = values[colIdx + 1]; // +1 כי החלק הראשון הוא שם המתפלל
+                            if (col.type === 'list' && val) {
+                                const options = (col.options || "").split(',').map(o => o.trim());
+                                if (!options.includes(val)) {
+                                    throw new Error(`שורה ${index + 1}: הערך "${val}" אינו קיים ברשימה עבור שדה "${col.title}"`);
+                                }
+                            }
+                        });
 
                         const transaction = {
                             transactionId: Date.now() + lineIdx,
@@ -2702,6 +2715,9 @@
                         layout: this.tableScrollMode ? "fitData" : "fitColumns",
                         responsiveLayout: this.tableScrollMode ? false : "collapse",
                         responsiveLayoutCollapseStartOpen: false,
+                        pagination: "local",      // enable local browsing
+                        paginationSize: 20,       // 20 lines per page
+                        paginationSizeSelector: [10, 20, 50, 100], //user select number of lines per page
                         columns: [
                             { title: "מתפלל", field: "memberName", responsive: 0 },
                             { title: "תאריך", field: "date", responsive: 0 },
@@ -2962,6 +2978,9 @@
                                     row.getElement().setAttribute('data-transaction-id', this.highlightedRowId);
                                 }
                             },
+                            pagination: "local",      // enable local browsing
+                            paginationSize: 20,       // 20 lines per page
+                            paginationSizeSelector: [10, 20, 50, 100], //user select number of lines per page
                             columns: [
                                 { title: "תאריך", field: "obligationDate", responsive: 0 },
                                 { title: "תאריך", field: "paymentDate", responsive: 0 },
@@ -2979,6 +2998,9 @@
                                     row.getElement().setAttribute('data-transaction-id', this.highlightedRowId);
                                 }
                             },
+                            pagination: "local",      // enable local browsing
+                            paginationSize: 20,       // 20 lines per page
+                            paginationSizeSelector: [10, 20, 50, 100], //user select number of lines per page
                             columns: cols,
                             cellEdited: (cell) => {
                                 if (!this.readOnlyMode) {
@@ -3104,6 +3126,11 @@
                         layout: this.tableScrollMode ? "fitData" : "fitColumns",
                         responsiveLayout: this.tableScrollMode ? false : "collapse",
                         responsiveLayoutCollapseStartOpen: false,
+                        
+                        pagination: "local",      // enable local browsing
+                        paginationSize: 20,       // 20 lines per page
+                        paginationSizeSelector: [10, 20, 50, 100], //user select number of lines per page
+                        
                         columns: cols
                     });
                     const wrapper = document.getElementById('movementsTable');
@@ -3180,7 +3207,10 @@
                             responsiveLayout: this.tableScrollMode ? false : "collapse",
                             responsiveLayoutCollapseStartOpen: false,
                             placeholder: "אין נתונים להצגה",
-                            columns: columns
+                            pagination: "local",
+                            paginationSize: 20,
+                            paginationSizeSelector: [10, 20, 50, 100],
+                            columns: columns,
                         });
                         const wrapper = document.getElementById('homeTable');
                         if (wrapper) wrapper.classList.toggle('scrollable', this.tableScrollMode);
@@ -3222,7 +3252,10 @@
                             layout: this.tableScrollMode ? "fitData" : "fitColumns",
                             responsiveLayout: this.tableScrollMode ? false : "collapse",
                             responsiveLayoutCollapseStartOpen: false,
-                            placeholder: "אין נתונים להצגה",
+                            placeholder: "אין נתונים להצגה",                            
+                            pagination: "local",      // enable local browsing
+                            paginationSize: 20,       // 20 lines per page
+                            paginationSizeSelector: [10, 20, 50, 100], //user select number of lines per page
                             columns: [
                                 {
                                     title: "שם",
