@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl" x-data="synagogueApp()" :data-bs-theme="darkMode ? 'dark' : 'light'" :style="customStyle">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ניהול קהילה PRO</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
+    <link href="https://unpkg.com/tabulator-tables@5.5.0/dist/css/tabulator_bootstrap5.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --accent-color: #3498db;
+        }
+
+        [x-cloak] { display: none !important; }
+
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow-x: hidden;
+        }
+
+        .sidebar {
+            height: 100vh;
+            overflow-y: auto;
+            border-left: 1px solid #dee2e6;
+            background: #fff;
+            z-index: 1000;
+        }
+
+        .main-content {
+            height: 100vh;
+            overflow-y: auto;
+            background-color: #f4f7f6;
+        }
+
+        .member-item {
+            cursor: pointer;
+            transition: all 0.2s;
+            border-bottom: 1px solid #eee;
+        }
+
+        .member-item:hover {
+            background-color: #e9ecef;
+        }
+
+        .member-item.active {
+            background-color: var(--accent-color);
+            color: white;
+        }
+
+        .card {
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+
+        .btn-fab {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            z-index: 1050;
+        }
+
+        .tabulator {
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                position: fixed;
+                right: -100%;
+                transition: 0.3s;
+                width: 80%;
+            }
+
+            .sidebar.active {
+                right: 0;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container-fluid p-0 d-flex">
+        <aside class="sidebar p-3 d-flex flex-column" :class="{ 'active': mobileSidebar }">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+                <h4 class="mb-0 fw-bold text-primary">בית הכנסת</h4>
+                <button class="btn btn-light d-md-none" @click="mobileSidebar = false">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>
+
+            <div class="input-group mb-2">
+                <input type="text" id="memberSearch" x-model="memberSearch" class="form-control"
+                    placeholder="חיפוש (ESC)" 
+                    @keydown.escape="memberSearch = ''"
+                    @keydown.enter="if(filteredMembers.length === 0 && memberSearch.trim() !== '') { 
+                        nm.name = memberSearch; 
+                        memberSearch = ''; 
+                        quickAdd = true; 
+                        $nextTick(() => $refs.quickAddName.focus());
+                    }">
+                <button class="btn btn-outline-success"
+                    @click="if(!quickAdd) { nm.name = memberSearch; memberSearch = ''; } quickAdd = !quickAdd; $nextTick(() => $refs.quickAddName.focus());">
+                    <i class="bi bi-person-plus"></i>
+                </button>
+            </div>
+
+            <div x-show="quickAdd" class="card p-2 mb-2 bg-light border-0" x-cloak x-transition>
+                <div class="position-relative mb-2">
+                    <input type="text" x-ref="quickAddName" x-model="nm.name" class="form-control form-control-sm mb-1"
+                        placeholder="שם מלא *"
+                        @keydown.enter="if(nm.name.trim() !== '') $refs.quickAddNickname.focus()">
+                    <button x-show="nm.name" @click="nm.name = ''" type="button"
+                        class="btn position-absolute top-50 end-0 translate-middle-y border-0">
+                        &times;
+                    </button>
+                </div>
+
+                <div class="position-relative mb-2">
+                    <input type="text" x-ref="quickAddNickname" x-model="nm.nickname" class="form-control form-control-sm mb-2"
+                        placeholder="כינוי (אופציונלי)" 
+                        @keydown.enter="if(nm.name.trim() !== '') { addMember(); quickAdd = false; $nextTick(() => document.getElementById('memberSearch').focus()); }">
+                    <button x-show="nm.nickname" @click="nm.nickname = ''" type="button"
+                        class="btn position-absolute top-50 end-0 translate-middle-y border-0">
+                        &times;
+                    </button>
+                </div>
+                <button @click="addMember(); quickAdd = false; $nextTick(() => document.getElementById('memberSearch').focus());" 
+                    class="btn btn-success btn-sm w-100" :disabled="!nm.name.trim()">שמור</button>
+            </div>
+
+            <div class="flex-grow-1 overflow-auto mt-2">
+                <template x-for="m in filteredMembers" :key="m.memberUniqueId">
+                    <div class="member-item p-2 rounded mb-1 d-flex justify-content-between align-items-center"
+                        :class="selectedMember?.memberUniqueId === m.memberUniqueId ? 'active' : ''"
+                        @click="selectMember(m)">
+                        <div>
+                            <div class="fw-bold" x-text="m.name"></div>
+                            <small class="opacity-75" x-text="m.nickname"></small>
+                        </div>
+                        <div class="badge" :class="m.balance < 0 ? 'bg-danger' : 'bg-success'"
+                            x-text="formatCurrency(m.balance)"></div>
+                    </div>
+                </template>
+            </div>
+
+            <div class="pt-3 border-top mt-auto">
+                <button @click="view = 'dashboard'; mobileSidebar = false" class="btn btn-outline-primary w-100 mb-2">
+                    <i class="bi bi-speedometer2 me-2"></i>דאשבורד
+                </button>
+                <button @click="view = 'management'; mobileSidebar = false" class="btn btn-outline-secondary w-100">
+                    <i class="bi bi-gear me-2"></i>ניהול והגדרות
+                </button>
+            </div>
+        </aside>
+
+        <main class="main-content flex-grow-1 p-3 p-md-4">
+            <button class="btn btn-primary d-md-none mb-3" @click="mobileSidebar = true">
+                <i class="bi bi-list"></i> תפריט
+            </button>
+
+            <div x-show="view === 'dashboard'" x-cloak>
+                <div class="row g-3 mb-4">
+                    <div class="col-md-4">
+                        <div class="card p-3 bg-white border-0">
+                            <small class="text-muted d-block">סה"כ מתפללים</small>
+                            <h2 class="mb-0 fw-bold" x-text="members.length"></h2>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card p-3 bg-white border-0">
+                            <small class="text-muted d-block">יתרה כוללת</small>
+                            <h2 class="mb-0 fw-bold" :class="totalBalance < 0 ? 'text-danger' : 'text-success'"
+                                x-text="formatCurrency(totalBalance)"></h2>
+                        </div>
+                    </div>
+                </div>
+
+                <div x-show="selectedMember" class="card p-4 border-0 mb-4 bg-white shadow-sm" x-transition>
+                    <div class="d-flex justify-content-between align-items-start mb-4">
+                        <div>
+                            <h3 class="mb-0 fw-bold" x-text="selectedMember?.name"></h3>
+                            <p class="text-muted mb-0" x-text="selectedMember?.nickname"></p>
+                        </div>
+                        <div class="text-end">
+                            <small class="text-muted">יתרה נוכחית</small>
+                            <h3 class="mb-0 fw-bold"
+                                :class="selectedMember?.balance < 0 ? 'text-danger' : 'text-success'"
+                                x-text="formatCurrency(selectedMember?.balance)"></h3>
+                        </div>
+                    </div>
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">תיאור הפעולה</label>
+                            <input type="text" x-model="tx.description" class="form-control"
+                                placeholder="למשל: עליה לתורה, תרומה, נדר...">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label small fw-bold">סכום</label>
+                            <input type="number" x-model.number="tx.amount" class="form-control" placeholder="0.00">
+                        </div>
+                        <div class="col-md-3 d-flex align-items-end gap-2">
+                            <button @click="addTransaction('charge')" class="btn btn-danger flex-grow-1">חיוב</button>
+                            <button @click="addTransaction('credit')" class="btn btn-success flex-grow-1">זיכוי</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div x-show="selectedMember" class="card p-0 border-0 overflow-hidden shadow-sm">
+                    <div class="p-3 bg-white border-bottom d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0 fw-bold">היסטוריית פעולות - <span x-text="selectedMember?.name"></span></h5>
+                        <button class="btn btn-sm btn-outline-danger" @click="clearMemberHistory()">מחיקת היסטוריה</button>
+                    </div>
+                    <div id="transactionsTable"></div>
+                </div>
+
+                <div x-show="!selectedMember" class="card p-3 border-0 shadow-sm">
+                    <h5 class="fw-bold mb-3">סיכום יתרות כללי</h5>
+                    <div id="summaryTable"></div>
+                </div>
+            </div>
+
+            <div x-show="view === 'management'" x-cloak>
+                <h3 class="fw-bold mb-4 text-primary">ניהול והגדרות</h3>
+
+                <div class="card mb-4 border-0 shadow-sm" x-data="{ open: false }">
+                    <div class="card-header bg-white d-flex justify-content-between align-items-center" 
+                         style="cursor: pointer;" @click="open = !open">
+                        <h5 class="mb-0"><i class="bi bi-people-fill me-2 text-primary"></i>הוספת מתפללים בקבוצה (Batch)</h5>
+                        <i class="bi" :class="open ? 'bi-chevron-up' : 'bi-chevron-down'"></i>
+                    </div>
+                    <div class="card-body" x-show="open" x-cloak x-transition>
+                        <div class="alert alert-info py-2 small mb-3">
+                            <i class="bi bi-info-circle me-1"></i>
+                            <strong>סדר השדות:</strong>
+                            <span class="text-primary fw-bold">שם מלא</span>, 
+                            <span class="text-primary fw-bold">כינוי</span>, 
+                            <template x-for="(f, index) in config.memberFields" :key="f.key">
+                                <span>
+                                    <span class="text-primary fw-bold" x-text="f.name"></span>
+                                    <span x-show="index < config.memberFields.length - 1">, </span>
+                                </span>
+                            </template>
+                            <br>
+                            <small>הפרד בין מתפללים בנקודה (.), ובין שדות בפסיק (,). נתונים עודפים יתעלמו.</small>
+                        </div>
+                        <textarea x-model="batchInput" class="form-control mb-3" rows="4" 
+                            placeholder="ישראל ישראלי,israel123,0501234567. פלוני אלמוני,ploni..."></textarea>
+                        <div class="d-flex justify-content-end">
+                            <button @click="processBatchMembers()" class="btn btn-primary px-4">
+                                <i class="bi bi-cloud-upload me-2"></i>ייבא מתפללים
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card p-4 border-0 shadow-sm mb-4">
+                    <h5 class="fw-bold mb-3">הגדרת שדות מתפלל</h5>
+                    <div class="row g-2 mb-3">
+                        <div class="col-md-5">
+                            <input type="text" x-model="newFieldName" class="form-control" placeholder="שם השדה (למשל: טלפון)">
+                        </div>
+                        <div class="col-md-2">
+                            <button @click="addField()" class="btn btn-primary w-100">הוסף שדה</button>
+                        </div>
+                    </div>
+                    <div class="d-flex flex-wrap gap-2">
+                        <template x-for="f in config.memberFields" :key="f.key">
+                            <div class="badge bg-light text-dark p-2 border d-flex align-items-center gap-2">
+                                <span x-text="f.name"></span>
+                                <i class="bi bi-x-circle text-danger cursor-pointer" @click="removeField(f.key)"></i>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+
+                <div class="card p-3 border-0 shadow-sm">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="fw-bold mb-0">רשימת מתפללים מלאה</h5>
+                        <div class="d-flex gap-2">
+                            <button @click="exportData()" class="btn btn-sm btn-outline-success">ייצוא Excel</button>
+                            <button @click="importData()" class="btn btn-sm btn-outline-info">ייבוא Excel</button>
+                        </div>
+                    </div>
+                    <div id="managementTable"></div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <script src="https://unpkg.com/tabulator-tables@5.5.0/dist/js/tabulator.min.js"></script>
+
+    <script>
+        function synagogueApp() {
+            return {
+                view: 'dashboard',
+                mobileSidebar: false,
+                memberSearch: '',
+                quickAdd: false,
+                darkMode: false,
+                batchInput: '',
+                selectedMember: null,
+                members: [],
+                transactions: [],
+                config: {
+                    memberFields: []
+                },
+                nm: { name: '', nickname: '' },
+                tx: { description: '', amount: null },
+                newFieldName: '',
+                
+                // Tabulator Instances
+                tables: {
+                    summary: null,
+                    transactions: null,
+                    management: null
+                },
+
+                init() {
+                    const savedMembers = localStorage.getItem('syn_members');
+                    const savedTx = localStorage.getItem('syn_tx');
+                    const savedConfig = localStorage.getItem('syn_config');
+
+                    if (savedMembers) this.members = JSON.parse(savedMembers);
+                    if (savedTx) this.transactions = JSON.parse(savedTx);
+                    if (savedConfig) this.config = JSON.parse(savedConfig);
+
+                    this.$watch('view', (val) => {
+                        this.$nextTick(() => this.refreshTables());
+                    });
+                },
+
+                get filteredMembers() {
+                    if (!this.memberSearch) return this.members;
+                    const q = this.memberSearch.toLowerCase();
+                    return this.members.filter(m => 
+                        m.name.toLowerCase().includes(q) || 
+                        (m.nickname && m.nickname.toLowerCase().includes(q))
+                    );
+                },
+
+                get totalBalance() {
+                    return this.members.reduce((sum, m) => sum + (m.balance || 0), 0);
+                },
+
+                formatCurrency(num) {
+                    return new Intl.NumberFormat('he-IL', { style: 'currency', currency: 'ILS' }).format(num || 0);
+                },
+
+                selectMember(member) {
+                    this.selectedMember = member;
+                    this.tx = { description: '', amount: null };
+                    this.$nextTick(() => this.initTransactionsTable());
+                },
+
+                addMember() {
+                    if (!this.nm.name.trim()) return;
+
+                    // בדיקת כפילות שם + כינוי
+                    const isDuplicate = this.members.some(m => 
+                        m.name.trim() === this.nm.name.trim() && 
+                        (m.nickname || '').trim() === (this.nm.nickname || '').trim()
+                    );
+
+                    if (isDuplicate) {
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'מתפלל כבר קיים',
+                            text: 'נראה שמתפלל עם שם וכינוי זהים כבר מופיע במערכת. מומלץ להוסיף כינוי ייחודי.',
+                            confirmButtonText: 'הבנתי'
+                        });
+                    }
+
+                    const newMember = {
+                        memberUniqueId: 'm' + Date.now() + Math.floor(Math.random() * 1000),
+                        name: this.nm.name.trim(),
+                        nickname: this.nm.nickname.trim(),
+                        balance: 0,
+                        ...Object.fromEntries(this.config.memberFields.map(f => [f.key, '']))
+                    };
+
+                    this.members.push(newMember);
+                    this.saveMembersData();
+                    this.nm = { name: '', nickname: '' };
+                },
+
+                processBatchMembers() {
+                    if (!this.batchInput.trim()) return;
+
+                    const memberRows = this.batchInput.split('.');
+                    let addedCount = 0;
+
+                    memberRows.forEach(row => {
+                        if (!row.trim()) return;
+
+                        let values = row.split(',').map(v => v.trim());
+                        let name = values[0] || '';
+                        if (!name) return;
+
+                        let nickname = values[1] || Math.floor(1000 + Math.random() * 9000).toString();
+
+                        const newMember = {
+                            memberUniqueId: 'm' + (Date.now() + addedCount),
+                            name: name,
+                            nickname: nickname,
+                            balance: 0
+                        };
+
+                        this.config.memberFields.forEach((field, index) => {
+                            newMember[field.key] = values[index + 2] || '';
+                        });
+
+                        this.members.push(newMember);
+                        addedCount++;
+                    });
+
+                    this.saveMembersData();
+                    this.batchInput = '';
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'הייבוא הושלם',
+                        text: `נוספו ${addedCount} מתפללים חדשים.`,
+                        timer: 2500
+                    });
+                },
+
+                addTransaction(type) {
+                    if (!this.selectedMember || !this.tx.amount) return;
+
+                    const amount = type === 'charge' ? -Math.abs(this.tx.amount) : Math.abs(this.tx.amount);
+                    
+                    const newTx = {
+                        id: Date.now(),
+                        memberUniqueId: this.selectedMember.memberUniqueId,
+                        date: new Date().toISOString(),
+                        description: this.tx.description || (type === 'charge' ? 'חיוב' : 'זיכוי'),
+                        amount: amount
+                    };
+
+                    this.transactions.push(newTx);
+                    this.selectedMember.balance = (this.selectedMember.balance || 0) + amount;
+                    
+                    this.saveMembersData();
+                    this.saveTxData();
+                    this.tx = { description: '', amount: null };
+                    this.initTransactionsTable();
+                },
+
+                addField() {
+                    if (!this.newFieldName.trim()) return;
+                    const key = 'f_' + Date.now();
+                    this.config.memberFields.push({ key: key, name: this.newFieldName.trim() });
+                    
+                    // Add field to all existing members
+                    this.members.forEach(m => m[key] = '');
+                    
+                    this.newFieldName = '';
+                    this.saveMembersData();
+                    this.saveConfig();
+                },
+
+                removeField(key) {
+                    Swal.fire({
+                        title: 'למחוק שדה זה?',
+                        text: "כל הנתונים השמורים בשדה זה אצל כל המתפללים יימחקו!",
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonText: 'כן, מחק'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            this.config.memberFields = this.config.memberFields.filter(f => f.key !== key);
+                            this.members.forEach(m => delete m[key]);
+                            this.saveMembersData();
+                            this.saveConfig();
+                        }
+                    });
+                },
+
+                saveMembersData() {
+                    localStorage.setItem('syn_members', JSON.stringify(this.members));
+                },
+
+                saveTxData() {
+                    localStorage.setItem('syn_tx', JSON.stringify(this.transactions));
+                },
+
+                saveConfig() {
+                    localStorage.setItem('syn_config', JSON.stringify(this.config));
+                },
+
+                refreshTables() {
+                    if (this.view === 'dashboard') {
+                        this.initSummaryTable();
+                        if (this.selectedMember) this.initTransactionsTable();
+                    } else if (this.view === 'management') {
+                        this.initManagementTable();
+                    }
+                },
+
+                initSummaryTable() {
+                    setTimeout(() => {
+                        this.tables.summary = new Tabulator("#summaryTable", {
+                            data: this.members,
+                            layout: "fitColumns",
+                            columns: [
+                                { title: "שם", field: "name", widthGrow: 2 },
+                                { title: "כינוי", field: "nickname" },
+                                { 
+                                    title: "יתרה", 
+                                    field: "balance", 
+                                    formatter: "money", 
+                                    formatterParams: { symbol: "₪" },
+                                    color: (val) => val < 0 ? "red" : "green"
+                                }
+                            ],
+                            rowClick: (e, row) => this.selectMember(row.getData())
+                        });
+                    }, 50);
+                },
+
+                initTransactionsTable() {
+                    if (!this.selectedMember) return;
+                    const data = this.transactions
+                        .filter(t => t.memberUniqueId === this.selectedMember.memberUniqueId)
+                        .sort((a,b) => b.id - a.id);
+
+                    setTimeout(() => {
+                        this.tables.transactions = new Tabulator("#transactionsTable", {
+                            data: data,
+                            layout: "fitColumns",
+                            columns: [
+                                { title: "תאריך", field: "date", formatter: (cell) => new Date(cell.getValue()).toLocaleDateString('he-IL') },
+                                { title: "תיאור", field: "description", widthGrow: 2 },
+                                { 
+                                    title: "סכום", 
+                                    field: "amount", 
+                                    formatter: "money", 
+                                    formatterParams: { symbol: "₪" }
+                                },
+                                {
+                                    title: "",
+                                    formatter: () => "<i class='bi bi-trash text-danger'></i>",
+                                    cellClick: (e, cell) => this.deleteTransaction(cell.getRow().getData())
+                                }
+                            ]
+                        });
+                    }, 50);
+                },
+
+                initManagementTable() {
+                    const columns = [
+                        { title: "שם", field: "name", editor: "input" },
+                        { title: "כינוי", field: "nickname", editor: "input" },
+                        ...this.config.memberFields.map(f => ({ title: f.name, field: f.key, editor: "input" })),
+                        {
+                            title: "פעולות",
+                            formatter: () => "<button class='btn btn-sm btn-danger'><i class='bi bi-trash'></i></button>",
+                            cellClick: (e, cell) => this.deleteMember(cell.getRow().getData())
+                        }
+                    ];
+
+                    setTimeout(() => {
+                        this.tables.management = new Tabulator("#managementTable", {
+                            data: this.members,
+                            layout: "fitColumns",
+                            columns: columns,
+                            cellEdited: () => this.saveMembersData()
+                        });
+                    }, 50);
+                },
+
+                deleteTransaction(tx) {
+                    this.transactions = this.transactions.filter(t => t.id !== tx.id);
+                    this.selectedMember.balance -= tx.amount;
+                    this.saveMembersData();
+                    this.saveTxData();
+                    this.initTransactionsTable();
+                },
+
+                deleteMember(member) {
+                    Swal.fire({
+                        title: 'למחוק את ' + member.name + '?',
+                        icon: 'warning',
+                        showCancelButton: true,
+                    }).then(res => {
+                        if (res.isConfirmed) {
+                            this.members = this.members.filter(m => m.memberUniqueId !== member.memberUniqueId);
+                            this.transactions = this.transactions.filter(t => t.memberUniqueId !== member.memberUniqueId);
+                            if (this.selectedMember?.memberUniqueId === member.memberUniqueId) this.selectedMember = null;
+                            this.saveMembersData();
+                            this.saveTxData();
+                            this.initManagementTable();
+                        }
+                    });
+                },
+
+                clearMemberHistory() {
+                    if (!this.selectedMember) return;
+                    Swal.fire({
+                        title: 'מחיקת היסטוריה',
+                        text: 'האם למחוק את כל הפעולות ולאפס את היתרה של ' + this.selectedMember.name + '?',
+                        icon: 'warning',
+                        showCancelButton: true
+                    }).then(res => {
+                        if (res.isConfirmed) {
+                            this.transactions = this.transactions.filter(t => t.memberUniqueId !== this.selectedMember.memberUniqueId);
+                            this.selectedMember.balance = 0;
+                            this.saveMembersData();
+                            this.saveTxData();
+                            this.initTransactionsTable();
+                        }
+                    });
+                },
+
+                exportData() {
+                    const ws = XLSX.utils.json_to_sheet(this.members);
+                    const wb = XLSX.utils.book_new();
+                    XLSX.utils.book_append_sheet(wb, ws, "Members");
+                    XLSX.writeFile(wb, "synagogue_members.xlsx");
+                }
+            }
+        }
+    </script>
+</body>
+</html>
