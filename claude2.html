@@ -1,0 +1,1930 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>מערכת ניהול חשבונות בית כנסת</title>
+    
+    <!-- Bootstrap 5 RTL -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
+    
+    <!-- Tabulator -->
+    <link href="https://unpkg.com/tabulator-tables@5.5.0/dist/css/tabulator_bootstrap5.min.css" rel="stylesheet">
+    
+    <!-- Flatpickr -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    
+    <!-- Choices.js -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css">
+    
+    <!-- Google Fonts - Heebo for Hebrew -->
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700&family=Assistant:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --primary-color: #2c5f7d;
+            --secondary-color: #7d4e2c;
+            --accent-color: #d4af37;
+            --bg-main: #f8f9fa;
+            --bg-secondary: #ffffff;
+            --text-primary: #212529;
+            --text-secondary: #6c757d;
+            --border-color: #dee2e6;
+            --sidebar-bg: #ffffff;
+            --sidebar-width: 280px;
+            --header-height: 65px;
+            --shadow-sm: 0 2px 8px rgba(0,0,0,0.08);
+            --shadow-md: 0 4px 16px rgba(0,0,0,0.12);
+            --transition-speed: 0.3s;
+        }
+        
+        [data-theme="dark"] {
+            --primary-color: #4a9eff;
+            --secondary-color: #ff9f4a;
+            --accent-color: #ffd700;
+            --bg-main: #1a1d23;
+            --bg-secondary: #25292f;
+            --text-primary: #e4e6eb;
+            --text-secondary: #b0b3b8;
+            --border-color: #3a3f47;
+            --sidebar-bg: #25292f;
+            --shadow-sm: 0 2px 8px rgba(0,0,0,0.3);
+            --shadow-md: 0 4px 16px rgba(0,0,0,0.4);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Heebo', 'Assistant', sans-serif;
+            background: var(--bg-main);
+            color: var(--text-primary);
+            transition: background-color var(--transition-speed), color var(--transition-speed);
+            overflow-x: hidden;
+        }
+        
+        /* Header */
+        .app-header {
+            height: var(--header-height);
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-color);
+            box-shadow: var(--shadow-sm);
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1040;
+            display: flex;
+            align-items: center;
+            padding: 0 1.5rem;
+            transition: all var(--transition-speed);
+        }
+        
+        .app-header .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .app-header .user-info {
+            margin-right: auto;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .theme-toggle {
+            background: var(--bg-main);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            border-radius: 8px;
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .theme-toggle:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-sm);
+        }
+        
+        /* Sidebar */
+        .sidebar {
+            position: fixed;
+            right: 0;
+            top: var(--header-height);
+            width: var(--sidebar-width);
+            height: calc(100vh - var(--header-height));
+            background: var(--sidebar-bg);
+            border-left: 1px solid var(--border-color);
+            box-shadow: var(--shadow-md);
+            padding: 1.5rem;
+            overflow-y: auto;
+            transition: all var(--transition-speed);
+            z-index: 1030;
+        }
+        
+        .sidebar-section {
+            margin-bottom: 2rem;
+        }
+        
+        .sidebar-section-title {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .worshippers-list {
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background: var(--bg-main);
+        }
+        
+        .worshipper-item {
+            padding: 0.75rem 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .worshipper-item:last-child {
+            border-bottom: none;
+        }
+        
+        .worshipper-item:hover {
+            background: var(--primary-color);
+            color: white;
+        }
+        
+        .worshipper-item.active {
+            background: var(--primary-color);
+            color: white;
+            font-weight: 600;
+        }
+        
+        .worshipper-balance {
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+        
+        .worshipper-balance.negative {
+            color: #dc3545;
+        }
+        
+        .worshipper-balance.positive {
+            color: #28a745;
+        }
+        
+        .sidebar-btn {
+            width: 100%;
+            padding: 0.75rem;
+            margin-bottom: 0.5rem;
+            border: 1px solid var(--border-color);
+            background: var(--bg-main);
+            color: var(--text-primary);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .sidebar-btn:hover {
+            background: var(--primary-color);
+            color: white;
+            transform: translateX(-3px);
+        }
+        
+        /* Main Content */
+        .main-content {
+            margin-right: var(--sidebar-width);
+            margin-top: var(--header-height);
+            padding: 2rem;
+            min-height: calc(100vh - var(--header-height));
+            transition: margin-right var(--transition-speed);
+        }
+        
+        .content-card {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            box-shadow: var(--shadow-sm);
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .page-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        /* Tabs */
+        .custom-tabs {
+            border-bottom: 2px solid var(--border-color);
+            margin-bottom: 2rem;
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+        
+        .custom-tab {
+            padding: 0.75rem 1.5rem;
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 500;
+            border-bottom: 3px solid transparent;
+            position: relative;
+        }
+        
+        .custom-tab:hover {
+            color: var(--primary-color);
+        }
+        
+        .custom-tab.active {
+            color: var(--primary-color);
+            border-bottom-color: var(--primary-color);
+        }
+        
+        .tab-content-area {
+            display: none;
+        }
+        
+        .tab-content-area.active {
+            display: block;
+            animation: fadeIn 0.3s;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* Input Row */
+        .input-row {
+            display: grid;
+            grid-template-columns: 150px 200px 1fr 150px 100px;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            padding: 1rem;
+            background: var(--bg-main);
+            border-radius: 8px;
+            align-items: end;
+        }
+        
+        .input-group-custom {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .input-group-custom label {
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--text-secondary);
+        }
+        
+        .input-group-custom input,
+        .input-group-custom select {
+            padding: 0.625rem;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            transition: all 0.2s;
+        }
+        
+        .input-group-custom input:focus,
+        .input-group-custom select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(44, 95, 125, 0.1);
+        }
+        
+        /* Buttons */
+        .btn-primary-custom {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 0.625rem 1.5rem;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+        }
+        
+        .btn-primary-custom:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-sm);
+        }
+        
+        .btn-secondary-custom {
+            background: var(--bg-main);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+            padding: 0.625rem 1.5rem;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+        }
+        
+        /* Tabulator Customization */
+        .tabulator {
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background: var(--bg-secondary);
+            font-size: 0.9rem;
+        }
+        
+        .tabulator .tabulator-header {
+            background: var(--bg-main);
+            color: var(--text-primary);
+            border-bottom: 2px solid var(--border-color);
+        }
+        
+        .tabulator .tabulator-row {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+        }
+        
+        .tabulator .tabulator-row:hover {
+            background: var(--bg-main) !important;
+        }
+        
+        .tabulator .tabulator-row.tabulator-selected {
+            background: rgba(44, 95, 125, 0.1) !important;
+        }
+        
+        /* Summary Stats */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .stat-card {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: var(--shadow-sm);
+        }
+        
+        .stat-label {
+            font-size: 0.875rem;
+            opacity: 0.9;
+            margin-bottom: 0.5rem;
+        }
+        
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+        }
+        
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(100%);
+                width: 90%;
+                max-width: 300px;
+            }
+            
+            .sidebar.mobile-open {
+                transform: translateX(0);
+            }
+            
+            .main-content {
+                margin-right: 0;
+                padding: 1rem;
+            }
+            
+            .input-row {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .mobile-menu-toggle {
+                display: block !important;
+            }
+        }
+        
+        .mobile-menu-toggle {
+            display: none;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        
+        .mobile-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 1020;
+        }
+        
+        .mobile-overlay.active {
+            display: block;
+        }
+        
+        /* Print Styles */
+        @media print {
+            .sidebar,
+            .app-header,
+            .theme-toggle,
+            .mobile-menu-toggle,
+            .btn-primary-custom,
+            .btn-secondary-custom,
+            .input-row {
+                display: none !important;
+            }
+            
+            .main-content {
+                margin: 0;
+                padding: 0;
+            }
+            
+            .content-card {
+                box-shadow: none;
+                border: 1px solid #ddd;
+            }
+        }
+        
+        /* Search Input */
+        .search-input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            margin-bottom: 1rem;
+            transition: all 0.2s;
+        }
+        
+        .search-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(44, 95, 125, 0.1);
+        }
+        
+        /* Keyboard Shortcuts Modal */
+        .shortcuts-modal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: var(--bg-secondary);
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: var(--shadow-md);
+            z-index: 2000;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        
+        .shortcuts-modal.active {
+            display: block;
+            animation: fadeIn 0.3s;
+        }
+        
+        .shortcut-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.75rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .shortcut-key {
+            background: var(--bg-main);
+            padding: 0.25rem 0.75rem;
+            border-radius: 4px;
+            font-family: monospace;
+            font-weight: 600;
+        }
+        
+        /* Login Screen */
+        .login-screen {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        }
+        
+        .login-card {
+            background: var(--bg-secondary);
+            padding: 3rem;
+            border-radius: 16px;
+            box-shadow: var(--shadow-md);
+            max-width: 400px;
+            width: 90%;
+        }
+        
+        .login-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+        
+        .login-input {
+            width: 100%;
+            padding: 0.75rem;
+            margin-bottom: 1rem;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background: var(--bg-main);
+            color: var(--text-primary);
+        }
+        
+        .hebrew-date {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-right: 1rem;
+        }
+        
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: var(--bg-main);
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--text-secondary);
+        }
+        
+        .badge-role {
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        
+        .badge-admin {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .badge-editor {
+            background: #ffc107;
+            color: #000;
+        }
+        
+        .badge-viewer {
+            background: #17a2b8;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <!-- Login Screen -->
+    <div id="loginScreen" class="login-screen">
+        <div class="login-card">
+            <h1 class="login-title">
+                <i class="fas fa-synagogue"></i>
+                מערכת ניהול בית כנסת
+            </h1>
+            <select id="loginRole" class="login-input">
+                <option value="">בחר סוג משתמש</option>
+                <option value="admin">מנהל</option>
+                <option value="editor">עורך</option>
+                <option value="viewer">צופה</option>
+            </select>
+            <input type="text" id="loginUsername" class="login-input" placeholder="שם משתמש">
+            <input type="password" id="loginPassword" class="login-input" placeholder="סיסמה">
+            <button class="btn-primary-custom w-100" onclick="app.login()">
+                <i class="fas fa-sign-in-alt"></i> כניסה למערכת
+            </button>
+        </div>
+    </div>
+
+    <!-- Main App -->
+    <div id="mainApp" style="display: none;">
+        <!-- Header -->
+        <header class="app-header">
+            <button class="mobile-menu-toggle" onclick="app.toggleMobileSidebar()">
+                <i class="fas fa-bars"></i>
+            </button>
+            
+            <div class="logo">
+                <i class="fas fa-synagogue"></i>
+                ניהול חשבונות בית כנסת
+            </div>
+            
+            <div class="user-info">
+                <span class="hebrew-date" id="hebrewDate"></span>
+                <span id="currentUser"></span>
+                <span class="badge-role" id="userRoleBadge"></span>
+                <button class="btn-secondary-custom" onclick="app.logout()">
+                    <i class="fas fa-sign-out-alt"></i> יציאה
+                </button>
+            </div>
+            
+            <button class="theme-toggle" onclick="app.toggleTheme()">
+                <i class="fas fa-moon" id="themeIcon"></i>
+                <span id="themeText">מצב לילה</span>
+            </button>
+        </header>
+
+        <!-- Mobile Overlay -->
+        <div class="mobile-overlay" id="mobileOverlay" onclick="app.toggleMobileSidebar()"></div>
+
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <!-- Search -->
+            <div class="sidebar-section">
+                <div class="sidebar-section-title">
+                    <i class="fas fa-search"></i>
+                    חיפוש מתפלל
+                </div>
+                <input type="text" class="search-input" id="worshipperSearch" 
+                       placeholder="חפש או הוסף מתפלל חדש..." 
+                       onkeyup="app.searchWorshippers(event)">
+            </div>
+
+            <!-- Worshippers List -->
+            <div class="sidebar-section">
+                <div class="sidebar-section-title">
+                    <i class="fas fa-users"></i>
+                    רשימת מתפללים
+                </div>
+                <div class="worshippers-list" id="worshippersList">
+                    <!-- Will be populated dynamically -->
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="sidebar-section">
+                <div class="sidebar-section-title">
+                    <i class="fas fa-cog"></i>
+                    פעולות
+                </div>
+                <button class="sidebar-btn" onclick="app.showDebtsSummary()">
+                    <i class="fas fa-file-invoice-dollar"></i>
+                    סיכום חובות
+                </button>
+                <button class="sidebar-btn" onclick="app.showListsManagement()">
+                    <i class="fas fa-list"></i>
+                    ניהול רשימות
+                </button>
+                <button class="sidebar-btn" onclick="app.showReports()">
+                    <i class="fas fa-chart-bar"></i>
+                    דוחות ותקופות
+                </button>
+                <button class="sidebar-btn" onclick="app.exportData()">
+                    <i class="fas fa-file-export"></i>
+                    ייצוא נתונים
+                </button>
+                <button class="sidebar-btn" onclick="app.showShortcuts()">
+                    <i class="fas fa-keyboard"></i>
+                    קיצורי מקלדת
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div id="mainContentArea">
+                <!-- Welcome Screen -->
+                <div id="welcomeScreen">
+                    <div class="content-card">
+                        <h1 class="page-title">
+                            <i class="fas fa-home"></i>
+                            ברוכים הבאים למערכת ניהול חשבונות בית הכנסת
+                        </h1>
+                        <p class="lead">בחר מתפלל מהרשימה או חפש מתפלל חדש כדי להתחיל</p>
+                        
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <div class="stat-label">סה"כ מתפללים</div>
+                                <div class="stat-value" id="totalWorshippers">0</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-label">סה"כ התחייבויות</div>
+                                <div class="stat-value" id="totalCommitments">₪0</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-label">סה"כ תשלומים</div>
+                                <div class="stat-value" id="totalPayments">₪0</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-label">יתרת חובות</div>
+                                <div class="stat-value" id="totalBalance">₪0</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Worshipper Details Screen -->
+                <div id="worshipperScreen" style="display: none;">
+                    <div class="content-card">
+                        <h1 class="page-title" id="worshipperName"></h1>
+                        
+                        <!-- Tabs -->
+                        <div class="custom-tabs">
+                            <button class="custom-tab active" data-tab="commitments">
+                                <i class="fas fa-hand-holding-usd"></i> התחייבויות
+                            </button>
+                            <button class="custom-tab" data-tab="payments">
+                                <i class="fas fa-money-bill-wave"></i> תשלומים
+                            </button>
+                            <button class="custom-tab" data-tab="summary">
+                                <i class="fas fa-calculator"></i> סיכום חשבון
+                            </button>
+                        </div>
+
+                        <!-- Tab Content: Commitments -->
+                        <div id="tab-commitments" class="tab-content-area active">
+                            <div class="input-row">
+                                <div class="input-group-custom">
+                                    <label>תאריך</label>
+                                    <input type="text" id="commitmentDate" class="flatpickr">
+                                </div>
+                                <div class="input-group-custom">
+                                    <label>סוג הכנסה</label>
+                                    <select id="commitmentType"></select>
+                                </div>
+                                <div class="input-group-custom">
+                                    <label>פירוט</label>
+                                    <input type="text" id="commitmentDetails">
+                                </div>
+                                <div class="input-group-custom">
+                                    <label>סכום</label>
+                                    <input type="number" id="commitmentAmount" min="0" step="0.01">
+                                </div>
+                                <div class="input-group-custom">
+                                    <label>&nbsp;</label>
+                                    <button class="btn-primary-custom" onclick="app.addCommitment()">
+                                        <i class="fas fa-plus"></i> הוסף
+                                    </button>
+                                </div>
+                            </div>
+                            <div id="commitmentsTable"></div>
+                        </div>
+
+                        <!-- Tab Content: Payments -->
+                        <div id="tab-payments" class="tab-content-area">
+                            <div class="input-row">
+                                <div class="input-group-custom">
+                                    <label>תאריך</label>
+                                    <input type="text" id="paymentDate" class="flatpickr">
+                                </div>
+                                <div class="input-group-custom">
+                                    <label>אמצעי תשלום</label>
+                                    <select id="paymentMethod"></select>
+                                </div>
+                                <div class="input-group-custom">
+                                    <label>פירוט</label>
+                                    <input type="text" id="paymentDetails">
+                                </div>
+                                <div class="input-group-custom">
+                                    <label>סכום</label>
+                                    <input type="number" id="paymentAmount" min="0" step="0.01">
+                                </div>
+                                <div class="input-group-custom">
+                                    <label>&nbsp;</label>
+                                    <button class="btn-primary-custom" onclick="app.addPayment()">
+                                        <i class="fas fa-plus"></i> הוסף
+                                    </button>
+                                </div>
+                            </div>
+                            <div id="paymentsTable"></div>
+                        </div>
+
+                        <!-- Tab Content: Summary -->
+                        <div id="tab-summary" class="tab-content-area">
+                            <div id="summaryTable"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Keyboard Shortcuts Modal -->
+    <div class="shortcuts-modal" id="shortcutsModal">
+        <h2 style="margin-bottom: 1.5rem;">
+            <i class="fas fa-keyboard"></i> קיצורי מקלדת
+        </h2>
+        <div class="shortcut-item">
+            <span>חיפוש מתפלל</span>
+            <span class="shortcut-key">Ctrl + F</span>
+        </div>
+        <div class="shortcut-item">
+            <span>מתפלל חדש</span>
+            <span class="shortcut-key">Ctrl + N</span>
+        </div>
+        <div class="shortcut-item">
+            <span>שמירה</span>
+            <span class="shortcut-key">Ctrl + S</span>
+        </div>
+        <div class="shortcut-item">
+            <span>הדפסה</span>
+            <span class="shortcut-key">Ctrl + P</span>
+        </div>
+        <div class="shortcut-item">
+            <span>מעבר לטאב התחייבויות</span>
+            <span class="shortcut-key">Alt + 1</span>
+        </div>
+        <div class="shortcut-item">
+            <span>מעבר לטאב תשלומים</span>
+            <span class="shortcut-key">Alt + 2</span>
+        </div>
+        <div class="shortcut-item">
+            <span>מעבר לטאב סיכום</span>
+            <span class="shortcut-key">Alt + 3</span>
+        </div>
+        <div class="shortcut-item">
+            <span>מצב לילה</span>
+            <span class="shortcut-key">Ctrl + D</span>
+        </div>
+        <div class="shortcut-item">
+            <span>חזרה לרשימת מתפללים</span>
+            <span class="shortcut-key">ESC</span>
+        </div>
+        <div class="shortcut-item">
+            <span>עזרה (חלון זה)</span>
+            <span class="shortcut-key">F1</span>
+        </div>
+        <button class="btn-primary-custom w-100 mt-3" onclick="app.hideShortcuts()">
+            <i class="fas fa-times"></i> סגור
+        </button>
+    </div>
+
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    
+    <!-- Bootstrap -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Tabulator -->
+    <script src="https://unpkg.com/tabulator-tables@5.5.0/dist/js/tabulator.min.js"></script>
+    
+    <!-- Flatpickr -->
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/he.js"></script>
+    
+    <!-- Choices.js -->
+    <script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
+    
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <!-- SheetJS for Excel Export -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    
+    <!-- jsPDF for PDF Export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+    
+    <!-- Hebrew Calendar Library -->
+    <script src="https://cdn.jsdelivr.net/npm/@hebcal/core@4.22.0/dist/bundle.min.js"></script>
+
+    <script>
+        // Main Application
+        const app = {
+            currentUser: null,
+            currentWorshipper: null,
+            currentTheme: 'light',
+            
+            // Data structure
+            data: {
+                worshippers: [],
+                commitments: [],
+                payments: [],
+                incomeTypes: ['עלייה לתורה', 'פתיחת ההיכל', 'הגבהה', 'גלילה', 'מפטיר', 'תרומה'],
+                paymentMethods: ['מזומן', 'אשראי', 'העברה בנקאית', 'צ\'ק', 'אחר'],
+                users: [
+                    { username: 'admin', password: 'admin123', role: 'admin' },
+                    { username: 'editor', password: 'edit123', role: 'editor' },
+                    { username: 'viewer', password: 'view123', role: 'viewer' }
+                ]
+            },
+
+            // Initialize app
+            init() {
+                this.loadFromStorage();
+                this.updateHebrewDate();
+                this.initializeTabs();
+                this.loadTheme();
+                this.setupKeyboardShortcuts();
+                
+                // Update Hebrew date every minute
+                setInterval(() => this.updateHebrewDate(), 60000);
+            },
+
+            // Login
+            login() {
+                const role = document.getElementById('loginRole').value;
+                const username = document.getElementById('loginUsername').value;
+                const password = document.getElementById('loginPassword').value;
+
+                const user = this.data.users.find(u => 
+                    u.username === username && u.password === password && u.role === role
+                );
+
+                if (user) {
+                    this.currentUser = user;
+                    document.getElementById('loginScreen').style.display = 'none';
+                    document.getElementById('mainApp').style.display = 'block';
+                    document.getElementById('currentUser').textContent = user.username;
+                    
+                    const badge = document.getElementById('userRoleBadge');
+                    badge.className = 'badge-role badge-' + user.role;
+                    badge.textContent = user.role === 'admin' ? 'מנהל' : 
+                                       user.role === 'editor' ? 'עורך' : 'צופה';
+                    
+                    this.renderWorshippersList();
+                    this.updateDashboardStats();
+                    
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'התחברת בהצלחה!',
+                        text: `שלום ${username}`,
+                        timer: 1500,
+                        showConfirmButton: false
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'שגיאה',
+                        text: 'שם משתמש או סיסמה שגויים'
+                    });
+                }
+            },
+
+            // Logout
+            logout() {
+                Swal.fire({
+                    title: 'האם אתה בטוח?',
+                    text: 'האם ברצונך לצאת מהמערכת?',
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonText: 'כן, צא',
+                    cancelButtonText: 'ביטול'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        this.currentUser = null;
+                        this.currentWorshipper = null;
+                        document.getElementById('mainApp').style.display = 'none';
+                        document.getElementById('loginScreen').style.display = 'flex';
+                        document.getElementById('loginUsername').value = '';
+                        document.getElementById('loginPassword').value = '';
+                        document.getElementById('loginRole').value = '';
+                    }
+                });
+            },
+
+            // Hebrew Date
+            updateHebrewDate() {
+                try {
+                    const hDate = new Hebcal.HDate();
+                    const hebrewDateStr = hDate.renderGematriya();
+                    document.getElementById('hebrewDate').textContent = hebrewDateStr;
+                } catch (e) {
+                    console.error('Error loading Hebrew date:', e);
+                }
+            },
+
+            // Theme Toggle
+            toggleTheme() {
+                this.currentTheme = this.currentTheme === 'light' ? 'dark' : 'light';
+                document.documentElement.setAttribute('data-theme', this.currentTheme);
+                
+                const icon = document.getElementById('themeIcon');
+                const text = document.getElementById('themeText');
+                
+                if (this.currentTheme === 'dark') {
+                    icon.className = 'fas fa-sun';
+                    text.textContent = 'מצב יום';
+                } else {
+                    icon.className = 'fas fa-moon';
+                    text.textContent = 'מצב לילה';
+                }
+                
+                localStorage.setItem('theme', this.currentTheme);
+            },
+
+            loadTheme() {
+                const savedTheme = localStorage.getItem('theme');
+                if (savedTheme) {
+                    this.currentTheme = savedTheme;
+                    document.documentElement.setAttribute('data-theme', savedTheme);
+                    
+                    const icon = document.getElementById('themeIcon');
+                    const text = document.getElementById('themeText');
+                    
+                    if (savedTheme === 'dark') {
+                        icon.className = 'fas fa-sun';
+                        text.textContent = 'מצב יום';
+                    }
+                }
+            },
+
+            // Mobile Sidebar
+            toggleMobileSidebar() {
+                const sidebar = document.getElementById('sidebar');
+                const overlay = document.getElementById('mobileOverlay');
+                
+                sidebar.classList.toggle('mobile-open');
+                overlay.classList.toggle('active');
+            },
+
+            // Tabs
+            initializeTabs() {
+                document.querySelectorAll('.custom-tab').forEach(tab => {
+                    tab.addEventListener('click', (e) => {
+                        const tabName = e.target.closest('.custom-tab').dataset.tab;
+                        this.switchTab(tabName);
+                    });
+                });
+            },
+
+            switchTab(tabName) {
+                document.querySelectorAll('.custom-tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-content-area').forEach(c => c.classList.remove('active'));
+                
+                document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+                document.getElementById(`tab-${tabName}`).classList.add('active');
+                
+                if (tabName === 'summary' && this.currentWorshipper) {
+                    this.renderSummaryTable();
+                }
+            },
+
+            // Worshippers Management
+            searchWorshippers(event) {
+                const searchTerm = event.target.value.toLowerCase();
+                
+                if (event.key === 'Enter' && searchTerm) {
+                    // Check if worshipper exists
+                    const existing = this.data.worshippers.find(w => 
+                        w.name.toLowerCase().includes(searchTerm)
+                    );
+                    
+                    if (!existing) {
+                        this.addNewWorshipper(searchTerm);
+                    } else {
+                        this.selectWorshipper(existing);
+                    }
+                } else if (event.key === 'Escape') {
+                    event.target.value = '';
+                    this.renderWorshippersList();
+                } else {
+                    // Filter list
+                    this.renderWorshippersList(searchTerm);
+                }
+            },
+
+            addNewWorshipper(name) {
+                Swal.fire({
+                    title: 'הוספת מתפלל חדש',
+                    html: `
+                        <input id="swal-name" class="swal2-input" placeholder="שם מלא" value="${name}">
+                        <input id="swal-nickname" class="swal2-input" placeholder="כינוי (אופציונלי)">
+                        <input id="swal-phone" class="swal2-input" placeholder="טלפון">
+                        <input id="swal-email" class="swal2-input" placeholder="אימייל">
+                        <input id="swal-address" class="swal2-input" placeholder="כתובת">
+                    `,
+                    showCancelButton: true,
+                    confirmButtonText: 'הוסף',
+                    cancelButtonText: 'ביטול',
+                    preConfirm: () => {
+                        return {
+                            name: document.getElementById('swal-name').value,
+                            nickname: document.getElementById('swal-nickname').value,
+                            phone: document.getElementById('swal-phone').value,
+                            email: document.getElementById('swal-email').value,
+                            address: document.getElementById('swal-address').value
+                        };
+                    }
+                }).then((result) => {
+                    if (result.isConfirmed && result.value.name) {
+                        const newWorshipper = {
+                            id: Date.now(),
+                            ...result.value,
+                            createdAt: new Date().toISOString()
+                        };
+                        
+                        this.data.worshippers.push(newWorshipper);
+                        this.saveToStorage();
+                        this.renderWorshippersList();
+                        this.selectWorshipper(newWorshipper);
+                        
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'מתפלל נוסף בהצלחה!',
+                            timer: 1500,
+                            showConfirmButton: false
+                        });
+                    }
+                });
+            },
+
+            renderWorshippersList(filter = '') {
+                const container = document.getElementById('worshippersList');
+                const filtered = this.data.worshippers.filter(w => 
+                    w.name.toLowerCase().includes(filter.toLowerCase()) ||
+                    (w.nickname && w.nickname.toLowerCase().includes(filter.toLowerCase()))
+                );
+                
+                container.innerHTML = filtered.map(w => {
+                    const balance = this.calculateBalance(w.id);
+                    const balanceClass = balance < 0 ? 'negative' : balance > 0 ? 'positive' : '';
+                    const activeClass = this.currentWorshipper && this.currentWorshipper.id === w.id ? 'active' : '';
+                    
+                    return `
+                        <div class="worshipper-item ${activeClass}" onclick="app.selectWorshipper(${JSON.stringify(w).replace(/"/g, '&quot;')})">
+                            <div>
+                                <strong>${w.name}</strong>
+                                ${w.nickname ? `<br><small>(${w.nickname})</small>` : ''}
+                            </div>
+                            <div class="worshipper-balance ${balanceClass}">
+                                ₪${Math.abs(balance).toFixed(2)}
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+                
+                this.updateDashboardStats();
+            },
+
+            selectWorshipper(worshipper) {
+                if (this.currentUser.role === 'viewer' && worshipper.id !== this.getCurrentViewerWorshipperId()) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'אין הרשאה',
+                        text: 'אתה יכול לצפות רק בחשבון שלך'
+                    });
+                    return;
+                }
+                
+                this.currentWorshipper = worshipper;
+                
+                document.getElementById('welcomeScreen').style.display = 'none';
+                document.getElementById('worshipperScreen').style.display = 'block';
+                document.getElementById('worshipperName').innerHTML = `
+                    <i class="fas fa-user"></i>
+                    ${worshipper.name} ${worshipper.nickname ? `(${worshipper.nickname})` : ''}
+                `;
+                
+                this.initializeDatePickers();
+                this.populateSelects();
+                this.renderCommitmentsTable();
+                this.renderPaymentsTable();
+                this.renderWorshippersList();
+                
+                // Close mobile sidebar if open
+                if (window.innerWidth <= 768) {
+                    this.toggleMobileSidebar();
+                }
+            },
+
+            getCurrentViewerWorshipperId() {
+                // In a real app, this would come from the logged-in user's profile
+                // For demo, we'll just return the first worshipper
+                return this.data.worshippers[0]?.id;
+            },
+
+            calculateBalance(worshipperId) {
+                const commitments = this.data.commitments
+                    .filter(c => c.worshipperId === worshipperId)
+                    .reduce((sum, c) => sum + parseFloat(c.amount), 0);
+                
+                const payments = this.data.payments
+                    .filter(p => p.worshipperId === worshipperId)
+                    .reduce((sum, p) => sum + parseFloat(p.amount), 0);
+                
+                return commitments - payments;
+            },
+
+            // Initialize Date Pickers
+            initializeDatePickers() {
+                const today = new Date().toISOString().split('T')[0];
+                
+                flatpickr('.flatpickr', {
+                    locale: 'he',
+                    dateFormat: 'Y-m-d',
+                    defaultDate: today,
+                    allowInput: true
+                });
+                
+                document.getElementById('commitmentDate').value = today;
+                document.getElementById('paymentDate').value = today;
+            },
+
+            // Populate Selects
+            populateSelects() {
+                const commitmentType = document.getElementById('commitmentType');
+                const paymentMethod = document.getElementById('paymentMethod');
+                
+                commitmentType.innerHTML = this.data.incomeTypes.map(type => 
+                    `<option value="${type}">${type}</option>`
+                ).join('');
+                
+                paymentMethod.innerHTML = this.data.paymentMethods.map(method => 
+                    `<option value="${method}">${method}</option>`
+                ).join('');
+            },
+
+            // Commitments
+            addCommitment() {
+                if (!this.currentWorshipper) return;
+                if (this.currentUser.role === 'viewer') {
+                    Swal.fire({icon: 'error', title: 'אין הרשאה', text: 'אתה יכול רק לצפות'});
+                    return;
+                }
+                
+                const date = document.getElementById('commitmentDate').value;
+                const type = document.getElementById('commitmentType').value;
+                const details = document.getElementById('commitmentDetails').value;
+                const amount = document.getElementById('commitmentAmount').value;
+                
+                if (!date || !type || !amount) {
+                    Swal.fire({icon: 'error', title: 'שגיאה', text: 'נא למלא את כל השדות הנדרשים'});
+                    return;
+                }
+                
+                const commitment = {
+                    id: Date.now(),
+                    worshipperId: this.currentWorshipper.id,
+                    date,
+                    type,
+                    details,
+                    amount: parseFloat(amount),
+                    createdAt: new Date().toISOString()
+                };
+                
+                this.data.commitments.push(commitment);
+                this.saveToStorage();
+                this.renderCommitmentsTable();
+                this.renderWorshippersList();
+                
+                // Reset form but keep date
+                document.getElementById('commitmentDetails').value = '';
+                document.getElementById('commitmentAmount').value = '';
+                document.getElementById('commitmentDetails').focus();
+            },
+
+            renderCommitmentsTable() {
+                if (!this.currentWorshipper) return;
+                
+                const commitments = this.data.commitments
+                    .filter(c => c.worshipperId === this.currentWorshipper.id)
+                    .sort((a, b) => new Date(b.date) - new Date(a.date));
+                
+                const table = new Tabulator('#commitmentsTable', {
+                    data: commitments,
+                    layout: 'fitColumns',
+                    responsiveLayout: 'collapse',
+                    pagination: true,
+                    paginationSize: 10,
+                    movableColumns: true,
+                    columnDefaults: {
+                        headerSort: true,
+                        resizable: true
+                    },
+                    columns: [
+                        {title: 'תאריך', field: 'date', width: 120, sorter: 'date'},
+                        {title: 'סוג', field: 'type', width: 150},
+                        {title: 'פירוט', field: 'details', minWidth: 200},
+                        {title: 'סכום', field: 'amount', width: 120, formatter: (cell) => `₪${cell.getValue().toFixed(2)}`},
+                        {
+                            title: 'פעולות',
+                            width: 100,
+                            formatter: () => this.currentUser.role !== 'viewer' ? 
+                                '<button class="btn btn-sm btn-danger"><i class="fas fa-trash"></i></button>' : '',
+                            cellClick: (e, cell) => {
+                                if (this.currentUser.role === 'viewer') return;
+                                this.deleteCommitment(cell.getRow().getData().id);
+                            }
+                        }
+                    ]
+                });
+            },
+
+            deleteCommitment(id) {
+                Swal.fire({
+                    title: 'האם אתה בטוח?',
+                    text: 'פעולה זו תמחק את ההתחייבות',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'כן, מחק',
+                    cancelButtonText: 'ביטול'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        this.data.commitments = this.data.commitments.filter(c => c.id !== id);
+                        this.saveToStorage();
+                        this.renderCommitmentsTable();
+                        this.renderWorshippersList();
+                        
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'נמחק!',
+                            timer: 1500,
+                            showConfirmButton: false
+                        });
+                    }
+                });
+            },
+
+            // Payments
+            addPayment() {
+                if (!this.currentWorshipper) return;
+                if (this.currentUser.role === 'viewer') {
+                    Swal.fire({icon: 'error', title: 'אין הרשאה', text: 'אתה יכול רק לצפות'});
+                    return;
+                }
+                
+                const date = document.getElementById('paymentDate').value;
+                const method = document.getElementById('paymentMethod').value;
+                const details = document.getElementById('paymentDetails').value;
+                const amount = document.getElementById('paymentAmount').value;
+                
+                if (!date || !method || !amount) {
+                    Swal.fire({icon: 'error', title: 'שגיאה', text: 'נא למלא את כל השדות הנדרשים'});
+                    return;
+                }
+                
+                const payment = {
+                    id: Date.now(),
+                    worshipperId: this.currentWorshipper.id,
+                    date,
+                    method,
+                    details,
+                    amount: parseFloat(amount),
+                    createdAt: new Date().toISOString()
+                };
+                
+                this.data.payments.push(payment);
+                this.saveToStorage();
+                this.renderPaymentsTable();
+                this.renderWorshippersList();
+                
+                // Reset form but keep date
+                document.getElementById('paymentDetails').value = '';
+                document.getElementById('paymentAmount').value = '';
+                document.getElementById('paymentDetails').focus();
+            },
+
+            renderPaymentsTable() {
+                if (!this.currentWorshipper) return;
+                
+                const payments = this.data.payments
+                    .filter(p => p.worshipperId === this.currentWorshipper.id)
+                    .sort((a, b) => new Date(b.date) - new Date(a.date));
+                
+                const table = new Tabulator('#paymentsTable', {
+                    data: payments,
+                    layout: 'fitColumns',
+                    responsiveLayout: 'collapse',
+                    pagination: true,
+                    paginationSize: 10,
+                    movableColumns: true,
+                    columns: [
+                        {title: 'תאריך', field: 'date', width: 120, sorter: 'date'},
+                        {title: 'אמצעי תשלום', field: 'method', width: 150},
+                        {title: 'פירוט', field: 'details', minWidth: 200},
+                        {title: 'סכום', field: 'amount', width: 120, formatter: (cell) => `₪${cell.getValue().toFixed(2)}`},
+                        {
+                            title: 'פעולות',
+                            width: 100,
+                            formatter: () => this.currentUser.role !== 'viewer' ? 
+                                '<button class="btn btn-sm btn-danger"><i class="fas fa-trash"></i></button>' : '',
+                            cellClick: (e, cell) => {
+                                if (this.currentUser.role === 'viewer') return;
+                                this.deletePayment(cell.getRow().getData().id);
+                            }
+                        }
+                    ]
+                });
+            },
+
+            deletePayment(id) {
+                Swal.fire({
+                    title: 'האם אתה בטוח?',
+                    text: 'פעולה זו תמחק את התשלום',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'כן, מחק',
+                    cancelButtonText: 'ביטול'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        this.data.payments = this.data.payments.filter(p => p.id !== id);
+                        this.saveToStorage();
+                        this.renderPaymentsTable();
+                        this.renderWorshippersList();
+                        
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'נמחק!',
+                            timer: 1500,
+                            showConfirmButton: false
+                        });
+                    }
+                });
+            },
+
+            // Summary Table
+            renderSummaryTable() {
+                if (!this.currentWorshipper) return;
+                
+                const commitments = this.data.commitments
+                    .filter(c => c.worshipperId === this.currentWorshipper.id)
+                    .map(c => ({...c, type: 'commitment'}));
+                
+                const payments = this.data.payments
+                    .filter(p => p.worshipperId === this.currentWorshipper.id)
+                    .map(p => ({...p, type: 'payment'}));
+                
+                const combined = [...commitments, ...payments]
+                    .sort((a, b) => new Date(a.date) - new Date(b.date));
+                
+                let runningBalance = 0;
+                const withBalance = combined.map(item => {
+                    if (item.type === 'commitment') {
+                        runningBalance += item.amount;
+                    } else {
+                        runningBalance -= item.amount;
+                    }
+                    return {...item, balance: runningBalance};
+                });
+                
+                const table = new Tabulator('#summaryTable', {
+                    data: withBalance,
+                    layout: 'fitColumns',
+                    responsiveLayout: 'collapse',
+                    pagination: true,
+                    paginationSize: 15,
+                    columns: [
+                        {title: 'תאריך', field: 'date', width: 120, sorter: 'date'},
+                        {
+                            title: 'סוג',
+                            field: 'type',
+                            width: 100,
+                            formatter: (cell) => cell.getValue() === 'commitment' ? 
+                                '<span class="badge bg-danger">התחייבות</span>' : 
+                                '<span class="badge bg-success">תשלום</span>'
+                        },
+                        {
+                            title: 'תיאור',
+                            field: 'details',
+                            minWidth: 200,
+                            formatter: (cell) => {
+                                const row = cell.getRow().getData();
+                                return row.type === 'commitment' ? 
+                                    `${row.type} - ${row.details || ''}` : 
+                                    `${row.method} - ${row.details || ''}`;
+                            }
+                        },
+                        {
+                            title: 'התחייבות',
+                            field: 'amount',
+                            width: 120,
+                            formatter: (cell) => {
+                                const row = cell.getRow().getData();
+                                return row.type === 'commitment' ? `₪${row.amount.toFixed(2)}` : '';
+                            }
+                        },
+                        {
+                            title: 'תשלום',
+                            field: 'amount',
+                            width: 120,
+                            formatter: (cell) => {
+                                const row = cell.getRow().getData();
+                                return row.type === 'payment' ? `₪${row.amount.toFixed(2)}` : '';
+                            }
+                        },
+                        {
+                            title: 'יתרה',
+                            field: 'balance',
+                            width: 120,
+                            formatter: (cell) => {
+                                const balance = cell.getValue();
+                                const color = balance < 0 ? 'text-danger' : balance > 0 ? 'text-success' : '';
+                                return `<strong class="${color}">₪${Math.abs(balance).toFixed(2)}</strong>`;
+                            }
+                        }
+                    ]
+                });
+            },
+
+            // Dashboard Stats
+            updateDashboardStats() {
+                document.getElementById('totalWorshippers').textContent = this.data.worshippers.length;
+                
+                const totalCommitments = this.data.commitments.reduce((sum, c) => sum + c.amount, 0);
+                document.getElementById('totalCommitments').textContent = `₪${totalCommitments.toFixed(2)}`;
+                
+                const totalPayments = this.data.payments.reduce((sum, p) => sum + p.amount, 0);
+                document.getElementById('totalPayments').textContent = `₪${totalPayments.toFixed(2)}`;
+                
+                const balance = totalCommitments - totalPayments;
+                document.getElementById('totalBalance').textContent = `₪${balance.toFixed(2)}`;
+            },
+
+            // Debts Summary
+            showDebtsSummary() {
+                const summary = this.data.worshippers.map(w => {
+                    const balance = this.calculateBalance(w.id);
+                    return {
+                        name: w.name,
+                        nickname: w.nickname,
+                        balance: balance
+                    };
+                }).filter(w => w.balance !== 0)
+                  .sort((a, b) => b.balance - a.balance);
+                
+                let html = '<div class="content-card"><h2>סיכום חובות וזכויות</h2>';
+                html += '<table class="table table-striped"><thead><tr><th>שם</th><th>כינוי</th><th>יתרה</th></tr></thead><tbody>';
+                
+                summary.forEach(w => {
+                    const balanceClass = w.balance < 0 ? 'text-danger' : 'text-success';
+                    html += `<tr><td>${w.name}</td><td>${w.nickname || '-'}</td><td class="${balanceClass}"><strong>₪${Math.abs(w.balance).toFixed(2)}</strong></td></tr>`;
+                });
+                
+                html += '</tbody></table>';
+                html += '<button class="btn-primary-custom mt-3" onclick="window.print()"><i class="fas fa-print"></i> הדפס</button>';
+                html += '</div>';
+                
+                document.getElementById('mainContentArea').innerHTML = html;
+            },
+
+            // Lists Management
+            showListsManagement() {
+                if (this.currentUser.role === 'viewer') {
+                    Swal.fire({icon: 'error', title: 'אין הרשאה'});
+                    return;
+                }
+                
+                let html = '<div class="content-card">';
+                html += '<h2 class="page-title"><i class="fas fa-list"></i> ניהול רשימות</h2>';
+                
+                // Income Types
+                html += '<div class="mb-4"><h4>סוגי הכנסה</h4>';
+                html += '<div class="input-group mb-2"><input type="text" id="newIncomeType" class="form-control" placeholder="סוג הכנסה חדש">';
+                html += '<button class="btn btn-primary" onclick="app.addIncomeType()"><i class="fas fa-plus"></i> הוסף</button></div>';
+                html += '<ul class="list-group">';
+                this.data.incomeTypes.forEach((type, index) => {
+                    html += `<li class="list-group-item d-flex justify-content-between align-items-center">
+                        ${type}
+                        <button class="btn btn-sm btn-danger" onclick="app.removeIncomeType(${index})"><i class="fas fa-trash"></i></button>
+                    </li>`;
+                });
+                html += '</ul></div>';
+                
+                // Payment Methods
+                html += '<div class="mb-4"><h4>אמצעי תשלום</h4>';
+                html += '<div class="input-group mb-2"><input type="text" id="newPaymentMethod" class="form-control" placeholder="אמצעי תשלום חדש">';
+                html += '<button class="btn btn-primary" onclick="app.addPaymentMethod()"><i class="fas fa-plus"></i> הוסף</button></div>';
+                html += '<ul class="list-group">';
+                this.data.paymentMethods.forEach((method, index) => {
+                    html += `<li class="list-group-item d-flex justify-content-between align-items-center">
+                        ${method}
+                        <button class="btn btn-sm btn-danger" onclick="app.removePaymentMethod(${index})"><i class="fas fa-trash"></i></button>
+                    </li>`;
+                });
+                html += '</ul></div>';
+                
+                html += '</div>';
+                
+                document.getElementById('mainContentArea').innerHTML = html;
+            },
+
+            addIncomeType() {
+                const input = document.getElementById('newIncomeType');
+                if (input.value.trim()) {
+                    this.data.incomeTypes.push(input.value.trim());
+                    this.saveToStorage();
+                    this.showListsManagement();
+                }
+            },
+
+            removeIncomeType(index) {
+                this.data.incomeTypes.splice(index, 1);
+                this.saveToStorage();
+                this.showListsManagement();
+            },
+
+            addPaymentMethod() {
+                const input = document.getElementById('newPaymentMethod');
+                if (input.value.trim()) {
+                    this.data.paymentMethods.push(input.value.trim());
+                    this.saveToStorage();
+                    this.showListsManagement();
+                }
+            },
+
+            removePaymentMethod(index) {
+                this.data.paymentMethods.splice(index, 1);
+                this.saveToStorage();
+                this.showListsManagement();
+            },
+
+            // Reports
+            showReports() {
+                let html = '<div class="content-card">';
+                html += '<h2 class="page-title"><i class="fas fa-chart-bar"></i> דוחות ותקופות</h2>';
+                html += '<div class="row">';
+                html += '<div class="col-md-6 mb-3">';
+                html += '<label>מתאריך:</label><input type="date" id="reportFromDate" class="form-control">';
+                html += '</div>';
+                html += '<div class="col-md-6 mb-3">';
+                html += '<label>עד תאריך:</label><input type="date" id="reportToDate" class="form-control">';
+                html += '</div>';
+                html += '</div>';
+                html += '<button class="btn-primary-custom" onclick="app.generateReport()"><i class="fas fa-chart-line"></i> הפק דוח</button>';
+                html += '<div id="reportResults" class="mt-4"></div>';
+                html += '</div>';
+                
+                document.getElementById('mainContentArea').innerHTML = html;
+            },
+
+            generateReport() {
+                const fromDate = document.getElementById('reportFromDate').value;
+                const toDate = document.getElementById('reportToDate').value;
+                
+                if (!fromDate || !toDate) {
+                    Swal.fire({icon: 'error', title: 'שגיאה', text: 'נא לבחור תאריכים'});
+                    return;
+                }
+                
+                const commitments = this.data.commitments.filter(c => 
+                    c.date >= fromDate && c.date <= toDate
+                );
+                
+                const payments = this.data.payments.filter(p => 
+                    p.date >= fromDate && p.date <= toDate
+                );
+                
+                const totalCommitments = commitments.reduce((sum, c) => sum + c.amount, 0);
+                const totalPayments = payments.reduce((sum, p) => sum + p.amount, 0);
+                
+                let html = '<div class="stats-grid">';
+                html += `<div class="stat-card"><div class="stat-label">התחייבויות בתקופה</div><div class="stat-value">₪${totalCommitments.toFixed(2)}</div></div>`;
+                html += `<div class="stat-card"><div class="stat-label">תשלומים בתקופה</div><div class="stat-value">₪${totalPayments.toFixed(2)}</div></div>`;
+                html += `<div class="stat-card"><div class="stat-label">יתרה</div><div class="stat-value">₪${(totalCommitments - totalPayments).toFixed(2)}</div></div>`;
+                html += '</div>';
+                
+                document.getElementById('reportResults').innerHTML = html;
+            },
+
+            // Export Data
+            exportData() {
+                Swal.fire({
+                    title: 'ייצוא נתונים',
+                    text: 'בחר פורמט ייצוא:',
+                    showDenyButton: true,
+                    showCancelButton: true,
+                    confirmButtonText: 'Excel',
+                    denyButtonText: 'PDF',
+                    cancelButtonText: 'ביטול'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        this.exportToExcel();
+                    } else if (result.isDenied) {
+                        this.exportToPDF();
+                    }
+                });
+            },
+
+            exportToExcel() {
+                const wb = XLSX.utils.book_new();
+                
+                // Worshippers sheet
+                const worshippersData = this.data.worshippers.map(w => ({
+                    'שם': w.name,
+                    'כינוי': w.nickname || '',
+                    'טלפון': w.phone || '',
+                    'אימייל': w.email || '',
+                    'כתובת': w.address || '',
+                    'יתרה': this.calculateBalance(w.id)
+                }));
+                const ws1 = XLSX.utils.json_to_sheet(worshippersData);
+                XLSX.utils.book_append_sheet(wb, ws1, 'מתפללים');
+                
+                // Commitments sheet
+                const commitmentsData = this.data.commitments.map(c => {
+                    const worshipper = this.data.worshippers.find(w => w.id === c.worshipperId);
+                    return {
+                        'תאריך': c.date,
+                        'מתפלל': worshipper?.name || '',
+                        'סוג': c.type,
+                        'פירוט': c.details || '',
+                        'סכום': c.amount
+                    };
+                });
+                const ws2 = XLSX.utils.json_to_sheet(commitmentsData);
+                XLSX.utils.book_append_sheet(wb, ws2, 'התחייבויות');
+                
+                // Payments sheet
+                const paymentsData = this.data.payments.map(p => {
+                    const worshipper = this.data.worshippers.find(w => w.id === p.worshipperId);
+                    return {
+                        'תאריך': p.date,
+                        'מתפלל': worshipper?.name || '',
+                        'אמצעי תשלום': p.method,
+                        'פירוט': p.details || '',
+                        'סכום': p.amount
+                    };
+                });
+                const ws3 = XLSX.utils.json_to_sheet(paymentsData);
+                XLSX.utils.book_append_sheet(wb, ws3, 'תשלומים');
+                
+                XLSX.writeFile(wb, `synagogue_data_${new Date().toISOString().split('T')[0]}.xlsx`);
+                
+                Swal.fire({
+                    icon: 'success',
+                    title: 'הקובץ יוצא בהצלחה!',
+                    timer: 2000
+                });
+            },
+
+            exportToPDF() {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
+                
+                // Add Hebrew support (Note: You'll need to add a Hebrew font for proper rendering)
+                doc.text('דוח מערכת ניהול חשבונות בית כנסת', 105, 15, { align: 'center' });
+                
+                // Worshippers summary
+                const summaryData = this.data.worshippers.map(w => [
+                    w.name,
+                    w.nickname || '',
+                    this.calculateBalance(w.id).toFixed(2)
+                ]);
+                
+                doc.autoTable({
+                    startY: 25,
+                    head: [['שם', 'כינוי', 'יתרה']],
+                    body: summaryData,
+                    styles: { font: 'helvetica', halign: 'right' }
+                });
+                
+                doc.save(`synagogue_report_${new Date().toISOString().split('T')[0]}.pdf`);
+                
+                Swal.fire({
+                    icon: 'success',
+                    title: 'הקובץ יוצא בהצלחה!',
+                    timer: 2000
+                });
+            },
+
+            // Keyboard Shortcuts
+            setupKeyboardShortcuts() {
+                document.addEventListener('keydown', (e) => {
+                    // Ctrl+F - Search
+                    if (e.ctrlKey && e.key === 'f') {
+                        e.preventDefault();
+                        document.getElementById('worshipperSearch').focus();
+                    }
+                    
+                    // Ctrl+N - New Worshipper
+                    if (e.ctrlKey && e.key === 'n') {
+                        e.preventDefault();
+                        const searchInput = document.getElementById('worshipperSearch');
+                        searchInput.focus();
+                        searchInput.select();
+                    }
+                    
+                    // Ctrl+S - Save
+                    if (e.ctrlKey && e.key === 's') {
+                        e.preventDefault();
+                        this.saveToStorage();
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'נשמר!',
+                            timer: 1000,
+                            showConfirmButton: false
+                        });
+                    }
+                    
+                    // Ctrl+P - Print
+                    if (e.ctrlKey && e.key === 'p') {
+                        e.preventDefault();
+                        window.print();
+                    }
+                    
+                    // Ctrl+D - Dark Mode
+                    if (e.ctrlKey && e.key === 'd') {
+                        e.preventDefault();
+                        this.toggleTheme();
+                    }
+                    
+                    // Alt+1/2/3 - Switch Tabs
+                    if (e.altKey && ['1', '2', '3'].includes(e.key)) {
+                        e.preventDefault();
+                        const tabs = ['commitments', 'payments', 'summary'];
+                        this.switchTab(tabs[parseInt(e.key) - 1]);
+                    }
+                    
+                    // F1 - Help
+                    if (e.key === 'F1') {
+                        e.preventDefault();
+                        this.showShortcuts();
+                    }
+                    
+                    // ESC - Back to worshippers list
+                    if (e.key === 'Escape') {
+                        if (document.getElementById('shortcutsModal').classList.contains('active')) {
+                            this.hideShortcuts();
+                        } else {
+                            document.getElementById('worshipperSearch').focus();
+                        }
+                    }
+                });
+            },
+
+            showShortcuts() {
+                document.getElementById('shortcutsModal').classList.add('active');
+            },
+
+            hideShortcuts() {
+                document.getElementById('shortcutsModal').classList.remove('active');
+            },
+
+            // Storage
+            saveToStorage() {
+                try {
+                    localStorage.setItem('synagogueData', JSON.stringify(this.data));
+                } catch (e) {
+                    console.error('Error saving to localStorage:', e);
+                }
+            },
+
+            loadFromStorage() {
+                try {
+                    const saved = localStorage.getItem('synagogueData');
+                    if (saved) {
+                        const parsed = JSON.parse(saved);
+                        this.data = {...this.data, ...parsed};
+                    }
+                } catch (e) {
+                    console.error('Error loading from localStorage:', e);
+                }
+            }
+        };
+
+        // Initialize app when DOM is ready
+        document.addEventListener('DOMContentLoaded', () => {
+            app.init();
+        });
+    </script>
+</body>
+</html>
