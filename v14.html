@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="he" dir="rtl" x-data="synagogueApp()" :data-theme="darkMode ? 'dark' : 'light'" :style="customStyle">
 
@@ -221,6 +222,7 @@
             box-shadow: var(--shadow-md);
             padding: 1.5rem;
             overflow-y: auto;
+            -webkit-overflow-scrolling: touch; 
             transition: all var(--transition-speed);
             z-index: 1030;
         }
@@ -240,6 +242,21 @@
             align-items: center;
             gap: .5rem;
         }
+
+@media (max-height: 700px) {
+    .sidebar {
+        padding: 0.75rem; /* צמצום ריפוד פנימי */
+    }
+    .sidebar-section {
+        margin-bottom: 0.75rem; /* צמצום מרווח בין קטעים */
+    }
+    .sidebar-btn {
+        padding: 0.5rem; /* לחצנים קטנים יותר */
+        font-size: 0.5rem;
+    }
+}
+
+
 
         .search-input {
             width: 100%;
@@ -1222,10 +1239,10 @@
                     <span x-text="darkMode ? 'מצב יום' : 'מצב לילה'"></span>
                 </button>
 
-                <button class="sidebar-btn btn-secondary-custom w-100" @click="logout()">
+                <button class="sidebar-btn btn-secondary-custom w-100" @click="logout()" style="color: red;">
                     <i class="fas fa-sign-out-alt me-1"></i>
                     יציאה
-                </button>
+                </button>                
             </div>
         </aside>
 
@@ -1686,37 +1703,61 @@
                         <h2><i class="fas fa-exchange-alt me-2"></i>יצוא / יבוא נתונים</h2>
                     </div>
 
+                    <!-- ─── FULL SNAPSHOT BANNER ─── -->
+                    <div style="background:linear-gradient(135deg,var(--primary-color),var(--secondary-color));border-radius:12px;padding:1.25rem 1.5rem;margin-bottom:1.25rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;">
+                        <div style="color:white;">
+                            <div style="font-size:1.1rem;font-weight:700;margin-bottom:.25rem;">
+                                <i class="fas fa-shield-alt me-2"></i>גיבוי מערכת מלא (Full Snapshot)
+                            </div>
+                            <div style="opacity:.88;font-size:.88rem;">מייצא את כל המתפללים, כל התנועות והגדרות המערכת — קובץ JSON אחד לשחזור מלא</div>
+                        </div>
+                        <button @click="fullSnapshot()" style="background:white;color:var(--primary-color);border:none;padding:.65rem 1.4rem;border-radius:8px;font-weight:700;cursor:pointer;font-family:inherit;font-size:.95rem;display:flex;align-items:center;gap:.5rem;white-space:nowrap;">
+                            <i class="fas fa-download"></i> הורד גיבוי מלא
+                        </button>
+                    </div>
+
                     <!-- ─── EXPORT PANEL ─── -->
                     <div class="section-card mb-3">
                         <div class="section-card-header" @click="ui.exportOpen=!ui.exportOpen">
-                            <span><i class="fas fa-file-export me-2"></i>יצוא נתונים</span>
+                            <span><i class="fas fa-file-export me-2"></i>יצוא מסונן</span>
                             <i class="fas" :class="ui.exportOpen?'fa-chevron-up':'fa-chevron-down'"></i>
                         </div>
                         <div class="section-card-body" :class="!ui.exportOpen?'collapsed':''">
                             <div class="row g-3 mb-3">
-                                <div class="col-md-4">
+                                <div class="col-md-3">
                                     <div class="input-group-custom">
                                         <label>מתאריך</label>
                                         <input type="date" x-model="exportParams.fromDate">
                                     </div>
                                 </div>
-                                <div class="col-md-4">
+                                <div class="col-md-3">
                                     <div class="input-group-custom">
                                         <label>עד תאריך</label>
                                         <input type="date" x-model="exportParams.toDate">
                                     </div>
                                 </div>
-                                <div class="col-md-4">
+                                <div class="col-md-3">
                                     <div class="input-group-custom">
-                                        <label>פורמט יצוא</label>
-                                        <select x-model="exportParams.format">
-                                            <option value="json">JSON (מלא)</option>
-                                            <option value="batch">שורות Batch (לייבוא ידני)</option>
+                                        <label>פורמט</label>
+                                        <select x-model="exportParams.format" @change="exportResult=''">
+                                            <option value="json">JSON</option>
+                                            <option value="excel">Excel (.xlsx)</option>
+                                            <option value="batch">Batch (טקסט)</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="input-group-custom">
+                                        <label>סוג תנועות</label>
+                                        <select x-model="exportParams.txType">
+                                            <option value="all">הכל</option>
+                                            <option value="obligations">התחייבויות בלבד</option>
+                                            <option value="payments">תשלומים בלבד</option>
                                         </select>
                                     </div>
                                 </div>
                                 <div class="col-md-12">
-                                    <label class="small fw-bold">מתפללים לייצוא (ריק = הכל)</label>
+                                    <label class="small fw-bold">מתפללים (ריק = הכל)</label>
                                     <div class="d-flex gap-2 flex-wrap mt-1">
                                         <template x-for="m in members" :key="m.memberUniqueId">
                                             <label class="filter-badge"
@@ -1729,8 +1770,8 @@
                                         </template>
                                     </div>
                                 </div>
-                                <div class="col-md-12">
-                                    <label class="small fw-bold">מה לייצא</label>
+                                <div class="col-md-12" x-show="exportParams.format !== 'excel'">
+                                    <label class="small fw-bold">מה לכלול</label>
                                     <div class="d-flex gap-2 flex-wrap mt-1">
                                         <label class="filter-badge" :class="exportParams.includeMembers?'active':''" style="cursor:pointer;">
                                             <input type="checkbox" x-model="exportParams.includeMembers" class="d-none">
@@ -1742,36 +1783,34 @@
                                         </label>
                                         <label class="filter-badge" :class="exportParams.includeConfig?'active':''" style="cursor:pointer;" x-show="exportParams.format==='json'">
                                             <input type="checkbox" x-model="exportParams.includeConfig" class="d-none">
-                                            ⚙️ הגדרות מערכת
+                                            ⚙️ הגדרות
                                         </label>
                                     </div>
                                 </div>
                             </div>
 
-                            <div class="d-flex gap-2 mb-3">
+                            <div class="d-flex gap-2 mb-3 flex-wrap">
                                 <button @click="generateExport()" class="btn-primary-custom">
                                     <i class="fas fa-cog me-1"></i>הפק יצוא
                                 </button>
                             </div>
 
-                            <div x-show="exportResult" x-cloak>
-                                <label class="small fw-bold mb-1 d-block">תוצאת הייצוא:</label>
-                                <div class="position-relative">
-                                    <textarea id="exportTextarea" class="batch-textarea" rows="12" readonly
-                                        x-model="exportResult"
-                                        style="font-family:monospace;font-size:.8rem;direction:ltr;text-align:left;"></textarea>
-                                </div>
-                                <div class="d-flex gap-2 mt-2">
+                            <!-- Text result (JSON / Batch) -->
+                            <div x-show="exportResult && exportParams.format !== 'excel'" x-cloak>
+                                <label class="small fw-bold mb-1 d-block">תוצאת הייצוא: <span class="text-muted fw-normal" x-text="exportResultStats"></span></label>
+                                <textarea id="exportTextarea" class="batch-textarea" rows="12" readonly
+                                    x-model="exportResult"
+                                    style="font-family:monospace;font-size:.8rem;direction:ltr;text-align:left;"></textarea>
+                                <div class="d-flex gap-2 mt-2 flex-wrap">
                                     <button @click="copyExportResult()" class="btn-secondary-custom">
                                         <i class="fas fa-copy me-1"></i>העתק הכל
                                     </button>
-                                    <button @click="downloadExport('txt')" class="btn-secondary-custom">
+                                    <button @click="downloadExport('txt')" class="btn-secondary-custom" x-show="exportParams.format==='batch'">
                                         <i class="fas fa-download me-1"></i>הורד .txt
                                     </button>
-                                    <button @click="downloadExport(exportParams.format==='json'?'json':'txt')" class="btn-primary-custom" x-show="exportParams.format==='json'">
+                                    <button @click="downloadExport('json')" class="btn-primary-custom" x-show="exportParams.format==='json'">
                                         <i class="fas fa-download me-1"></i>הורד .json
                                     </button>
-                                    <small class="text-muted align-self-center" x-text="exportResultStats"></small>
                                 </div>
                             </div>
                         </div>
@@ -1784,62 +1823,101 @@
                             <i class="fas" :class="ui.importOpen?'fa-chevron-up':'fa-chevron-down'"></i>
                         </div>
                         <div class="section-card-body" :class="!ui.importOpen?'collapsed':''">
-                            <div class="alert alert-warning small mb-3" style="border-radius:8px;">
-                                <i class="fas fa-exclamation-triangle me-1"></i>
-                                <strong>שים לב:</strong> הייבוא <strong>מוסיף</strong> נתונים קיימים (לא מוחק). תנועות כפולות עלולות להיווצר אם תייבא קובץ שכבר יובא. ניתן לייבא <strong>JSON</strong> מלא שיוצא ממערכת זו, או שורות בפורמט <strong>Batch</strong>.
-                            </div>
 
-                            <div class="d-flex gap-2 mb-3 flex-wrap">
-                                <button class="btn-primary-custom" :style="importMode==='json'?'':'opacity:.6'"
+                            <!-- Mode buttons row -->
+                            <div class="d-flex gap-2 mb-3 flex-wrap align-items-center">
+                                <button class="btn-primary-custom" :style="importMode==='json'?'':'opacity:.55'"
                                     @click="importMode='json'; importText=''; importPreview=null">
-                                    <i class="fas fa-code me-1"></i>יבוא JSON
+                                    <i class="fas fa-code me-1"></i>JSON
                                 </button>
-                                <button class="btn-secondary-custom" :style="importMode==='batch'?'border-color:var(--primary-color);':'opacity:.6'"
+                                <button class="btn-secondary-custom" :style="importMode==='excel'?'border-color:var(--primary-color);font-weight:700;':'opacity:.55'"
+                                    @click="importMode='excel'; importText=''; importPreview=null">
+                                    <i class="fas fa-file-excel me-1"></i>Excel / CSV
+                                </button>
+                                <button class="btn-secondary-custom" :style="importMode==='batch'?'border-color:var(--primary-color);font-weight:700;':'opacity:.55'"
                                     @click="importMode='batch'; importText=''; importPreview=null">
-                                    <i class="fas fa-list me-1"></i>יבוא שורות Batch
+                                    <i class="fas fa-list me-1"></i>Batch
                                 </button>
-                                <label class="btn-secondary-custom" style="cursor:pointer;">
+                                <label class="btn-secondary-custom" style="cursor:pointer;margin-right:auto;">
                                     <i class="fas fa-folder-open me-1"></i>פתח קובץ
-                                    <input type="file" class="d-none" accept=".json,.txt"
+                                    <input type="file" class="d-none" accept=".json,.txt,.xlsx,.csv"
                                         @change="loadImportFile($event)">
                                 </label>
                             </div>
 
-                            <div x-show="importMode==='batch'" class="alert alert-light small mb-2 py-2">
-                                <strong>פורמט התחייבויות:</strong> שם מתפלל, <template x-for="col in config.obligationColumns" :key="col.columnId"><code x-text="col.title+', '"></code></template><br>
-                                <strong>פורמט תשלומים:</strong> שם מתפלל, <template x-for="col in config.paymentColumns" :key="col.columnId"><code x-text="col.title+', '"></code></template><br>
-                                שורה ראשונה: <code>TYPE:obligations</code> או <code>TYPE:payments</code> (ברירת מחדל: obligations)
+                            <!-- Import mode description -->
+                            <div x-show="importMode==='excel'" class="alert alert-light small mb-2 py-2" style="border-radius:8px;">
+                                <strong>ייבוא Excel / CSV:</strong> הגיליון הראשון בקובץ ישמש לייבוא. העמודה הראשונה: <strong>שם מתפלל</strong> (חייב להתאים לשם קיים). העמודה השנייה: <strong>סוג</strong> (<code>obligations</code> / <code>payments</code>). שאר העמודות לפי שמות השדות הטכניים (ניתן לייצא ל-Excel ולערוך ולייבא בחזרה).
+                            </div>
+                            <div x-show="importMode==='batch'" class="alert alert-light small mb-2 py-2" style="border-radius:8px;">
+                                <strong>התחייבויות:</strong> שם, <template x-for="col in config.obligationColumns" :key="col.columnId"><code x-text="col.title+', '"></code></template><br>
+                                <strong>תשלומים:</strong> שם, <template x-for="col in config.paymentColumns" :key="col.columnId"><code x-text="col.title+', '"></code></template><br>
+                                הפרד בין סוגים עם <code>TYPE:obligations</code> / <code>TYPE:payments</code>
                             </div>
 
-                            <textarea class="batch-textarea" rows="10" x-model="importText"
+                            <textarea x-show="importMode !== 'excel'" class="batch-textarea" rows="9" x-model="importText"
                                 :placeholder="importMode==='json' ? 'הדבק כאן JSON שיוצא מהמערכת...' : 'TYPE:obligations\nישראל ישראלי, 2024-01-01, מגבית, 500\nיעקב כהן, 2024-01-01, מגבית, 300'"
-                                style="font-family:monospace;font-size:.82rem;direction:ltr;text-align:left;margin-bottom:.5rem;"></textarea>
+                                style="font-family:monospace;font-size:.82rem;direction:ltr;text-align:left;margin-bottom:.75rem;"></textarea>
 
-                            <div class="d-flex gap-2 mb-3">
-                                <button @click="previewImport()" class="btn-secondary-custom" :disabled="!importText.trim()">
+                            <div x-show="importMode==='excel' && !importText" class="d-flex align-items-center justify-content-center"
+                                style="border:2px dashed var(--border-color);border-radius:8px;padding:2rem;margin-bottom:.75rem;color:var(--text-secondary);">
+                                <div class="text-center">
+                                    <i class="fas fa-file-excel" style="font-size:2rem;color:#198754;margin-bottom:.5rem;display:block;"></i>
+                                    <div>גרור קובץ Excel/CSV לכאן או לחץ <strong>"פתח קובץ"</strong> למעלה</div>
+                                </div>
+                            </div>
+                            <div x-show="importMode==='excel' && importText" class="alert alert-info small py-2 mb-2" style="border-radius:8px;">
+                                <i class="fas fa-check-circle me-1"></i>קובץ נטען — <span x-text="importText"></span>
+                            </div>
+
+                            <!-- Import mode for overwrite -->
+                            <div class="d-flex align-items-center gap-3 mb-3 flex-wrap">
+                                <strong class="small">אופן ייבוא:</strong>
+                                <label class="filter-badge" :class="importConflictMode==='merge'?'active':''" style="cursor:pointer;">
+                                    <input type="radio" x-model="importConflictMode" value="merge" class="d-none">
+                                    ➕ הוסף (merge) — שמור נתונים קיימים
+                                </label>
+                                <label class="filter-badge" :class="importConflictMode==='overwrite'?'active':''" style="cursor:pointer;" x-show="importMode==='json'">
+                                    <input type="radio" x-model="importConflictMode" value="overwrite" class="d-none">
+                                    🔄 החלף הכל (overwrite)
+                                </label>
+                            </div>
+
+                            <div x-show="importConflictMode==='overwrite'" class="alert alert-danger small py-2 mb-2" style="border-radius:8px;" x-cloak>
+                                <i class="fas fa-exclamation-triangle me-1"></i><strong>אזהרה:</strong> מצב החלפה ימחק את כל המתפללים והתנועות הקיימים לפני הייבוא! לא ניתן לשחזר זאת.
+                            </div>
+
+                            <div class="d-flex gap-2 mb-3 flex-wrap">
+                                <button @click="previewImport()" class="btn-secondary-custom"
+                                    :disabled="importMode==='excel' ? !importExcelData : !importText.trim()">
                                     <i class="fas fa-eye me-1"></i>תצוגה מקדימה
                                 </button>
                                 <button @click="executeImport()" class="btn-primary-custom"
-                                    :disabled="!importPreview || importPreview.errors.length > 0 && importPreview.valid === 0"
-                                    x-show="importPreview">
-                                    <i class="fas fa-upload me-1"></i>ייבא נתונים
+                                    :disabled="!importPreview || (importPreview.errors.length > 0 && importPreview.valid === 0)"
+                                    x-show="importPreview"
+                                    :style="importConflictMode==='overwrite'?'background:#dc3545;':''">
+                                    <i class="fas fa-upload me-1"></i>
+                                    <span x-text="importConflictMode==='overwrite' ? 'החלף הכל וייבא' : 'ייבא נתונים'"></span>
                                 </button>
                             </div>
 
-                            <!-- Preview -->
+                            <!-- Preview result -->
                             <div x-show="importPreview" x-cloak x-transition>
                                 <div class="alert small py-2"
                                     :class="importPreview?.errors.length===0 ? 'alert-success' : (importPreview?.valid>0 ? 'alert-warning' : 'alert-danger')"
                                     style="border-radius:8px;">
-                                    <strong>תצוגה מקדימה:</strong>
-                                    <span x-show="importPreview?.members?.length">👤 <span x-text="importPreview?.members?.length"></span> מתפללים · </span>
-                                    <span x-show="importPreview?.transactions?.length">📋 <span x-text="importPreview?.transactions?.length"></span> תנועות · </span>
-                                    <span x-show="importPreview?.valid>0">✅ <span x-text="importPreview?.valid"></span> תקינים · </span>
-                                    <span x-show="importPreview?.errors?.length>0" class="text-danger">❌ <span x-text="importPreview?.errors?.length"></span> שגיאות</span>
-                                    <div x-show="importPreview?.errors?.length>0" class="mt-1">
-                                        <template x-for="err in importPreview?.errors" :key="err">
+                                    <div class="fw-bold mb-1">תצוגה מקדימה:</div>
+                                    <span x-show="importPreview?.members?.length">👤 <span x-text="importPreview?.members?.length"></span> מתפללים</span>
+                                    <span x-show="importPreview?.members?.length && importPreview?.transactions?.length"> · </span>
+                                    <span x-show="importPreview?.transactions?.length">📋 <span x-text="importPreview?.transactions?.length"></span> תנועות</span>
+                                    <span x-show="importPreview?.valid>0"> · ✅ <span x-text="importPreview?.valid"></span> תקינים</span>
+                                    <span x-show="importPreview?.errors?.length>0" class="text-danger"> · ❌ <span x-text="importPreview?.errors?.length"></span> שגיאות</span>
+                                    <div x-show="importPreview?.errors?.length>0" class="mt-2 d-flex flex-column gap-1">
+                                        <template x-for="err in (importPreview?.errors || []).slice(0,10)" :key="err">
                                             <div class="text-danger" x-text="err"></div>
                                         </template>
+                                        <div x-show="importPreview?.errors?.length > 10" class="text-muted small"
+                                            x-text="'...ועוד ' + (importPreview.errors.length - 10) + ' שגיאות'"></div>
                                     </div>
                                 </div>
                             </div>
@@ -2166,12 +2244,14 @@
                     exportOpen: true, importOpen: true
                 },
 
-                exportParams: { fromDate: '', toDate: '', selectedMembers: [], format: 'json', includeMembers: true, includeTransactions: true, includeConfig: true },
+                exportParams: { fromDate: '', toDate: '', selectedMembers: [], format: 'json', txType: 'all', includeMembers: true, includeTransactions: true, includeConfig: true },
                 exportResult: '',
                 exportResultStats: '',
                 importMode: 'json',
                 importText: '',
                 importPreview: null,
+                importConflictMode: 'merge',
+                importExcelData: null,
                 tableScrollMode: false,
                 batchString: '',
                 batchTxString: '',
@@ -3076,8 +3156,28 @@
 
                 // ─── EXPORT / IMPORT ───
 
+                fullSnapshot() {
+                    const payload = {
+                        exportedAt: new Date().toISOString(),
+                        version: '15',
+                        snapshot: true,
+                        members: this.members,
+                        transactions: this.transactions,
+                        config: this.config
+                    };
+                    const json = JSON.stringify(payload, null, 2);
+                    const blob = new Blob([json], { type: 'application/json' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url; a.download = `synagogue_snapshot_${this.getTodayDate()}.json`;
+                    document.body.appendChild(a); a.click();
+                    document.body.removeChild(a); URL.revokeObjectURL(url);
+                    Swal.fire({ icon: 'success', title: 'גיבוי מלא הורד!', text: `${this.members.length} מתפללים · ${this.transactions.length} תנועות`, timer: 2500, showConfirmButton: false });
+                },
+
                 _exportFilterTransactions() {
                     return this.transactions.filter(t => {
+                        if (this.exportParams.txType !== 'all' && t.transactionType !== this.exportParams.txType) return false;
                         if (this.exportParams.selectedMembers.length > 0 && !this.exportParams.selectedMembers.includes(t.memberId)) return false;
                         const dateField = t.transactionType === 'obligations' ? t.obligationDate : t.paymentDate;
                         if (this.exportParams.fromDate && dateField && dateField < this.exportParams.fromDate) return false;
@@ -3094,8 +3194,13 @@
                         membersToExport = this.members.filter(m => this.exportParams.selectedMembers.includes(m.memberUniqueId) || usedIds.has(m.memberUniqueId));
                     }
 
+                    if (this.exportParams.format === 'excel') {
+                        this._exportToExcel(membersToExport, filteredTx);
+                        return;
+                    }
+
                     if (this.exportParams.format === 'json') {
-                        const payload = { exportedAt: new Date().toISOString(), version: '14' };
+                        const payload = { exportedAt: new Date().toISOString(), version: '15' };
                         if (this.exportParams.includeMembers) payload.members = membersToExport;
                         if (this.exportParams.includeTransactions) payload.transactions = filteredTx;
                         if (this.exportParams.includeConfig) payload.config = this.config;
@@ -3106,21 +3211,17 @@
                         const obligationCols = this.config.obligationColumns;
                         const paymentCols = this.config.paymentColumns;
                         let lines = [];
-
                         const obligations = filteredTx.filter(t => t.transactionType === 'obligations');
                         const payments = filteredTx.filter(t => t.transactionType === 'payments');
-
                         if (obligations.length > 0) {
                             lines.push('TYPE:obligations');
                             lines.push('# עמודות: שם מתפלל, ' + obligationCols.map(c => c.title).join(', '));
                             obligations.forEach(t => {
                                 const member = this.members.find(m => m.memberUniqueId === t.memberId);
                                 const name = member ? `${member.name} (${member.memberUniqueId})` : t.memberId;
-                                const vals = obligationCols.map(c => t[c.field] || '');
-                                lines.push([name, ...vals].join(', '));
+                                lines.push([name, ...obligationCols.map(c => t[c.field] || '')].join(', '));
                             });
                         }
-
                         if (payments.length > 0) {
                             if (lines.length > 0) lines.push('');
                             lines.push('TYPE:payments');
@@ -3128,14 +3229,34 @@
                             payments.forEach(t => {
                                 const member = this.members.find(m => m.memberUniqueId === t.memberId);
                                 const name = member ? `${member.name} (${member.memberUniqueId})` : t.memberId;
-                                const vals = paymentCols.map(c => t[c.field] || '');
-                                lines.push([name, ...vals].join(', '));
+                                lines.push([name, ...paymentCols.map(c => t[c.field] || '')].join(', '));
                             });
                         }
-
                         this.exportResult = lines.join('\n');
                         this.exportResultStats = `${obligations.length} התחייבויות · ${payments.length} תשלומים`;
                     }
+                },
+
+                _exportToExcel(membersToExport, filteredTx) {
+                    const wb = XLSX.utils.book_new();
+                    // Sheet 1: Transactions
+                    const txRows = filteredTx.map(t => {
+                        const member = this.members.find(m => m.memberUniqueId === t.memberId);
+                        const row = { memberName: member ? member.name : t.memberId, memberId: t.memberId, transactionType: t.transactionType };
+                        // merge all obligation + payment columns
+                        [...this.config.obligationColumns, ...this.config.paymentColumns].forEach(col => {
+                            if (!(col.field in row)) row[col.field] = t[col.field] || '';
+                        });
+                        return row;
+                    });
+                    const txSheet = XLSX.utils.json_to_sheet(txRows);
+                    XLSX.utils.book_append_sheet(wb, txSheet, 'תנועות');
+                    // Sheet 2: Members
+                    const memberSheet = XLSX.utils.json_to_sheet(membersToExport);
+                    XLSX.utils.book_append_sheet(wb, memberSheet, 'מתפללים');
+                    XLSX.writeFile(wb, `synagogue_export_${this.getTodayDate()}.xlsx`);
+                    this.exportResultStats = `${membersToExport.length} מתפללים · ${filteredTx.length} תנועות → Excel`;
+                    Swal.fire({ icon: 'success', title: 'Excel הורד!', text: this.exportResultStats, timer: 2000, showConfirmButton: false });
                 },
 
                 copyExportResult() {
@@ -3153,8 +3274,7 @@
                     const blob = new Blob([this.exportResult], { type: ext === 'json' ? 'application/json' : 'text/plain' });
                     const url = URL.createObjectURL(blob);
                     const a = document.createElement('a');
-                    const date = this.getTodayDate();
-                    a.href = url; a.download = `synagogue_export_${date}.${ext}`;
+                    a.href = url; a.download = `synagogue_export_${this.getTodayDate()}.${ext}`;
                     document.body.appendChild(a); a.click();
                     document.body.removeChild(a); URL.revokeObjectURL(url);
                 },
@@ -3163,21 +3283,49 @@
                     const file = evt.target.files[0];
                     if (!file) return;
                     const ext = file.name.split('.').pop().toLowerCase();
-                    if (ext === 'json') this.importMode = 'json';
-                    else this.importMode = 'batch';
-                    const reader = new FileReader();
-                    reader.onload = (e) => { this.importText = e.target.result; this.importPreview = null; };
-                    reader.readAsText(file);
+                    this.importPreview = null;
+                    if (ext === 'json') {
+                        this.importMode = 'json';
+                        this.importExcelData = null;
+                        const reader = new FileReader();
+                        reader.onload = (e) => { this.importText = e.target.result; };
+                        reader.readAsText(file);
+                    } else if (ext === 'xlsx' || ext === 'csv') {
+                        this.importMode = 'excel';
+                        this.importText = '';
+                        const reader = new FileReader();
+                        reader.onload = (e) => {
+                            try {
+                                const wb = XLSX.read(e.target.result, { type: 'binary' });
+                                const sheetName = wb.SheetNames[0];
+                                const rows = XLSX.utils.sheet_to_json(wb.Sheets[sheetName], { defval: '' });
+                                this.importExcelData = rows;
+                                this.importText = `${file.name} (${rows.length} שורות)`;
+                            } catch(err) {
+                                Swal.fire('שגיאה', 'לא ניתן לקרוא את הקובץ: ' + err.message, 'error');
+                            }
+                        };
+                        reader.readAsBinaryString(file);
+                    } else {
+                        this.importMode = 'batch';
+                        this.importExcelData = null;
+                        const reader = new FileReader();
+                        reader.onload = (e) => { this.importText = e.target.result; };
+                        reader.readAsText(file);
+                    }
                     evt.target.value = '';
                 },
 
                 previewImport() {
                     this.importPreview = null;
-                    const text = this.importText.trim();
-                    if (!text) return;
                     const preview = { members: [], transactions: [], valid: 0, errors: [] };
 
-                    if (this.importMode === 'json') {
+                    if (this.importMode === 'excel') {
+                        if (!this.importExcelData) return;
+                        this._previewExcelImport(preview);
+                    } else if (this.importMode === 'json') {
+                        const text = this.importText.trim();
+                        if (!text) return;
                         try {
                             const data = JSON.parse(text);
                             if (data.members && Array.isArray(data.members)) {
@@ -3199,7 +3347,9 @@
                             preview.errors.push('שגיאת JSON: ' + e.message);
                         }
                     } else {
-                        // Batch format
+                        // Batch
+                        const text = this.importText.trim();
+                        if (!text) return;
                         const lines = text.split('\n');
                         let currentType = 'obligations';
                         let linesCols = this.config.obligationColumns;
@@ -3229,38 +3379,84 @@
                     this.importPreview = preview;
                 },
 
+                _previewExcelImport(preview) {
+                    const rows = this.importExcelData;
+                    rows.forEach((row, i) => {
+                        const memberName = row['memberName'] || row['שם'] || row['name'] || '';
+                        const txType = (row['transactionType'] || row['סוג'] || 'obligations').toLowerCase().trim();
+                        if (!memberName) { preview.errors.push(`שורה ${i+2}: חסר שם מתפלל`); return; }
+                        const member = this.members.find(m =>
+                            m.name === memberName || m.memberUniqueId === memberName ||
+                            (m.name + ' (' + m.memberUniqueId + ')') === memberName ||
+                            row['memberId'] && m.memberUniqueId === row['memberId']
+                        );
+                        if (!member) { preview.errors.push(`שורה ${i+2}: מתפלל "${memberName}" לא נמצא`); return; }
+                        const cols = txType === 'payments' ? this.config.paymentColumns : this.config.obligationColumns;
+                        const t = { transactionId: Date.now() + i + Math.random(), memberId: member.memberUniqueId, transactionType: txType };
+                        cols.forEach(col => { t[col.field] = (row[col.field] !== undefined ? String(row[col.field]) : '') || (col.type === 'date' ? this.getTodayDate() : ''); });
+                        const amtField = txType === 'obligations' ? 'obligationAmount' : 'paymentAmount';
+                        if (!t[amtField]) { preview.errors.push(`שורה ${i+2}: חסר סכום`); return; }
+                        preview.transactions.push(t); preview.valid++;
+                    });
+                    preview._isBatch = true;
+                },
+
                 executeImport() {
                     if (!this.importPreview) return;
                     const p = this.importPreview;
                     if (p.valid === 0 && p.errors.length > 0) { Swal.fire('שגיאה', 'אין נתונים תקינים לייבא', 'error'); return; }
 
-                    let membersAdded = 0, txAdded = 0, membersSkipped = 0;
+                    const doImport = () => {
+                        let membersAdded = 0, txAdded = 0, membersSkipped = 0, membersUpdated = 0;
 
-                    if (!p._isBatch && p._data) {
-                        // JSON import – members
-                        (p._data.members || []).forEach(m => {
-                            const exists = this.members.find(ex => ex.memberUniqueId === m.memberUniqueId);
-                            if (!exists) { this.members.push(m); membersAdded++; }
-                            else membersSkipped++;
-                        });
-                        if (membersAdded > 0) this.saveMembersData();
+                        if (!p._isBatch && p._data) {
+                            if (this.importConflictMode === 'overwrite') {
+                                this.members = [];
+                                this.transactions = [];
+                            }
+                            (p._data.members || []).forEach(m => {
+                                const idx = this.members.findIndex(ex => ex.memberUniqueId === m.memberUniqueId);
+                                if (idx === -1) { this.members.push(m); membersAdded++; }
+                                else if (this.importConflictMode === 'overwrite') { this.members[idx] = m; membersUpdated++; }
+                                else { membersSkipped++; }
+                            });
+                            if (membersAdded + membersUpdated > 0) this.saveMembersData();
+                            (p._data.transactions || []).forEach((t, i) => {
+                                const clone = { ...t, transactionId: Date.now() + i + Math.floor(Math.random()*10000) };
+                                this.transactions.unshift(clone); txAdded++;
+                            });
+                            if (txAdded > 0) this.saveTransactionsData();
+                            // Restore config if snapshot
+                            if (this.importConflictMode === 'overwrite' && p._data.config) {
+                                this.config = p._data.config;
+                                this.saveConfigData();
+                            }
+                        } else {
+                            p.transactions.forEach(t => { this.transactions.unshift(t); txAdded++; });
+                            if (txAdded > 0) this.saveTransactionsData();
+                        }
 
-                        // JSON import – transactions (assign new IDs to avoid collisions)
-                        (p._data.transactions || []).forEach((t, i) => {
-                            const clone = { ...t, transactionId: Date.now() + i + Math.floor(Math.random()*1000) };
-                            this.transactions.unshift(clone); txAdded++;
-                        });
-                        if (txAdded > 0) { this.saveTransactionsData(); }
+                        this.filterHomeTransactions(); this.renderTable();
+                        this.importText = ''; this.importPreview = null; this.importExcelData = null;
+                        const parts = [
+                            membersAdded > 0 ? `${membersAdded} מתפללים חדשים` : '',
+                            membersUpdated > 0 ? `${membersUpdated} מתפללים עודכנו` : '',
+                            membersSkipped > 0 ? `${membersSkipped} קיימים (דולגו)` : '',
+                            txAdded > 0 ? `${txAdded} תנועות` : ''
+                        ].filter(Boolean).join(' · ');
+                        Swal.fire({ icon: 'success', title: 'הייבוא הושלם!', text: parts, timer: 3000, showConfirmButton: false });
+                    };
+
+                    if (this.importConflictMode === 'overwrite') {
+                        Swal.fire({
+                            icon: 'warning', title: 'האם אתה בטוח?',
+                            html: '<b>כל הנתונים הקיימים יימחקו</b> ויוחלפו בנתונים מהקובץ.<br>פעולה זו אינה הפיכה!',
+                            showCancelButton: true, confirmButtonColor: '#dc3545',
+                            confirmButtonText: 'כן, החלף הכל', cancelButtonText: 'ביטול'
+                        }).then(r => { if (r.isConfirmed) doImport(); });
                     } else {
-                        // Batch import
-                        p.transactions.forEach(t => { this.transactions.unshift(t); txAdded++; });
-                        if (txAdded > 0) { this.saveTransactionsData(); }
+                        doImport();
                     }
-
-                    this.filterHomeTransactions(); this.renderTable();
-                    this.importText = ''; this.importPreview = null;
-                    const msg = [membersAdded > 0 ? `${membersAdded} מתפללים חדשים` : '', membersSkipped > 0 ? `${membersSkipped} מתפללים קיימים (דולגו)` : '', txAdded > 0 ? `${txAdded} תנועות` : ''].filter(Boolean).join(' · ');
-                    Swal.fire({ icon: 'success', title: 'הייבוא הושלם!', text: msg, timer: 3000, showConfirmButton: false });
                 }
             };
         }
