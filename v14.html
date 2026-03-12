@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="he" dir="rtl" x-data="synagogueApp()" :data-theme="darkMode ? 'dark' : 'light'" :style="customStyle">
 
@@ -39,6 +38,8 @@
             --table-bg: #ffffff;
             --table-header-bg: #e9ecef;
             --table-font: #212529;
+            /**/
+            --mitpalel-card-bg: #e5e5e5;
         }
 
         [data-theme="dark"] {
@@ -58,6 +59,7 @@
             --table-bg: #25292f;
             --table-header-bg: #1a1d23;
             --table-font: #e4e6eb;
+            --mitpalel-card-bg: #000;
         }
 
         [x-cloak] {
@@ -222,7 +224,7 @@
             box-shadow: var(--shadow-md);
             padding: 1.5rem;
             overflow-y: auto;
-            -webkit-overflow-scrolling: touch; 
+            -webkit-overflow-scrolling: touch;
             transition: all var(--transition-speed);
             z-index: 1030;
         }
@@ -243,18 +245,23 @@
             gap: .5rem;
         }
 
-@media (max-height: 700px) {
-    .sidebar {
-        padding: 0.75rem; /* צמצום ריפוד פנימי */
-    }
-    .sidebar-section {
-        margin-bottom: 0.75rem; /* צמצום מרווח בין קטעים */
-    }
-    .sidebar-btn {
-        padding: 0.5rem; /* לחצנים קטנים יותר */
-        font-size: 0.5rem;
-    }
-}
+        @media (max-height: 700px) {
+            .sidebar {
+                padding: 0.75rem;
+                /* צמצום ריפוד פנימי */
+            }
+
+            .sidebar-section {
+                margin-bottom: 0.75rem;
+                /* צמצום מרווח בין קטעים */
+            }
+
+            .sidebar-btn {
+                padding: 0.5rem;
+                /* לחצנים קטנים יותר */
+                font-size: 0.5rem;
+            }
+        }
 
 
 
@@ -263,7 +270,7 @@
             padding: .6rem .9rem;
             border: 1px solid var(--border-color);
             border-radius: 8px;
-            background: var(--bg-main);
+            background: var(--card-bg);
             color: var(--text-primary);
             font-family: inherit;
             font-size: .9rem;
@@ -286,7 +293,7 @@
 
         .worshipper-item {
             padding: .7rem 1rem;
-            background-color: #e5e5e5;
+            background-color: var(--mitpalel-card-bg);
             cursor: pointer;
             transition: all .2s;
             border-bottom: 1px solid var(--border-color);
@@ -612,6 +619,13 @@
         }
 
         /* ─── TABULATOR ─── */
+
+        .tabulator .tabulator-footer .tabulator-page:disabled,
+        .tabulator-paginator {
+            background: var(--table-bg);
+        }
+
+
         .tabulator {
             border: 1px solid var(--border-color) !important;
             border-radius: 8px;
@@ -1122,6 +1136,7 @@
                 @keydown.enter="$refs.passInput.focus()">
             <input type="password" x-ref="passInput" x-model="loginForm.pass" class="login-input" placeholder="סיסמה"
                 @keydown.enter="login()">
+            <div id="loginError" style="color: red; text-align: center; display: none;">שם משתמש או סיסמה שגויים</div>
             <button class="btn-primary-custom w-100" @click="login()"><i class="fas fa-sign-in-alt"></i> כניסה</button>
         </div>
     </div>
@@ -1167,7 +1182,7 @@
                 <div class="sidebar-section-title"><i class="fas fa-search"></i> חיפוש מתפלל</div>
                 <div class="d-flex gap-1">
                     <input type="text" id="memberSearch" x-model="memberSearch" class="search-input flex-grow-1"
-                        placeholder="חפש (ESC לניקוי)" @keydown.escape="memberSearch = ''"
+                        placeholder="חפש (ESC למיקוד ולניקוי)" @keydown.escape="memberSearch = ''"
                         @keydown.enter="if(filteredMembers.length === 0 && memberSearch.trim()) { nm.name = memberSearch; memberSearch = ''; quickAdd = true; $nextTick(() => $refs.quickAddName?.focus()); }">
                     <button class="btn-primary-custom" style="padding:.5rem .75rem;"
                         @click="if(!quickAdd){nm.name=memberSearch;memberSearch='';} quickAdd=!quickAdd; $nextTick(()=>$refs.quickAddName?.focus())">
@@ -1200,7 +1215,7 @@
                             </div>
                             <div class="worshipper-balance"
                                 :class="getMemberBalance(m.memberUniqueId) < 0 ? 'balance-debt' : 'balance-credit'"
-                                x-text="'₪' + Math.abs(getMemberBalance(m.memberUniqueId)).toLocaleString()"></div>
+                                x-text="'₪' + getMemberBalance(m.memberUniqueId).toLocaleString()"></div>
                         </div>
                     </template>
                 </div>
@@ -1210,26 +1225,27 @@
             <div class="sidebar-section">
                 <div class="sidebar-section-title"><i class="fas fa-cog"></i> ניווט</div>
                 <button class="sidebar-btn" :class="view==='home'?'active':''"
+                tooltip="Alt+ב"
                     @click="navigate('home'); mobileMenuOpen=false">
-                    <i class="fas fa-home"></i> דף הבית
+                    <i class="fas fa-home"></i> דף הבית (ב)
                 </button>
                 <button class="sidebar-btn" :class="view==='summary'?'active':''"
                     @click="navigate('summary'); mobileMenuOpen=false">
-                    <i class="fas fa-chart-bar"></i> סיכום חובות
+                    <i class="fas fa-chart-bar"></i> סיכום חובות (ס)
                 </button>
                 <button class="sidebar-btn" :class="view==='reports'?'active':''"
                     @click="navigate('reports'); mobileMenuOpen=false">
-                    <i class="fas fa-file-alt"></i> דוחות
+                    <i class="fas fa-file-alt"></i> דוחות (ד)
                 </button>
 
                 <button class="sidebar-btn" :class="view==='importexport'?'active':''"
                     @click="navigate('importexport'); mobileMenuOpen=false">
                     <i class="fas fa-exchange-alt"></i> יצוא / יבוא
                 </button>
-                
+
                 <button class="sidebar-btn" :class="view==='management'?'active':''"
                     @click="navigate('management'); mobileMenuOpen=false">
-                    <i class="fas fa-tools"></i> הגדרות
+                    <i class="fas fa-tools"></i> הגדרות (ה)
                 </button>
             </div>
 
@@ -1242,7 +1258,7 @@
                 <button class="sidebar-btn btn-secondary-custom w-100" @click="logout()" style="color: red;">
                     <i class="fas fa-sign-out-alt me-1"></i>
                     יציאה
-                </button>                
+                </button>
             </div>
         </aside>
 
@@ -1348,16 +1364,35 @@
 
                     <!-- Add Entry -->
                     <div class="section-card no-print" x-show="!readOnlyMode">
-                        <div class="section-card-header" @click="ui.homeAddOpen=!ui.homeAddOpen">
+                        <div class="section-card-header" @click="
+                        ui.homeAddOpen=!ui.homeAddOpen;
+                        if(ui.homeAddOpen){
+                            $nextTick(()=>{
+                                const sel=document.querySelector('.input-row-flex select');
+                                if(sel) sel.focus();
+                            })
+                        }">
                             <span><i class="fas fa-plus-circle me-2"></i>הוסף התחייבות / תשלום</span>
                             <i class="fas" :class="ui.homeAddOpen?'fa-chevron-up':'fa-chevron-down'"></i>
                         </div>
                         <div class="section-card-body" :class="!ui.homeAddOpen?'collapsed':''">
                             <div class="custom-tabs">
                                 <button class="custom-tab" :class="homeActiveTab==='obligations'?'active':''"
-                                    @click="homeActiveTab='obligations'">הוסף התחייבות</button>
+                                    @click="homeActiveTab='obligations';
+                                    if(ui.homeAddOpen){
+                                    $nextTick(()=>{
+                                        const sel=document.querySelector('.input-row-flex select');
+                                        if(sel) sel.focus();
+                                    })
+                                }">הוסף התחייבות (1)</button>
                                 <button class="custom-tab" :class="homeActiveTab==='payments'?'active':''"
-                                    @click="homeActiveTab='payments'">הוסף תשלום</button>
+                                    @click="homeActiveTab='payments';
+                                    if(ui.homeAddOpen){
+                                    $nextTick(()=>{
+                                        const sel=document.querySelector('.input-row-flex select');
+                                        if(sel) sel.focus();
+                                    })
+                                }">הוסף תשלום (2)</button>
                             </div>
                             <div class="input-row-flex" @keydown.enter="addHomeEntry()">
                                 <div class="input-group-custom" style="min-width:160px;">
@@ -1405,7 +1440,8 @@
                             <span><i class="fas fa-layer-group me-2"></i>הוספה מרוכזת (Batch)</span>
                             <i class="fas" :class="ui.batchTxOpen?'fa-chevron-up':'fa-chevron-down'"></i>
                         </div>
-                        <div class="section-card-body" :class="!ui.batchTxOpen?'collapsed':''" style="margin-top: 10px;">
+                        <div class="section-card-body" :class="!ui.batchTxOpen?'collapsed':''"
+                            style="margin-top: 10px;">
                             <div class="d-flex gap-2 mb-2">
                                 <button class="btn-primary-custom" :style="batchTxType==='obligations'?'':'opacity:.6'"
                                     @click="batchTxType='obligations';batchTxString=''">התחייבויות</button>
@@ -1704,14 +1740,17 @@
                     </div>
 
                     <!-- ─── FULL SNAPSHOT BANNER ─── -->
-                    <div style="background:linear-gradient(135deg,var(--primary-color),var(--secondary-color));border-radius:12px;padding:1.25rem 1.5rem;margin-bottom:1.25rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;">
+                    <div
+                        style="background:linear-gradient(135deg,var(--primary-color),var(--secondary-color));border-radius:12px;padding:1.25rem 1.5rem;margin-bottom:1.25rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;">
                         <div style="color:white;">
                             <div style="font-size:1.1rem;font-weight:700;margin-bottom:.25rem;">
                                 <i class="fas fa-shield-alt me-2"></i>גיבוי מערכת מלא (Full Snapshot)
                             </div>
-                            <div style="opacity:.88;font-size:.88rem;">מייצא את כל המתפללים, כל התנועות והגדרות המערכת — קובץ JSON אחד לשחזור מלא</div>
+                            <div style="opacity:.88;font-size:.88rem;">מייצא את כל המתפללים, כל התנועות והגדרות המערכת —
+                                קובץ JSON אחד לשחזור מלא</div>
                         </div>
-                        <button @click="fullSnapshot()" style="background:white;color:var(--primary-color);border:none;padding:.65rem 1.4rem;border-radius:8px;font-weight:700;cursor:pointer;font-family:inherit;font-size:.95rem;display:flex;align-items:center;gap:.5rem;white-space:nowrap;">
+                        <button @click="fullSnapshot()"
+                            style="background:white;color:var(--primary-color);border:none;padding:.65rem 1.4rem;border-radius:8px;font-weight:700;cursor:pointer;font-family:inherit;font-size:.95rem;display:flex;align-items:center;gap:.5rem;white-space:nowrap;">
                             <i class="fas fa-download"></i> הורד גיבוי מלא
                         </button>
                     </div>
@@ -1773,15 +1812,20 @@
                                 <div class="col-md-12" x-show="exportParams.format !== 'excel'">
                                     <label class="small fw-bold">מה לכלול</label>
                                     <div class="d-flex gap-2 flex-wrap mt-1">
-                                        <label class="filter-badge" :class="exportParams.includeMembers?'active':''" style="cursor:pointer;">
+                                        <label class="filter-badge" :class="exportParams.includeMembers?'active':''"
+                                            style="cursor:pointer;">
                                             <input type="checkbox" x-model="exportParams.includeMembers" class="d-none">
                                             👤 מתפללים
                                         </label>
-                                        <label class="filter-badge" :class="exportParams.includeTransactions?'active':''" style="cursor:pointer;">
-                                            <input type="checkbox" x-model="exportParams.includeTransactions" class="d-none">
+                                        <label class="filter-badge"
+                                            :class="exportParams.includeTransactions?'active':''"
+                                            style="cursor:pointer;">
+                                            <input type="checkbox" x-model="exportParams.includeTransactions"
+                                                class="d-none">
                                             📋 תנועות
                                         </label>
-                                        <label class="filter-badge" :class="exportParams.includeConfig?'active':''" style="cursor:pointer;" x-show="exportParams.format==='json'">
+                                        <label class="filter-badge" :class="exportParams.includeConfig?'active':''"
+                                            style="cursor:pointer;" x-show="exportParams.format==='json'">
                                             <input type="checkbox" x-model="exportParams.includeConfig" class="d-none">
                                             ⚙️ הגדרות
                                         </label>
@@ -1797,7 +1841,8 @@
 
                             <!-- Text result (JSON / Batch) -->
                             <div x-show="exportResult && exportParams.format !== 'excel'" x-cloak>
-                                <label class="small fw-bold mb-1 d-block">תוצאת הייצוא: <span class="text-muted fw-normal" x-text="exportResultStats"></span></label>
+                                <label class="small fw-bold mb-1 d-block">תוצאת הייצוא: <span
+                                        class="text-muted fw-normal" x-text="exportResultStats"></span></label>
                                 <textarea id="exportTextarea" class="batch-textarea" rows="12" readonly
                                     x-model="exportResult"
                                     style="font-family:monospace;font-size:.8rem;direction:ltr;text-align:left;"></textarea>
@@ -1805,10 +1850,12 @@
                                     <button @click="copyExportResult()" class="btn-secondary-custom">
                                         <i class="fas fa-copy me-1"></i>העתק הכל
                                     </button>
-                                    <button @click="downloadExport('txt')" class="btn-secondary-custom" x-show="exportParams.format==='batch'">
+                                    <button @click="downloadExport('txt')" class="btn-secondary-custom"
+                                        x-show="exportParams.format==='batch'">
                                         <i class="fas fa-download me-1"></i>הורד .txt
                                     </button>
-                                    <button @click="downloadExport('json')" class="btn-primary-custom" x-show="exportParams.format==='json'">
+                                    <button @click="downloadExport('json')" class="btn-primary-custom"
+                                        x-show="exportParams.format==='json'">
                                         <i class="fas fa-download me-1"></i>הורד .json
                                     </button>
                                 </div>
@@ -1830,11 +1877,13 @@
                                     @click="importMode='json'; importText=''; importPreview=null">
                                     <i class="fas fa-code me-1"></i>JSON
                                 </button>
-                                <button class="btn-secondary-custom" :style="importMode==='excel'?'border-color:var(--primary-color);font-weight:700;':'opacity:.55'"
+                                <button class="btn-secondary-custom"
+                                    :style="importMode==='excel'?'border-color:var(--primary-color);font-weight:700;':'opacity:.55'"
                                     @click="importMode='excel'; importText=''; importPreview=null">
                                     <i class="fas fa-file-excel me-1"></i>Excel / CSV
                                 </button>
-                                <button class="btn-secondary-custom" :style="importMode==='batch'?'border-color:var(--primary-color);font-weight:700;':'opacity:.55'"
+                                <button class="btn-secondary-custom"
+                                    :style="importMode==='batch'?'border-color:var(--primary-color);font-weight:700;':'opacity:.55'"
                                     @click="importMode='batch'; importText=''; importPreview=null">
                                     <i class="fas fa-list me-1"></i>Batch
                                 </button>
@@ -1846,45 +1895,60 @@
                             </div>
 
                             <!-- Import mode description -->
-                            <div x-show="importMode==='excel'" class="alert alert-light small mb-2 py-2" style="border-radius:8px;">
-                                <strong>ייבוא Excel / CSV:</strong> הגיליון הראשון בקובץ ישמש לייבוא. העמודה הראשונה: <strong>שם מתפלל</strong> (חייב להתאים לשם קיים). העמודה השנייה: <strong>סוג</strong> (<code>obligations</code> / <code>payments</code>). שאר העמודות לפי שמות השדות הטכניים (ניתן לייצא ל-Excel ולערוך ולייבא בחזרה).
+                            <div x-show="importMode==='excel'" class="alert alert-light small mb-2 py-2"
+                                style="border-radius:8px;">
+                                <strong>ייבוא Excel / CSV:</strong> הגיליון הראשון בקובץ ישמש לייבוא. העמודה הראשונה:
+                                <strong>שם מתפלל</strong> (חייב להתאים לשם קיים). העמודה השנייה: <strong>סוג</strong>
+                                (<code>obligations</code> / <code>payments</code>). שאר העמודות לפי שמות השדות הטכניים
+                                (ניתן לייצא ל-Excel ולערוך ולייבא בחזרה).
                             </div>
-                            <div x-show="importMode==='batch'" class="alert alert-light small mb-2 py-2" style="border-radius:8px;">
-                                <strong>התחייבויות:</strong> שם, <template x-for="col in config.obligationColumns" :key="col.columnId"><code x-text="col.title+', '"></code></template><br>
-                                <strong>תשלומים:</strong> שם, <template x-for="col in config.paymentColumns" :key="col.columnId"><code x-text="col.title+', '"></code></template><br>
+                            <div x-show="importMode==='batch'" class="alert alert-light small mb-2 py-2"
+                                style="border-radius:8px;">
+                                <strong>התחייבויות:</strong> שם, <template x-for="col in config.obligationColumns"
+                                    :key="col.columnId"><code x-text="col.title+', '"></code></template><br>
+                                <strong>תשלומים:</strong> שם, <template x-for="col in config.paymentColumns"
+                                    :key="col.columnId"><code x-text="col.title+', '"></code></template><br>
                                 הפרד בין סוגים עם <code>TYPE:obligations</code> / <code>TYPE:payments</code>
                             </div>
 
-                            <textarea x-show="importMode !== 'excel'" class="batch-textarea" rows="9" x-model="importText"
+                            <textarea x-show="importMode !== 'excel'" class="batch-textarea" rows="9"
+                                x-model="importText"
                                 :placeholder="importMode==='json' ? 'הדבק כאן JSON שיוצא מהמערכת...' : 'TYPE:obligations\nישראל ישראלי, 2024-01-01, מגבית, 500\nיעקב כהן, 2024-01-01, מגבית, 300'"
                                 style="font-family:monospace;font-size:.82rem;direction:ltr;text-align:left;margin-bottom:.75rem;"></textarea>
 
-                            <div x-show="importMode==='excel' && !importText" class="d-flex align-items-center justify-content-center"
+                            <div x-show="importMode==='excel' && !importText"
+                                class="d-flex align-items-center justify-content-center"
                                 style="border:2px dashed var(--border-color);border-radius:8px;padding:2rem;margin-bottom:.75rem;color:var(--text-secondary);">
                                 <div class="text-center">
-                                    <i class="fas fa-file-excel" style="font-size:2rem;color:#198754;margin-bottom:.5rem;display:block;"></i>
+                                    <i class="fas fa-file-excel"
+                                        style="font-size:2rem;color:#198754;margin-bottom:.5rem;display:block;"></i>
                                     <div>גרור קובץ Excel/CSV לכאן או לחץ <strong>"פתח קובץ"</strong> למעלה</div>
                                 </div>
                             </div>
-                            <div x-show="importMode==='excel' && importText" class="alert alert-info small py-2 mb-2" style="border-radius:8px;">
+                            <div x-show="importMode==='excel' && importText" class="alert alert-info small py-2 mb-2"
+                                style="border-radius:8px;">
                                 <i class="fas fa-check-circle me-1"></i>קובץ נטען — <span x-text="importText"></span>
                             </div>
 
                             <!-- Import mode for overwrite -->
                             <div class="d-flex align-items-center gap-3 mb-3 flex-wrap">
                                 <strong class="small">אופן ייבוא:</strong>
-                                <label class="filter-badge" :class="importConflictMode==='merge'?'active':''" style="cursor:pointer;">
+                                <label class="filter-badge" :class="importConflictMode==='merge'?'active':''"
+                                    style="cursor:pointer;">
                                     <input type="radio" x-model="importConflictMode" value="merge" class="d-none">
                                     ➕ הוסף (merge) — שמור נתונים קיימים
                                 </label>
-                                <label class="filter-badge" :class="importConflictMode==='overwrite'?'active':''" style="cursor:pointer;" x-show="importMode==='json'">
+                                <label class="filter-badge" :class="importConflictMode==='overwrite'?'active':''"
+                                    style="cursor:pointer;" x-show="importMode==='json'">
                                     <input type="radio" x-model="importConflictMode" value="overwrite" class="d-none">
                                     🔄 החלף הכל (overwrite)
                                 </label>
                             </div>
 
-                            <div x-show="importConflictMode==='overwrite'" class="alert alert-danger small py-2 mb-2" style="border-radius:8px;" x-cloak>
-                                <i class="fas fa-exclamation-triangle me-1"></i><strong>אזהרה:</strong> מצב החלפה ימחק את כל המתפללים והתנועות הקיימים לפני הייבוא! לא ניתן לשחזר זאת.
+                            <div x-show="importConflictMode==='overwrite'" class="alert alert-danger small py-2 mb-2"
+                                style="border-radius:8px;" x-cloak>
+                                <i class="fas fa-exclamation-triangle me-1"></i><strong>אזהרה:</strong> מצב החלפה ימחק
+                                את כל המתפללים והתנועות הקיימים לפני הייבוא! לא ניתן לשחזר זאת.
                             </div>
 
                             <div class="d-flex gap-2 mb-3 flex-wrap">
@@ -1897,7 +1961,8 @@
                                     x-show="importPreview"
                                     :style="importConflictMode==='overwrite'?'background:#dc3545;':''">
                                     <i class="fas fa-upload me-1"></i>
-                                    <span x-text="importConflictMode==='overwrite' ? 'החלף הכל וייבא' : 'ייבא נתונים'"></span>
+                                    <span
+                                        x-text="importConflictMode==='overwrite' ? 'החלף הכל וייבא' : 'ייבא נתונים'"></span>
                                 </button>
                             </div>
 
@@ -1907,11 +1972,17 @@
                                     :class="importPreview?.errors.length===0 ? 'alert-success' : (importPreview?.valid>0 ? 'alert-warning' : 'alert-danger')"
                                     style="border-radius:8px;">
                                     <div class="fw-bold mb-1">תצוגה מקדימה:</div>
-                                    <span x-show="importPreview?.members?.length">👤 <span x-text="importPreview?.members?.length"></span> מתפללים</span>
-                                    <span x-show="importPreview?.members?.length && importPreview?.transactions?.length"> · </span>
-                                    <span x-show="importPreview?.transactions?.length">📋 <span x-text="importPreview?.transactions?.length"></span> תנועות</span>
-                                    <span x-show="importPreview?.valid>0"> · ✅ <span x-text="importPreview?.valid"></span> תקינים</span>
-                                    <span x-show="importPreview?.errors?.length>0" class="text-danger"> · ❌ <span x-text="importPreview?.errors?.length"></span> שגיאות</span>
+                                    <span x-show="importPreview?.members?.length">👤 <span
+                                            x-text="importPreview?.members?.length"></span> מתפללים</span>
+                                    <span
+                                        x-show="importPreview?.members?.length && importPreview?.transactions?.length">
+                                        · </span>
+                                    <span x-show="importPreview?.transactions?.length">📋 <span
+                                            x-text="importPreview?.transactions?.length"></span> תנועות</span>
+                                    <span x-show="importPreview?.valid>0"> · ✅ <span
+                                            x-text="importPreview?.valid"></span> תקינים</span>
+                                    <span x-show="importPreview?.errors?.length>0" class="text-danger"> · ❌ <span
+                                            x-text="importPreview?.errors?.length"></span> שגיאות</span>
                                     <div x-show="importPreview?.errors?.length>0" class="mt-2 d-flex flex-column gap-1">
                                         <template x-for="err in (importPreview?.errors || []).slice(0,10)" :key="err">
                                             <div class="text-danger" x-text="err"></div>
@@ -2361,14 +2432,34 @@
                             const s = document.getElementById('memberSearch');
                             if (s) s.focus();
                         }
-                        if (e.altKey && (e.key === 'h' || e.key === 'י')) { e.preventDefault(); this.navigate('home'); }
-                        if (e.altKey && (e.key === 'g' || e.key === 'ע')) { e.preventDefault(); this.navigate('management'); }
-                        if (e.altKey && (e.key === 'r' || e.key === 'ר')) { e.preventDefault(); this.navigate('reports'); }
-                        if (e.altKey && (e.key === 's' || e.key === 'ד')) { e.preventDefault(); this.navigate('summary'); }
+                        if (e.altKey && (e.key === 'c' || e.key === 'ב')) { e.preventDefault(); this.navigate('home'); }
+                        if (e.altKey && (e.key === 'v' || e.key === 'ה')) { e.preventDefault(); this.navigate('management'); }
+                        if (e.altKey && (e.key === 's' || e.key === 'ד')) { e.preventDefault(); this.navigate('reports'); }
+                        if (e.altKey && (e.key === 'x' || e.key === 'ס')) { e.preventDefault(); this.navigate('summary'); }
                         if (e.altKey && e.key === '1') { e.preventDefault(); this.setTab('movements'); }
                         if (e.altKey && e.key === '2') { e.preventDefault(); this.setTab('obligations'); }
                         if (e.altKey && e.key === '3') { e.preventDefault(); this.setTab('payments'); }
                         if (e.altKey && e.key === '4') { e.preventDefault(); this.setTab('edit'); }
+
+                        if (e.altKey && e.key === '1') {
+                            this.ui.homeAddOpen = true;
+                            this.homeActiveTab = 'obligations';
+
+                            this.$nextTick(() => {
+                                const sel = document.querySelector('.input-row-flex select');
+                                if (sel) sel.focus();
+                            });
+                        }
+
+                        if (e.altKey && e.key === '2') {
+                            this.ui.homeAddOpen = true;
+                            this.homeActiveTab = 'payments';
+
+                            this.$nextTick(() => {
+                                const sel = document.querySelector('.input-row-flex select');
+                                if (sel) sel.focus();
+                            });
+                        }
                     });
 
                     window.addEventListener('hashchange', () => this.handleRouting());
@@ -2422,7 +2513,8 @@
                 navigate(v) {
                     this.view = v;
                     this.editingRowId = null;
-                    if (v === 'home') window.location.hash = '';
+                    if (v === 'home') 
+                        window.location.hash = '';
                     else this.updateURL();
                     setTimeout(() => this.renderTable(), 50);
                 },
@@ -2472,7 +2564,8 @@
                         localStorage.setItem('synagogue_auth', 'true');
                         this.navigate('home');
                     } else {
-                        Swal.fire({ icon: 'error', title: 'שגיאה', text: 'שם משתמש או סיסמה שגויים' });
+                        //Swal.fire({ icon: 'error', title: 'שגיאה', text: 'שם משתמש או סיסמה שגויים' });
+                        document.getElementById('loginError').style.display = 'block';
                     }
                 },
 
@@ -2637,7 +2730,16 @@
                     if (!this.homeEntry[amountField]) { Swal.fire('שגיאה', 'נא להזין סכום', 'error'); return; }
                     const transaction = { transactionId: Date.now(), memberId: this.homeEntry.memberId, transactionType: this.homeActiveTab, ...this.homeEntry };
                     this.transactions.unshift(transaction);
-                    this.saveTransactionsData(); this.resetHomeEntry(); this.filterHomeTransactions(); this.renderTable();
+                    this.saveTransactionsData();
+                    this.resetHomeEntry();
+                    this.filterHomeTransactions();
+                    this.renderTable();
+                    // focus first add data field
+                    this.$nextTick(() => {
+                        const first = document.querySelector('.input-row-flex input, .input-row-flex select');
+                        if (first) first.focus();
+                    });
+
                     Swal.fire({ icon: 'success', title: 'נוסף!', toast: true, position: 'top-end', showConfirmButton: false, timer: 2000 });
                 },
 
@@ -2980,21 +3082,22 @@
                             columns: [
                                 {
                                     title: "שם",
-                                     field: "name", 
-                                     widthGrow: 2, 
-                                     responsive: 0, 
-                                     formatter: function (cell) {debugger;
+                                    field: "name",
+                                    widthGrow: 2,
+                                    responsive: 0,
+                                    formatter: function (cell) {
+                                        debugger;
                                         const data = cell.getData();
                                         const name = data.name || "";
                                         const nickname = data.memberUniqueId ? ` (${data.memberUniqueId})` : "";
                                         return name + nickname;
                                     },
-                                     cellClick: (e, cell) => {
+                                    cellClick: (e, cell) => {
                                         if (!this.readOnlyMode) {
-                                            const d = cell.getRow().getData(); 
-                                            const m = this.members.find(m => m.memberUniqueId === d.memberUniqueId); 
+                                            const d = cell.getRow().getData();
+                                            const m = this.members.find(m => m.memberUniqueId === d.memberUniqueId);
                                             if (m)
-                                             this.selectMember(m);
+                                                this.selectMember(m);
 
                                         }
                                     }
@@ -3301,7 +3404,7 @@
                                 const rows = XLSX.utils.sheet_to_json(wb.Sheets[sheetName], { defval: '' });
                                 this.importExcelData = rows;
                                 this.importText = `${file.name} (${rows.length} שורות)`;
-                            } catch(err) {
+                            } catch (err) {
                                 Swal.fire('שגיאה', 'לא ניתן לקרוא את הקובץ: ' + err.message, 'error');
                             }
                         };
@@ -3316,13 +3419,14 @@
                     evt.target.value = '';
                 },
 
+                /** Validates the imported data (from Excel, JSON, or batch text), prepares a preview of valid transactions to be imported, and collects any errors found during validation */
                 previewImport() {
                     this.importPreview = null;
                     const preview = { members: [], transactions: [], valid: 0, errors: [] };
 
                     if (this.importMode === 'excel') {
                         if (!this.importExcelData) return;
-                        this._previewExcelImport(preview);
+                        this.previewExcelImport(preview);
                     } else if (this.importMode === 'json') {
                         const text = this.importText.trim();
                         if (!text) return;
@@ -3330,15 +3434,15 @@
                             const data = JSON.parse(text);
                             if (data.members && Array.isArray(data.members)) {
                                 data.members.forEach((m, i) => {
-                                    if (!m.name) { preview.errors.push(`מתפלל ${i+1}: חסר שם`); return; }
-                                    if (!m.memberUniqueId) { preview.errors.push(`מתפלל ${i+1} (${m.name}): חסר מזהה`); return; }
+                                    if (!m.name) { preview.errors.push(`מתפלל ${i + 1}: חסר שם`); return; }
+                                    if (!m.memberUniqueId) { preview.errors.push(`מתפלל ${i + 1} (${m.name}): חסר מזהה`); return; }
                                     preview.members.push(m); preview.valid++;
                                 });
                             }
                             if (data.transactions && Array.isArray(data.transactions)) {
                                 data.transactions.forEach((t, i) => {
-                                    if (!t.memberId) { preview.errors.push(`תנועה ${i+1}: חסר memberId`); return; }
-                                    if (!t.transactionType) { preview.errors.push(`תנועה ${i+1}: חסר transactionType`); return; }
+                                    if (!t.memberId) { preview.errors.push(`תנועה ${i + 1}: חסר memberId`); return; }
+                                    if (!t.transactionType) { preview.errors.push(`תנועה ${i + 1}: חסר transactionType`); return; }
                                     preview.transactions.push(t); preview.valid++;
                                 });
                             }
@@ -3367,11 +3471,11 @@
                                 m.memberUniqueId === values[0] || m.name === values[0] ||
                                 (m.name + ' (' + m.memberUniqueId + ')') === values[0]
                             );
-                            if (!member) { preview.errors.push(`שורה ${li+1}: מתפלל "${values[0]}" לא נמצא`); return; }
+                            if (!member) { preview.errors.push(`שורה ${li + 1}: מתפלל "${values[0]}" לא נמצא`); return; }
                             const t = { transactionId: Date.now() + li + Math.random(), memberId: member.memberUniqueId, transactionType: currentType };
-                            linesCols.forEach((col, i) => { t[col.field] = (values[i+1] || '').trim() || (col.type === 'date' ? this.getTodayDate() : ''); });
+                            linesCols.forEach((col, i) => { t[col.field] = (values[i + 1] || '').trim() || (col.type === 'date' ? this.getTodayDate() : ''); });
                             const amtField = currentType === 'obligations' ? 'obligationAmount' : 'paymentAmount';
-                            if (!t[amtField]) { preview.errors.push(`שורה ${li+1}: חסר סכום`); return; }
+                            if (!t[amtField]) { preview.errors.push(`שורה ${li + 1}: חסר סכום`); return; }
                             preview.transactions.push(t); preview.valid++;
                         });
                         preview._isBatch = true;
@@ -3379,28 +3483,32 @@
                     this.importPreview = preview;
                 },
 
-                _previewExcelImport(preview) {
+                /** Processes the imported Excel data, validates it, and prepares a preview of transactions to be imported */
+                previewExcelImport(preview) {
                     const rows = this.importExcelData;
                     rows.forEach((row, i) => {
                         const memberName = row['memberName'] || row['שם'] || row['name'] || '';
                         const txType = (row['transactionType'] || row['סוג'] || 'obligations').toLowerCase().trim();
-                        if (!memberName) { preview.errors.push(`שורה ${i+2}: חסר שם מתפלל`); return; }
+                        if (!memberName) { preview.errors.push(`שורה ${i + 2}: חסר שם מתפלל`); return; }
                         const member = this.members.find(m =>
                             m.name === memberName || m.memberUniqueId === memberName ||
                             (m.name + ' (' + m.memberUniqueId + ')') === memberName ||
                             row['memberId'] && m.memberUniqueId === row['memberId']
                         );
-                        if (!member) { preview.errors.push(`שורה ${i+2}: מתפלל "${memberName}" לא נמצא`); return; }
+                        if (!member) { preview.errors.push(`שורה ${i + 2}: מתפלל "${memberName}" לא נמצא`); return; }
                         const cols = txType === 'payments' ? this.config.paymentColumns : this.config.obligationColumns;
                         const t = { transactionId: Date.now() + i + Math.random(), memberId: member.memberUniqueId, transactionType: txType };
                         cols.forEach(col => { t[col.field] = (row[col.field] !== undefined ? String(row[col.field]) : '') || (col.type === 'date' ? this.getTodayDate() : ''); });
                         const amtField = txType === 'obligations' ? 'obligationAmount' : 'paymentAmount';
-                        if (!t[amtField]) { preview.errors.push(`שורה ${i+2}: חסר סכום`); return; }
+                        if (!t[amtField]) { preview.errors.push(`שורה ${i + 2}: חסר סכום`); return; }
                         preview.transactions.push(t); preview.valid++;
                     });
                     preview._isBatch = true;
                 },
 
+                /** Executes the import of transactions and members
+                 *  based on the previewed data, 
+                 * with conflict resolution according to the selected mode */
                 executeImport() {
                     if (!this.importPreview) return;
                     const p = this.importPreview;
@@ -3422,7 +3530,7 @@
                             });
                             if (membersAdded + membersUpdated > 0) this.saveMembersData();
                             (p._data.transactions || []).forEach((t, i) => {
-                                const clone = { ...t, transactionId: Date.now() + i + Math.floor(Math.random()*10000) };
+                                const clone = { ...t, transactionId: Date.now() + i + Math.floor(Math.random() * 10000) };
                                 this.transactions.unshift(clone); txAdded++;
                             });
                             if (txAdded > 0) this.saveTransactionsData();
