@@ -1252,7 +1252,7 @@
             <div class="border-top pt-3 mt-1">
                 <button class="sidebar-btn btn-secondary-custom w-100 theme-toggle" @click="toggleDarkMode()">
                     <i class="fas" :class="darkMode ? 'fa-sun' : 'fa-moon'"></i>
-                    <span x-text="darkMode ? 'מצב יום' : 'מצב לילה'"></span>
+                    <span x-text="darkMode ? 'מצב יום (מ)' : 'מצב לילה (מ)'"></span>
                 </button>
 
                 <button class="sidebar-btn btn-secondary-custom w-100" @click="logout()" style="color: red;">
@@ -2286,6 +2286,9 @@
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
     <script>
+        function _(id){
+            return document.getElementById(id);
+        }
         function synagogueApp() {
             return {
                 isLoggedIn: localStorage.getItem('synagogue_auth') === 'true',
@@ -2429,13 +2432,21 @@
                         if (!this.isLoggedIn) return;
                         if (e.key === 'Escape') {
                             if (this.editingRowId !== null) { this.cancelRowEdit(); return; }
-                            const s = document.getElementById('memberSearch');
+                            const s = _('memberSearch');
                             if (s) s.focus();
                         }
-                        if (e.altKey && (e.key === 'c' || e.key === 'ב')) { e.preventDefault(); this.navigate('home'); }
-                        if (e.altKey && (e.key === 'v' || e.key === 'ה')) { e.preventDefault(); this.navigate('management'); }
-                        if (e.altKey && (e.key === 's' || e.key === 'ד')) { e.preventDefault(); this.navigate('reports'); }
-                        if (e.altKey && (e.key === 'x' || e.key === 'ס')) { e.preventDefault(); this.navigate('summary'); }
+                        if (e.altKey && (e.key.toLowerCase() === 'c' || e.key === 'ב')) { e.preventDefault(); this.navigate('home'); }
+                        if (e.altKey && (e.key.toLowerCase() === 'v' || e.key === 'ה')) { e.preventDefault(); this.navigate('management'); }
+                        if (e.altKey && (e.key.toLowerCase() === 's' || e.key === 'ד')) { e.preventDefault(); this.navigate('reports'); }
+                        if (e.altKey && (e.key.toLowerCase() === 'x' || e.key === 'ס')) { e.preventDefault(); this.navigate('summary'); }
+                        if (e.altKey && (e.key.toLowerCase() === 'n' || e.key === 'מ')) { 
+                            e.preventDefault();
+                            //toggleDarkMode();
+                            const root = document.querySelector("[x-data]");
+                            if (root && root.__x) {
+                                root.__x.$data.toggleDarkMode();
+                            }
+                        }
                         if (e.altKey && e.key === '1') { e.preventDefault(); this.setTab('movements'); }
                         if (e.altKey && e.key === '2') { e.preventDefault(); this.setTab('obligations'); }
                         if (e.altKey && e.key === '3') { e.preventDefault(); this.setTab('payments'); }
@@ -2565,7 +2576,7 @@
                         this.navigate('home');
                     } else {
                         //Swal.fire({ icon: 'error', title: 'שגיאה', text: 'שם משתמש או סיסמה שגויים' });
-                        document.getElementById('loginError').style.display = 'block';
+                        _('loginError').style.display = 'block';
                     }
                 },
 
@@ -3058,7 +3069,7 @@
                         cols.push({ title: 'עבור אל', field: 'goto', width: 80, headerSort: false, responsive: 0, formatter: () => '<span class="goto-btn">➜</span>', cellClick: (e, cell) => { const d = cell.getRow().getData(); this.goToMemberTransaction(d.memberId, d.transactionId); } });
                         cols.push({ title: 'מחק', field: 'delete', width: 60, headerSort: false, responsive: 0, formatter: () => '<span class="delete-btn">×</span>', cellClick: (e, cell) => { this.deleteTransaction(cell.getRow().getData().transactionId); } });
                     }
-                    const container = document.getElementById('homeTable');
+                    const container = _('homeTable');
                     if (container) container.innerHTML = '';
                     setTimeout(() => {
                         this.currentTable = new Tabulator("#homeTable", { data: displayData, layout: this.tableScrollMode ? "fitData" : "fitColumns", responsiveLayout: this.tableScrollMode ? false : "collapse", placeholder: "אין נתונים להצגה", pagination: "local", paginationSize: 20, paginationSizeSelector: [10, 20, 50, 100], columns: cols });
@@ -3071,7 +3082,7 @@
                         const balance = this.getMemberBalance(m.memberUniqueId);
                         return { name: m.name, memberUniqueId: m.memberUniqueId, balance };
                     });
-                    const container = document.getElementById('summaryTable');
+                    const container = _('summaryTable');
                     if (container) container.innerHTML = '';
                     setTimeout(() => {
                         this.currentTable = new Tabulator("#summaryTable", {
@@ -3155,7 +3166,7 @@
 
                 /** Handles input events for the batch text area */
                 batchTaInput(evt) {
-                    const ta = evt.target || document.getElementById('batchTxArea');
+                    const ta = evt.target || _('batchTxArea');
                     if (!ta) return;
                     const { tokenIdx, currentToken } = this._batchCursorToken(ta);
                     this.batchActiveToken = tokenIdx;
@@ -3210,7 +3221,7 @@
 
                 /** Accepts a batch suggestion and updates the text area value accordingly */
                 batchAcceptSuggestion(s) {
-                    const ta = document.getElementById('batchTxArea');
+                    const ta = _('batchTxArea');
                     if (!ta) return;
                     const pos = ta.selectionStart, full = ta.value;
                     const lineStart = full.lastIndexOf('\n', pos - 1) + 1;
@@ -3366,8 +3377,8 @@
                     navigator.clipboard.writeText(this.exportResult).then(() => {
                         Swal.fire({ icon: 'success', title: 'הועתק!', timer: 1200, showConfirmButton: false });
                     }).catch(() => {
-                        const ta = document.getElementById('exportTextarea');
-                        if (ta) { ta.select(); document.execCommand('copy'); }
+                        const textarea = _('exportTextarea');
+                        if (textarea) { textarea.select(); document.execCommand('copy'); }
                         Swal.fire({ icon: 'success', title: 'הועתק!', timer: 1200, showConfirmButton: false });
                     });
                 },
