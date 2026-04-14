@@ -1415,18 +1415,13 @@
                         x-text="members.length"></span>
                 </div>
                 <div class="worshippers-list" id="worshippersListBox">
-                    <template x-for="(m, idx) in filteredMembers" :key="m.memberUniqueId">
-                        <div class="worshipper-item"
-                            :class="selectedMember?.memberUniqueId === m.memberUniqueId ? 'active' : ''"
-                            tabindex="0"
-                            :data-member-idx="idx"
-                            @click="selectMember(m); mobileMenuOpen = false"
-                            @keydown.enter="selectMember(m); mobileMenuOpen = false"
-                            @keydown.arrow-down.prevent="focusWorshipperItem(idx + 1)"
-                            @keydown.arrow-up.prevent="focusWorshipperItem(idx - 1)"
-                            @keydown.escape="document.getElementById('memberSearch').focus()">
+                    <template x-for="m in filteredMembers" :key="m.memberUniqueId">
+                        <div class="worshipper-item" :class="selectedMember?.memberUniqueId === m.memberUniqueId ? 'active' : ''"
+                            @click="selectMember(m); mobileMenuOpen = false">
                             <div style="min-width:0; flex:1;">
-                                <div class="fw-medium" x-text="m.nickname || m.name" style="font-size: 0.9rem;"></div>
+                                <div class="fw-medium" x-text="m.name" style="font-size: 0.9rem;"></div>
+                                <div style="font-size: 0.72rem; opacity: 0.7;" x-show="m.nickname" x-text="m.nickname">
+                                </div>
                             </div>
                             <div x-data="{}" x-init="$nextTick(() => {})">
                                 <template x-if="getMemberBalance(m.memberUniqueId) > 0">
@@ -1438,7 +1433,7 @@
                                             x-text="Math.abs(getMemberBalance(m.memberUniqueId)).toLocaleString()"></span></span>
                                 </template>
                                 <template x-if="getMemberBalance(m.memberUniqueId) === 0">
-                                    <span class="worshipper-balance" style="color: var(--text-secondary);">✓</span>
+                                    <span class="worshipper-balance" style="color: var(--text-secondary);">0₪</span>
                                 </template>
                             </div>
                         </div>
@@ -1761,13 +1756,13 @@
                 <!-- Member Header (Upgraded from v15) -->
 <div class="member-header-card">
     <div>
-        <h2 x-text="selectedMember?.nickname || selectedMember?.name"></h2>
-        <div x-show="selectedMember?.nickname && selectedMember?.nickname !== selectedMember?.name" style="opacity:.75;font-size:.85rem;" x-text="selectedMember?.name"></div>
+        <h2 x-text="selectedMember?.name"></h2>
+        <!-- <div x-show="selectedMember?.nickname && selectedMember?.nickname !== selectedMember?.name" style="opacity:.75;font-size:.85rem;" x-text="selectedMember?.name"></div> -->
 
         <div style="opacity:.85;font-size:.9rem;">
             <i class="fa-solid fa-id-card"></i>
             <span style="margin-right:.5rem;opacity:.7;"
-                  x-text="'#' + selectedMember?.memberUniqueId"></span>
+                  x-text="selectedMember?.memberUniqueId"></span>
 
             <div x-show="selectedMember?.phone">
                 <i class="fa fa-phone"></i>
