@@ -2665,6 +2665,38 @@
     <script src="https://unpkg.com/tabulator-tables@5.5.0/dist/js/tabulator.min.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
+
+<script type="module">
+    // ייבוא הספריות הנחוצות משרתי גוגל
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { getAuth, signInWithEmailAndPassword, sendPasswordResetEmail, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+    // הנתונים שקיבלת מהקונסול
+    const firebaseConfig = {
+        apiKey: "AIzaSyCTthCVxz18zIXT9Fpnzq_SgusBpINM-z8",
+        authDomain: "betkneset-001.firebaseapp.com",
+        projectId: "betkneset-001",
+        storageBucket: "betkneset-001.firebasestorage.app",
+        messagingSenderId: "300451630668",
+        appId: "1:300451630668:web:baca3d9e40c06b79b86ee9",
+        measurementId: "G-2XHKHB4PPR"
+    };
+
+    // אתחול האפליקציה
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
+
+    // חשיפת אובייקטים לחלון הגלובלי כדי ש-Alpine.js יוכל לגשת אליהם
+    window.db = db;
+    window.auth = auth;
+    window.fsMethods = { doc, setDoc, getDoc, signInWithEmailAndPassword, sendPasswordResetEmail };
+
+    console.log("Firebase initialized successfully");
+</script>
+
+
     <script>
         function synagogueApp() {
             return {
@@ -2833,6 +2865,24 @@
                 },
 
                 init() {
+                    // בדיקה אוטומטית אם המשתמש כבר מחובר כשפותחים את האתר
+                    const checkAuth = setInterval(() => {
+                        if (window.auth) {
+                            clearInterval(checkAuth);
+                            window.auth.onAuthStateChanged((user) => {
+                                if (user) {
+                                    this.isLoggedIn = true;
+                                    this.loadFromFirebase(user.uid);
+                                }
+                            });
+                        }
+                    }, 500);
+
+                    // שאר הקוד המקורי שלך...
+                    this.worshippers = JSON.parse(localStorage.getItem('worshippers') || '[]');
+
+
+
                     const params = new URLSearchParams(window.location.hash.substring(1));
                     if (params.get('readonly') === 'true') {
                         this.readOnlyMode = true;
@@ -3054,13 +3104,15 @@
                         columns,
                         height: "calc(100vh - 140px)",
                         cellEdited: (cell) => {
-                            if (!this.readOnlyMode) this.saveTransactionsData();
+                            if (!this.readOnlyMode)
+                             this.saveTransactionsData();
+                            this.saveToFirebase();
                             const el = cell.getRow().getElement();
                             el.classList.remove('row-saved-flash');
                             void el.offsetWidth;
                             el.classList.add('row-saved-flash');
                             setTimeout(() => el.classList.remove('row-saved-flash'), 2400);
-                        }
+                        },
                     });
                 },
 
@@ -3082,59 +3134,6 @@
                 // },
                 // פונקציית כניסה למערכת
                 // בתוך ה-return של synagogueApp()
-                login() {
-                    // שימוש ב-Firebase Auth להתחברות
-                    window.fsMethods.signInWithEmailAndPassword(window.auth, this.loginEmail, this.loginPassword)
-                        .then((userCredential) => {
-                            this.isLoggedIn = true;
-                            // טעינת הנתונים מהענן מיד עם הכניסה
-                            this.loadDataFromFirebase(userCredential.user.uid);
-                            Swal.fire('ברוך הבא', 'התחברת בהצלחה למערכת הענן', 'success');
-                        })
-                        .catch((error) => {
-                            Swal.fire('שגיאה', 'מייל או סיסמה שגויים', 'error');
-                        });
-                },
-
-
-
-                resetPassword() {
-                    if (!this.loginEmail) return Swal.fire('הזן מייל', '', 'info');
-                    window.fsMethods.sendPasswordResetEmail(window.auth, this.loginEmail)
-                        .then(() => Swal.fire('נשלח!', 'מייל לאיפוס סיסמה נשלח אליך', 'success'))
-                        .catch(err => Swal.fire('שגיאה', err.message, 'error'));
-                },
-
-                async loadDataFromFirebase(uid) {
-                    const docRef = window.fsMethods.doc(window.db, "users", uid);
-                    const docSnap = await window.fsMethods.getDoc(docRef);
-
-                    if (docSnap.exists()) {
-                        const data = docSnap.data();
-                        this.worshippers = data.worshippers || [];
-                        this.transactions = data.transactions || [];
-                        // עדכון הטבלאות במסך
-                        if (this.worshippersTable) this.worshippersTable.setData(this.worshippers);
-                    }
-                },
-
-                async saveDataToFirebase() {
-                    const user = window.auth.currentUser;
-                    if (!user) return;
-
-                    try {
-                        await window.fsMethods.setDoc(window.fsMethods.doc(window.db, "users", user.uid), {
-                            worshippers: this.worshippers,
-                            transactions: this.transactions,
-                            settings: this.settings
-                        });
-                        console.log("נתונים סונכרנו לענן");
-                    } catch (e) {
-                        console.error("שגיאה בסנכרון:", e);
-                    }
-                },
-
-
                 // login() {
                 //     window.fsMethods.signInWithEmailAndPassword(window.auth, this.loginEmail, this.loginPassword)
                 //         .then((userCredential) => {
@@ -3145,20 +3144,6 @@
                 //             Swal.fire('שגיאה', 'פרטי התחברות שגויים', 'error');
                 //         });
                 // },
-
-                
-                forgotPassword() {
-                    if (!this.loginEmail) return Swal.fire('חסר מייל', 'אנא הזן מייל לשחזור', 'info');
-                    window.fsMethods.sendPasswordResetEmail(window.auth, this.loginEmail)
-                        .then(() => Swal.fire('נשלח!', 'הוראות לשחזור נשלחו למייל שלך', 'success'));
-                },
-
-
-                logout() {
-                    this.isLoggedIn = false;
-                    localStorage.removeItem('synagogue_auth');
-                    window.location.hash = '';
-                },
 
                 toggleDarkMode() {
                     this.darkMode = !this.darkMode;
@@ -4552,39 +4537,107 @@
                         }
                     });
                 },
+
+
+
+                // --- פונקציות Firebase (להדבקה בתוך synagogueApp) ---
+
+                // 1. כניסה למערכת
+                async login() {
+                    if (!this.loginEmail || !this.loginPassword) {
+                        Swal.fire('שגיאה', 'נא להזין אימייל וסיסמה', 'warning');
+                        return;
+                    }
+                    try {
+                        const userCredential = await window.fsMethods.signInWithEmailAndPassword(
+                            window.auth,
+                            this.loginEmail.trim(),
+                            this.loginPassword
+                        );
+                        this.isLoggedIn = true;
+                        await this.loadFromFirebase(userCredential.user.uid);
+
+                        Swal.fire({
+                            title: 'התחברת בהצלחה!',
+                            icon: 'success',
+                            timer: 2000,
+                            showConfirmButton: false
+                        });
+                    } catch (error) {
+                        console.error("Login error:", error.code);
+                        let msg = "שגיאה בהתחברות";
+                        if (error.code === 'auth/user-not-found') msg = "משתמש לא קיים";
+                        if (error.code === 'auth/wrong-password') msg = "סיסמה שגויה";
+                        if (error.code === 'auth/operation-not-allowed') msg = "כניסה עם סיסמה לא מופעלת ב-Console";
+
+                        Swal.fire('שגיאה', msg, 'error');
+                    }
+                },
+
+                // 2. טעינת נתונים מהענן
+                async loadFromFirebase(uid) {
+                    try {
+                        const docRef = window.fsMethods.doc(window.db, "users", uid);
+                        const docSnap = await window.fsMethods.getDoc(docRef);
+
+                        if (docSnap.exists()) {
+                            const data = docSnap.data();
+                            this.worshippers = data.worshippers || [];
+                            this.transactions = data.transactions || [];
+                            this.settings = data.settings || this.settings;
+
+                            // עדכון הטבלאות (Tabulator) אם הן קיימות
+                            if (this.worshippersTable) this.worshippersTable.setData(this.worshippers);
+                            if (this.transactionsTable) this.transactionsTable.setData(this.transactions);
+                        }
+                    } catch (e) {
+                        console.error("Load error:", e);
+                    }
+                },
+
+                // 3. שמירת נתונים לענן (קרא לפונקציה זו במקום saveSettings/localStorage)
+                async saveToFirebase() {
+                    const user = window.auth.currentUser;
+                    if (!user) return;
+
+                    try {
+                        await window.fsMethods.setDoc(window.fsMethods.doc(window.db, "users", user.uid), {
+                            worshippers: this.worshippers,
+                            transactions: this.transactions,
+                            settings: this.settings,
+                            lastSave: new Date().toISOString()
+                        });
+                        console.log("סונכרן לענן בהצלחה");
+                    } catch (e) {
+                        console.error("Save error:", e);
+                    }
+                },
+
+                // 4. שחזור סיסמה
+                async resetPassword() {
+                    if (!this.loginEmail) {
+                        Swal.fire('מידע חסר', 'נא להזין את כתובת המייל שלך בשדה האימייל', 'info');
+                        return;
+                    }
+                    try {
+                        await window.fsMethods.sendPasswordResetEmail(window.auth, this.loginEmail.trim());
+                        Swal.fire('נשלח!', 'מייל לאיפוס סיסמה נשלח לתיבת הדואר שלך', 'success');
+                    } catch (error) {
+                        Swal.fire('שגיאה', 'לא ניתן לשלוח מייל שחזור: ' + error.message, 'error');
+                    }
+                },
+
+                // 5. התנתקות
+                logout() {
+                    window.auth.signOut().then(() => {
+                        this.isLoggedIn = false;
+                        location.reload(); // רענון הדף לניקוי זיכרון
+                    });
+                }
             }
         }
     </script>
 
-    <script type="module">
-        // ייבוא הספריות הנחוצות משרתי גוגל
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-        import { getAuth, signInWithEmailAndPassword, sendPasswordResetEmail, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-
-        // הנתונים שקיבלת מהקונסול
-        const firebaseConfig = {
-            apiKey: "AIzaSyCTthCVxz18zIXT9Fpnzq_SgusBpINM-z8",
-            authDomain: "betkneset-001.firebaseapp.com",
-            projectId: "betkneset-001",
-            storageBucket: "betkneset-001.firebasestorage.app",
-            messagingSenderId: "300451630668",
-            appId: "1:300451630668:web:baca3d9e40c06b79b86ee9",
-            measurementId: "G-2XHKHB4PPR"
-        };
-
-        // אתחול האפליקציה
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-        const auth = getAuth(app);
-
-        // חשיפת אובייקטים לחלון הגלובלי כדי ש-Alpine.js יוכל לגשת אליהם
-        window.db = db;
-        window.auth = auth;
-        window.fsMethods = { doc, setDoc, getDoc, signInWithEmailAndPassword, sendPasswordResetEmail };
-
-        console.log("Firebase initialized successfully");
-    </script>
 </body>
 
 </html>
