@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html lang="he" dir="rtl" x-data="synagogueApp()" :data-theme="darkMode ? 'dark' : 'light'" :style="customStyle">
+<html lang="he" dir="rtl" x-data="synagogueApp()" :data-theme="darkMode ? 'dark' : 'light'" :style="customStyle"
+    x-init="init()">
 
 <head>
     <!--
@@ -35,7 +36,7 @@
             --secondary-color: #7d4e2c;
             --accent-color: #d4af37;
             --bg-main: #f8f9fa;
-            --bg-header: #0d6efd;
+            --bg-header: #2c5f7d;
             --font-header: #fff;
             --bg-secondary: #ffffff;
             --text-primary: #212529;
@@ -79,6 +80,7 @@
             --table-font: #e4e6eb;
         }
 
+        /*disable page flicker on login*/
         [x-cloak] {
             display: none !important;
         }
@@ -384,6 +386,18 @@
             margin-bottom: 1.5rem;
             border: 1px solid var(--border-color);
             transition: all var(--transition-speed);
+
+            opacity: 0;
+            transform: translateY(10px);
+            animation: cardIn 0.4s forwards;
+
+        }
+
+        @keyframes cardIn {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .dashed {
@@ -1338,13 +1352,31 @@
         #batchTxArea {
             background-color: #999 !important;
         }
+
+        /*page fade in*/
+        .app-fade-enter {
+            opacity: 0;
+            /* transform: translateY(10px); */
+            transform: translateY(12px) scale(0.98);
+
+        }
+
+        .app-fade-enter-active {
+            opacity: 1;
+            /* transform: translateY(0);
+            transition: opacity 0.35s ease, transform 0.35s ease; */
+            transform: translateY(0) scale(1);
+            transition: all 0.45s cubic-bezier(.22, 1, .36, 1);
+
+        }
     </style>
+
 </head>
 
 <body>
 
     <!-- ═══ LOGIN SCREEN ═══ -->
-    <div x-show="!isLoggedIn" x-cloak>
+    <div x-show="appReady && !isLoggedIn" x-cloak :class="appVisible ? 'app-fade-enter-active' : 'app-fade-enter'">
         <div class="login-screen">
             <div class="login-card">
                 <h1 class="login-title">
@@ -1364,7 +1396,7 @@
     </div>
 
     <!-- ═══ MAIN APP ═══ -->
-    <div x-show="isLoggedIn" x-cloak>
+    <div x-show="appReady && isLoggedIn" x-cloak>
 
         <!-- HEADER -->
         <header class="app-header no-print">
@@ -1425,7 +1457,10 @@
                     <i class="fas fa-search"></i> חיפוש מתפלל
                 </div>
                 <div class="d-flex gap-2 mb-2">
-                    <input type="text" id="memberSearch" x-model="memberSearch" class="search-input"
+                    <input type="text" 
+                        id="memberSearch"
+                        x-model="memberSearch" 
+                        class="search-input"
                         placeholder="חיפוש (ESC)" @keydown.escape="memberSearch = ''" @keydown.enter="if(filteredMembers.length === 0 && memberSearch.trim() !== '') {
                             nm.name = memberSearch; memberSearch = ''; quickAdd = true;
                             $nextTick(() => $refs.quickAddName.focus());
@@ -1809,7 +1844,7 @@
 
                         <div style="opacity:.85;font-size:.9rem;">
                             <i class="fa-solid fa-id-card"></i>
-                            <span style="margin-right:.5rem;opacity:.7;" x-text="selectedMember?.memberUniqueId"></span>
+                            <span style="margin-right:.5rem;opacity:.7;" x-text="selectedMember?.nickname"></span>
 
                             <div x-show="selectedMember?.phone">
                                 <i class="fa fa-phone"></i>
@@ -2698,9 +2733,12 @@
         function synagogueApp() {
             return {
                 // Authentication
-                isLoggedIn: false,
+                isLoggedIn: !!localStorage.getItem('authUser'),
                 loginForm: { user: '', pass: '' },
                 readOnlyMode: false,
+                appReady: false,
+                appVisible: false,
+
                 // Navigation
                 view: 'home',
                 activeTab: 'commitments',
@@ -2781,60 +2819,48 @@
                 printSessions: JSON.parse(localStorage.getItem('synagogue_print_sessions')) || [],
 
                 // Configuration
-                config: (() => {
-                    const defaultConfig = {
-                        commitmentColumns: [
-                            { columnId: 'ob_date', title: 'תאריך', field: 'commitmentDate', type: 'date', fixed: true },
-                            { columnId: 'ob_purpose', title: 'מטרת תשלום', field: 'purpose', type: 'text', fixed: false },
-                            { columnId: 'ob_amount', title: 'סכום', field: 'commitmentAmount', type: 'money', fixed: true }
-                        ],
-                        paymentColumns: [
-                            { columnId: 'pay_date', title: 'תאריך', field: 'paymentDate', type: 'date', fixed: true },
-                            { columnId: 'pay_purpose', title: 'מטרת תשלום', field: 'purpose', type: 'text', fixed: false },
-                            { columnId: 'pay_method', title: 'אופן תשלום', field: 'paymentMethod', type: 'list', options: 'מזומן,העברה,צ׳ק,אשראי', fixed: false },
-                            { columnId: 'pay_reference', title: 'אסמכתא', field: 'reference', type: 'text', fixed: false },
-                            { columnId: 'pay_amount', title: 'סכום', field: 'paymentAmount', type: 'money', fixed: true }
-                        ],
-                        movementColumns: [
-                            { columnId: 'mov_date', title: 'תאריך', field: 'date', type: 'date', fixed: true },
-                            { columnId: 'mov_purpose', title: 'מטרת התשלום', field: 'purpose', type: 'text', fixed: true },
-                            { columnId: 'mov_paymentType', title: 'סוג תשלום', field: 'paymentType', type: 'text', fixed: false },
-                            { columnId: 'mov_reference', title: 'אסמכתא', field: 'reference', type: 'text', fixed: false },
-                            { columnId: 'mov_commitmentAmount', title: 'סכום התחייבות', field: 'commitmentAmount', type: 'money', fixed: true },
-                            { columnId: 'mov_paymentAmount', title: 'תשלום בפועל', field: 'paymentAmount', type: 'money', fixed: true },
-                            { columnId: 'mov_difference', title: 'הפרש', field: 'difference', type: 'money', fixed: true }
-                        ],
-                        memberFields: [
-                            { fieldId: 'field_name', name: 'שם מלא', key: 'name', required: true },
-                            { fieldId: 'field_nickname', name: 'כינוי', key: 'memberUniqueId', required: true },
-                            { fieldId: 'field_phone', name: 'טלפון', key: 'phone', required: false },
-                            { fieldId: 'field_email', name: 'אימייל', key: 'email', required: false }
-                        ],
-                        theme: {
-                            primary: '#2c5f7d', bg: '#f8f9fa',
-                            sidebarBg: '#ffffff', sidebarFont: '#212529',
-                            cardBg: '#ffffff', cardFont: '#212529',
-                            tableBg: '#ffffff', tableHeaderBg: '#f8f9fa', tableFont: '#212529',
-                            primaryDark: '#4a9eff', bgDark: '#1a1d23',
-                            sidebarBgDark: '#25292f', sidebarFontDark: '#e4e6eb',
-                            cardBgDark: '#25292f', cardFontDark: '#e4e6eb',
-                            tableBgDark: '#25292f', tableHeaderBgDark: '#1a1d23', tableFontDark: '#e4e6eb'
-                        },
-                        synagogueName: '',
-                        synagogueLogo: ''
-                    };
-                    try {
-                        const saved = JSON.parse(localStorage.getItem('synagogue_config'));
-                        if (!saved) return defaultConfig;
-                        // Merge: ensure all required arrays exist
-                        if (!saved.commitmentColumns || !saved.commitmentColumns.length) saved.commitmentColumns = defaultConfig.commitmentColumns;
-                        if (!saved.paymentColumns || !saved.paymentColumns.length) saved.paymentColumns = defaultConfig.paymentColumns;
-                        if (!saved.movementColumns || !saved.movementColumns.length) saved.movementColumns = defaultConfig.movementColumns;
-                        if (!saved.memberFields || !saved.memberFields.length) saved.memberFields = defaultConfig.memberFields;
-                        if (!saved.theme) saved.theme = defaultConfig.theme;
-                        return saved;
-                    } catch(e) { return defaultConfig; }
-                })(),
+                config: JSON.parse(localStorage.getItem('synagogue_config')) ||
+                {
+                    commitmentColumns: [
+                        { columnId: 'ob_date', title: 'תאריך', field: 'commitmentDate', type: 'date', fixed: true },
+                        { columnId: 'ob_purpose', title: 'מטרת תשלום', field: 'purpose', type: 'text', fixed: false },
+                        { columnId: 'ob_amount', title: 'סכום', field: 'commitmentAmount', type: 'money', fixed: true }
+                    ],
+                    paymentColumns: [
+                        { columnId: 'pay_date', title: 'תאריך', field: 'paymentDate', type: 'date', fixed: true },
+                        { columnId: 'pay_purpose', title: 'מטרת תשלום', field: 'purpose', type: 'text', fixed: false },
+                        { columnId: 'pay_method', title: 'אופן תשלום', field: 'paymentMethod', type: 'list', options: 'מזומן,העברה,צ׳ק,אשראי', fixed: false },
+                        { columnId: 'pay_reference', title: 'אסמכתא', field: 'reference', type: 'text', fixed: false },
+                        { columnId: 'pay_amount', title: 'סכום', field: 'paymentAmount', type: 'money', fixed: true }
+                    ],
+                    movementColumns: [
+                        { columnId: 'mov_date', title: 'תאריך', field: 'date', type: 'date', fixed: true },
+                        { columnId: 'mov_purpose', title: 'מטרת התשלום', field: 'purpose', type: 'text', fixed: true },
+                        { columnId: 'mov_paymentType', title: 'סוג תשלום', field: 'paymentType', type: 'text', fixed: false },
+                        { columnId: 'mov_reference', title: 'אסמכתא', field: 'reference', type: 'text', fixed: false },
+                        { columnId: 'mov_commitmentAmount', title: 'סכום התחייבות', field: 'commitmentAmount', type: 'money', fixed: true },
+                        { columnId: 'mov_paymentAmount', title: 'תשלום בפועל', field: 'paymentAmount', type: 'money', fixed: true },
+                        { columnId: 'mov_difference', title: 'הפרש', field: 'difference', type: 'money', fixed: true }
+                    ],
+                    memberFields: [
+                        { fieldId: 'field_name', name: 'שם מלא', key: 'name', required: true },
+                        { fieldId: 'field_nickname', name: 'כינוי', key: 'memberUniqueId', required: true },
+                        { fieldId: 'field_phone', name: 'טלפון', key: 'phone', required: false },
+                        { fieldId: 'field_email', name: 'אימייל', key: 'email', required: false }
+                    ],
+                    theme: {
+                        primary: '#2c5f7d', bg: '#f8f9fa',
+                        sidebarBg: '#ffffff', sidebarFont: '#212529',
+                        cardBg: '#ffffff', cardFont: '#212529',
+                        tableBg: '#ffffff', tableHeaderBg: '#f8f9fa', tableFont: '#212529',
+                        primaryDark: '#4a9eff', bgDark: '#1a1d23',
+                        sidebarBgDark: '#25292f', sidebarFontDark: '#e4e6eb',
+                        cardBgDark: '#25292f', cardFontDark: '#e4e6eb',
+                        tableBgDark: '#25292f', tableHeaderBgDark: '#1a1d23', tableFontDark: '#e4e6eb'
+                    },
+                    synagogueName: '',
+                    synagogueLogo: ''
+                },
 
                 // Data
                 members: JSON.parse(localStorage.getItem('synagogue_members')) || [],
@@ -2850,29 +2876,38 @@
                 batchPopupY: 0,
 
                 get batchPlaceholder() {
-                    const cols = (this.batchTxType === 'commitments' ? this.config.commitmentColumns : this.config.paymentColumns) || [];
+                    const cols = this.batchTxType === 'commitments' ? this.config.commitmentColumns : this.config.paymentColumns;
                     const names = cols.map(c => c.title).join(', ');
                     return `ישראל ישראלי, ${names}\nיעקב כהן, ${names}`;
                 },
 
                 get customStyle() {
                     const isDark = this.darkMode;
-                    const t = (this.config && this.config.theme) ? this.config.theme : {};
                     return `
-                        --primary-color: ${isDark ? (t.primaryDark||'#4a9eff') : (t.primary||'#2c5f7d')};
-                        --bg-main: ${isDark ? (t.bgDark||'#1a1d23') : (t.bg||'#f8f9fa')};
-                        --bg-secondary: ${isDark ? (t.cardBgDark||'#25292f') : (t.cardBg||'#ffffff')};
-                        --sidebar-bg: ${isDark ? (t.sidebarBgDark||'#25292f') : (t.sidebarBg||'#ffffff')};
-                        --text-primary: ${isDark ? (t.cardFontDark||'#e4e6eb') : (t.cardFont||'#212529')};
-                        --card-bg: ${isDark ? (t.cardBgDark||'#25292f') : (t.cardBg||'#ffffff')};
-                        --card-font: ${isDark ? (t.cardFontDark||'#e4e6eb') : (t.cardFont||'#212529')};
-                        --table-bg: ${isDark ? (t.tableBgDark||'#25292f') : (t.tableBg||'#ffffff')};
-                        --table-header-bg: ${isDark ? (t.tableHeaderBgDark||'#1a1d23') : (t.tableHeaderBg||'#f8f9fa')};
-                        --table-font: ${isDark ? (t.tableFontDark||'#e4e6eb') : (t.tableFont||'#212529')};
+                        --primary-color: ${isDark ? this.config.theme.primaryDark : this.config.theme.primary};
+                        --bg-main: ${isDark ? this.config.theme.bgDark : this.config.theme.bg};
+                        --bg-secondary: ${isDark ? this.config.theme.cardBgDark : this.config.theme.cardBg};
+                        --sidebar-bg: ${isDark ? this.config.theme.sidebarBgDark : this.config.theme.sidebarBg};
+                        --sidebar-bg: ${colors.theme.sidebarBgDark};
+                        --text-primary: ${isDark ? this.config.theme.cardFontDark : this.config.theme.cardFont};
+                        --card-bg: ${isDark ? this.config.theme.cardBgDark : this.config.theme.cardBg};
+                        --card-font: ${isDark ? this.config.theme.cardFontDark : this.config.theme.cardFont};
+                        --table-bg: ${isDark ? this.config.theme.tableBgDark : this.config.theme.tableBg};
+                        --table-header-bg: ${isDark ? this.config.theme.tableHeaderBgDark : this.config.theme.tableHeaderBg};
+                        --table-font: ${isDark ? this.config.theme.tableFontDark : this.config.theme.tableFont};
                     `;
                 },
 
                 init() {
+                    this.isLoggedIn = !!localStorage.getItem('authUser');
+                    this.appReady = true;
+
+                    // page fade in
+                    setTimeout(() => {
+                        this.appVisible = true;
+                    }, 20);
+
+
                     const params = new URLSearchParams(window.location.hash.substring(1));
                     if (params.get('readonly') === 'true') {
                         this.readOnlyMode = true;
@@ -3148,12 +3183,16 @@
                         };
                         Swal.fire({ icon: 'error', title: 'שגיאת כניסה', text: msgs[err.code] || err.message, timer: 3000, showConfirmButton: false });
                     }
+                    this.isLoggedIn = true;
+                    localStorage.setItem('authUser', this.loginForm.user);
                 },
 
                 async logout() {
                     if (window.auth) await window.auth.signOut();
                     this.isLoggedIn = false;
                     window.location.hash = '';
+                    localStorage.removeItem('authUser');
+
                 },
 
                 toggleDarkMode() {
@@ -3349,7 +3388,7 @@
 
                 // Home page transactions
                 resetHomeEntry() {
-                    const cols = (this.homeActiveTab === 'commitments' ? this.config.commitmentColumns : this.config.paymentColumns) || [];
+                    const cols = this.homeActiveTab === 'commitments' ? this.config.commitmentColumns : this.config.paymentColumns;
                     this.homeEntry = { memberId: '' };
                     cols.forEach(c => { this.homeEntry[c.field] = (c.type === 'date' ? this.getTodayDate() : ''); });
                 },
@@ -3419,7 +3458,7 @@
 
                 // Transactions
                 resetEntry() {
-                    const cols = (this.activeTab === 'commitments' ? this.config.commitmentColumns : this.config.paymentColumns) || [];
+                    const cols = this.activeTab === 'commitments' ? this.config.commitmentColumns : this.config.paymentColumns;
                     this.newEntry = {};
                     cols.forEach(c => { this.newEntry[c.field] = (c.type === 'date' ? this.getTodayDate() : ''); });
                 },
