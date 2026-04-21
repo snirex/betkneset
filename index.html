@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="he" dir="rtl" x-data="synagogueApp()" :data-theme="darkMode ? 'dark' : 'light'" :style="customStyle">
 
@@ -2702,7 +2701,6 @@
                 isLoggedIn: false,
                 loginForm: { user: '', pass: '' },
                 readOnlyMode: false,
-
                 // Navigation
                 view: 'home',
                 activeTab: 'commitments',
@@ -2783,48 +2781,60 @@
                 printSessions: JSON.parse(localStorage.getItem('synagogue_print_sessions')) || [],
 
                 // Configuration
-                config: JSON.parse(localStorage.getItem('synagogue_config')) ||
-                {
-                    commitmentColumns: [
-                        { columnId: 'ob_date', title: 'תאריך', field: 'commitmentDate', type: 'date', fixed: true },
-                        { columnId: 'ob_purpose', title: 'מטרת תשלום', field: 'purpose', type: 'text', fixed: false },
-                        { columnId: 'ob_amount', title: 'סכום', field: 'commitmentAmount', type: 'money', fixed: true }
-                    ],
-                    paymentColumns: [
-                        { columnId: 'pay_date', title: 'תאריך', field: 'paymentDate', type: 'date', fixed: true },
-                        { columnId: 'pay_purpose', title: 'מטרת תשלום', field: 'purpose', type: 'text', fixed: false },
-                        { columnId: 'pay_method', title: 'אופן תשלום', field: 'paymentMethod', type: 'list', options: 'מזומן,העברה,צ׳ק,אשראי', fixed: false },
-                        { columnId: 'pay_reference', title: 'אסמכתא', field: 'reference', type: 'text', fixed: false },
-                        { columnId: 'pay_amount', title: 'סכום', field: 'paymentAmount', type: 'money', fixed: true }
-                    ],
-                    movementColumns: [
-                        { columnId: 'mov_date', title: 'תאריך', field: 'date', type: 'date', fixed: true },
-                        { columnId: 'mov_purpose', title: 'מטרת התשלום', field: 'purpose', type: 'text', fixed: true },
-                        { columnId: 'mov_paymentType', title: 'סוג תשלום', field: 'paymentType', type: 'text', fixed: false },
-                        { columnId: 'mov_reference', title: 'אסמכתא', field: 'reference', type: 'text', fixed: false },
-                        { columnId: 'mov_commitmentAmount', title: 'סכום התחייבות', field: 'commitmentAmount', type: 'money', fixed: true },
-                        { columnId: 'mov_paymentAmount', title: 'תשלום בפועל', field: 'paymentAmount', type: 'money', fixed: true },
-                        { columnId: 'mov_difference', title: 'הפרש', field: 'difference', type: 'money', fixed: true }
-                    ],
-                    memberFields: [
-                        { fieldId: 'field_name', name: 'שם מלא', key: 'name', required: true },
-                        { fieldId: 'field_nickname', name: 'כינוי', key: 'memberUniqueId', required: true },
-                        { fieldId: 'field_phone', name: 'טלפון', key: 'phone', required: false },
-                        { fieldId: 'field_email', name: 'אימייל', key: 'email', required: false }
-                    ],
-                    theme: {
-                        primary: '#2c5f7d', bg: '#f8f9fa',
-                        sidebarBg: '#ffffff', sidebarFont: '#212529',
-                        cardBg: '#ffffff', cardFont: '#212529',
-                        tableBg: '#ffffff', tableHeaderBg: '#f8f9fa', tableFont: '#212529',
-                        primaryDark: '#4a9eff', bgDark: '#1a1d23',
-                        sidebarBgDark: '#25292f', sidebarFontDark: '#e4e6eb',
-                        cardBgDark: '#25292f', cardFontDark: '#e4e6eb',
-                        tableBgDark: '#25292f', tableHeaderBgDark: '#1a1d23', tableFontDark: '#e4e6eb'
-                    },
-                    synagogueName: '',
-                    synagogueLogo: ''
-                },
+                config: (() => {
+                    const defaultConfig = {
+                        commitmentColumns: [
+                            { columnId: 'ob_date', title: 'תאריך', field: 'commitmentDate', type: 'date', fixed: true },
+                            { columnId: 'ob_purpose', title: 'מטרת תשלום', field: 'purpose', type: 'text', fixed: false },
+                            { columnId: 'ob_amount', title: 'סכום', field: 'commitmentAmount', type: 'money', fixed: true }
+                        ],
+                        paymentColumns: [
+                            { columnId: 'pay_date', title: 'תאריך', field: 'paymentDate', type: 'date', fixed: true },
+                            { columnId: 'pay_purpose', title: 'מטרת תשלום', field: 'purpose', type: 'text', fixed: false },
+                            { columnId: 'pay_method', title: 'אופן תשלום', field: 'paymentMethod', type: 'list', options: 'מזומן,העברה,צ׳ק,אשראי', fixed: false },
+                            { columnId: 'pay_reference', title: 'אסמכתא', field: 'reference', type: 'text', fixed: false },
+                            { columnId: 'pay_amount', title: 'סכום', field: 'paymentAmount', type: 'money', fixed: true }
+                        ],
+                        movementColumns: [
+                            { columnId: 'mov_date', title: 'תאריך', field: 'date', type: 'date', fixed: true },
+                            { columnId: 'mov_purpose', title: 'מטרת התשלום', field: 'purpose', type: 'text', fixed: true },
+                            { columnId: 'mov_paymentType', title: 'סוג תשלום', field: 'paymentType', type: 'text', fixed: false },
+                            { columnId: 'mov_reference', title: 'אסמכתא', field: 'reference', type: 'text', fixed: false },
+                            { columnId: 'mov_commitmentAmount', title: 'סכום התחייבות', field: 'commitmentAmount', type: 'money', fixed: true },
+                            { columnId: 'mov_paymentAmount', title: 'תשלום בפועל', field: 'paymentAmount', type: 'money', fixed: true },
+                            { columnId: 'mov_difference', title: 'הפרש', field: 'difference', type: 'money', fixed: true }
+                        ],
+                        memberFields: [
+                            { fieldId: 'field_name', name: 'שם מלא', key: 'name', required: true },
+                            { fieldId: 'field_nickname', name: 'כינוי', key: 'memberUniqueId', required: true },
+                            { fieldId: 'field_phone', name: 'טלפון', key: 'phone', required: false },
+                            { fieldId: 'field_email', name: 'אימייל', key: 'email', required: false }
+                        ],
+                        theme: {
+                            primary: '#2c5f7d', bg: '#f8f9fa',
+                            sidebarBg: '#ffffff', sidebarFont: '#212529',
+                            cardBg: '#ffffff', cardFont: '#212529',
+                            tableBg: '#ffffff', tableHeaderBg: '#f8f9fa', tableFont: '#212529',
+                            primaryDark: '#4a9eff', bgDark: '#1a1d23',
+                            sidebarBgDark: '#25292f', sidebarFontDark: '#e4e6eb',
+                            cardBgDark: '#25292f', cardFontDark: '#e4e6eb',
+                            tableBgDark: '#25292f', tableHeaderBgDark: '#1a1d23', tableFontDark: '#e4e6eb'
+                        },
+                        synagogueName: '',
+                        synagogueLogo: ''
+                    };
+                    try {
+                        const saved = JSON.parse(localStorage.getItem('synagogue_config'));
+                        if (!saved) return defaultConfig;
+                        // Merge: ensure all required arrays exist
+                        if (!saved.commitmentColumns || !saved.commitmentColumns.length) saved.commitmentColumns = defaultConfig.commitmentColumns;
+                        if (!saved.paymentColumns || !saved.paymentColumns.length) saved.paymentColumns = defaultConfig.paymentColumns;
+                        if (!saved.movementColumns || !saved.movementColumns.length) saved.movementColumns = defaultConfig.movementColumns;
+                        if (!saved.memberFields || !saved.memberFields.length) saved.memberFields = defaultConfig.memberFields;
+                        if (!saved.theme) saved.theme = defaultConfig.theme;
+                        return saved;
+                    } catch(e) { return defaultConfig; }
+                })(),
 
                 // Data
                 members: JSON.parse(localStorage.getItem('synagogue_members')) || [],
@@ -2840,25 +2850,25 @@
                 batchPopupY: 0,
 
                 get batchPlaceholder() {
-                    const cols = this.batchTxType === 'commitments' ? this.config.commitmentColumns : this.config.paymentColumns;
+                    const cols = (this.batchTxType === 'commitments' ? this.config.commitmentColumns : this.config.paymentColumns) || [];
                     const names = cols.map(c => c.title).join(', ');
                     return `ישראל ישראלי, ${names}\nיעקב כהן, ${names}`;
                 },
 
                 get customStyle() {
                     const isDark = this.darkMode;
+                    const t = (this.config && this.config.theme) ? this.config.theme : {};
                     return `
-                        --primary-color: ${isDark ? this.config.theme.primaryDark : this.config.theme.primary};
-                        --bg-main: ${isDark ? this.config.theme.bgDark : this.config.theme.bg};
-                        --bg-secondary: ${isDark ? this.config.theme.cardBgDark : this.config.theme.cardBg};
-                        --sidebar-bg: ${isDark ? this.config.theme.sidebarBgDark : this.config.theme.sidebarBg};
-                        --sidebar-bg: ${colors.theme.sidebarBgDark};
-                        --text-primary: ${isDark ? this.config.theme.cardFontDark : this.config.theme.cardFont};
-                        --card-bg: ${isDark ? this.config.theme.cardBgDark : this.config.theme.cardBg};
-                        --card-font: ${isDark ? this.config.theme.cardFontDark : this.config.theme.cardFont};
-                        --table-bg: ${isDark ? this.config.theme.tableBgDark : this.config.theme.tableBg};
-                        --table-header-bg: ${isDark ? this.config.theme.tableHeaderBgDark : this.config.theme.tableHeaderBg};
-                        --table-font: ${isDark ? this.config.theme.tableFontDark : this.config.theme.tableFont};
+                        --primary-color: ${isDark ? (t.primaryDark||'#4a9eff') : (t.primary||'#2c5f7d')};
+                        --bg-main: ${isDark ? (t.bgDark||'#1a1d23') : (t.bg||'#f8f9fa')};
+                        --bg-secondary: ${isDark ? (t.cardBgDark||'#25292f') : (t.cardBg||'#ffffff')};
+                        --sidebar-bg: ${isDark ? (t.sidebarBgDark||'#25292f') : (t.sidebarBg||'#ffffff')};
+                        --text-primary: ${isDark ? (t.cardFontDark||'#e4e6eb') : (t.cardFont||'#212529')};
+                        --card-bg: ${isDark ? (t.cardBgDark||'#25292f') : (t.cardBg||'#ffffff')};
+                        --card-font: ${isDark ? (t.cardFontDark||'#e4e6eb') : (t.cardFont||'#212529')};
+                        --table-bg: ${isDark ? (t.tableBgDark||'#25292f') : (t.tableBg||'#ffffff')};
+                        --table-header-bg: ${isDark ? (t.tableHeaderBgDark||'#1a1d23') : (t.tableHeaderBg||'#f8f9fa')};
+                        --table-font: ${isDark ? (t.tableFontDark||'#e4e6eb') : (t.tableFont||'#212529')};
                     `;
                 },
 
@@ -3339,7 +3349,7 @@
 
                 // Home page transactions
                 resetHomeEntry() {
-                    const cols = this.homeActiveTab === 'commitments' ? this.config.commitmentColumns : this.config.paymentColumns;
+                    const cols = (this.homeActiveTab === 'commitments' ? this.config.commitmentColumns : this.config.paymentColumns) || [];
                     this.homeEntry = { memberId: '' };
                     cols.forEach(c => { this.homeEntry[c.field] = (c.type === 'date' ? this.getTodayDate() : ''); });
                 },
@@ -3409,7 +3419,7 @@
 
                 // Transactions
                 resetEntry() {
-                    const cols = this.activeTab === 'commitments' ? this.config.commitmentColumns : this.config.paymentColumns;
+                    const cols = (this.activeTab === 'commitments' ? this.config.commitmentColumns : this.config.paymentColumns) || [];
                     this.newEntry = {};
                     cols.forEach(c => { this.newEntry[c.field] = (c.type === 'date' ? this.getTodayDate() : ''); });
                 },
