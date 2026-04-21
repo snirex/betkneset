@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="he" dir="rtl" x-data="synagogueApp()" :data-theme="darkMode ? 'dark' : 'light'" :style="customStyle">
 
@@ -54,7 +55,8 @@
             --table-bg: #ffffff;
             --table-header-bg: #f8f9fa;
             --table-font: #212529;
-    --table-footer-bg: #1a1d23;/*bg color for darkmode*/
+            --table-footer-bg: #1a1d23;
+            /*bg color for darkmode*/
 
         }
 
@@ -819,7 +821,8 @@
                 background-color: var(--sidebar-bg) !important;
                 box-shadow: -5px 0 15px rgba(0, 0, 0, 0.2);
                 opacity: 1 !important;
-                z-index: 1050; /* וודא שהוא מעל ה-overlay */
+                z-index: 1050;
+                /* וודא שהוא מעל ה-overlay */
                 transform: translateX(100%);
                 width: 85%;
                 max-width: 300px;
@@ -1038,28 +1041,32 @@
             transition: all 0.18s;
             user-select: none;
         }
+
         .print-col-checkbox.selected {
             background: var(--primary-color);
             color: white;
             border-color: var(--primary-color);
         }
+
         .print-session-tag {
             display: inline-flex;
             align-items: center;
             gap: 0.4rem;
             padding: 0.25rem 0.65rem;
             border-radius: 20px;
-            background: rgba(44,95,125,0.1);
+            background: rgba(44, 95, 125, 0.1);
             color: var(--primary-color);
-            border: 1px solid rgba(44,95,125,0.22);
+            border: 1px solid rgba(44, 95, 125, 0.22);
             font-size: 0.78rem;
             cursor: pointer;
             transition: all 0.18s;
         }
+
         .print-session-tag:hover {
             background: var(--primary-color);
             color: white;
         }
+
         .print-sessions-row {
             display: flex;
             flex-wrap: wrap;
@@ -1069,11 +1076,23 @@
 
         /* Print actual output */
         @media print {
-            .print-col-hidden { display: none !important; }
-            .print-header-title { display: block !important; }
-            th.print-eq, td.print-eq { width: 1% !important; }
+            .print-col-hidden {
+                display: none !important;
+            }
+
+            .print-header-title {
+                display: block !important;
+            }
+
+            th.print-eq,
+            td.print-eq {
+                width: 1% !important;
+            }
         }
-        .print-header-title { display: none; }
+
+        .print-header-title {
+            display: none;
+        }
 
         .fullpage-table-header {
             display: flex;
@@ -1139,102 +1158,105 @@
                 background-color: transparent;
             }
         }
-[data-theme="dark"]{
-        /* Bootstrap overrides for dark mode */
-        .form-control,
-        .form-select {
-            background-color: var(--bg-secondary) !important;
-            color: var(--text-primary) !important;
-            border-color: var(--border-color) !important;
+
+        [data-theme="dark"] {
+
+            /* Bootstrap overrides for dark mode */
+            .form-control,
+            .form-select {
+                background-color: var(--bg-secondary) !important;
+                color: var(--text-primary) !important;
+                border-color: var(--border-color) !important;
+            }
+
+            .list-group-item {
+                background-color: var(--bg-secondary);
+                color: var(--text-primary);
+                border-color: var(--border-color);
+            }
+
+            .alert-info {
+                background-color: rgba(74, 158, 255, 0.1);
+                color: var(--text-primary);
+                border-color: rgba(74, 158, 255, 0.3);
+            }
+
+            .alert-light {
+                background-color: var(--bg-secondary);
+                color: var(--text-primary);
+                border-color: var(--border-color);
+            }
+
+            .nav-link {
+                color: var(--text-secondary);
+            }
+
+            .nav-link.active {
+                color: var(--primary-color);
+            }
+
+            .nav-pills .nav-link {
+                color: var(--text-secondary);
+            }
+
+            .nav-pills .nav-link.active {
+                background-color: var(--primary-color);
+                color: white;
+            }
+
+            .bg-primary-subtle {
+                background-color: rgba(74, 158, 255, 0.1) !important;
+            }
+
+            .bg-body-tertiary {
+                background-color: var(--bg-main) !important;
+            }
+
+            .card {
+                background-color: var(--bg-secondary) !important;
+                border-color: var(--border-color) !important;
+                color: var(--text-primary) !important;
+            }
+
+            .modal-content {
+                background-color: var(--bg-secondary);
+                color: var(--text-primary);
+            }
+
+            .btn-close {
+                filter: invert(1);
+            }
+
+            .text-muted {
+                color: var(--text-secondary) !important;
+            }
+
+            .border {
+                border-color: var(--border-color) !important;
+            }
+
+            .border-top {
+                border-color: var(--border-color) !important;
+            }
+
+            /* תיקון עבור תחתית הטבלה ושורות סיכום */
+
+            .tabulator .tabulator-footer {
+                background-color: var(--table-footer-bg) !important;
+                color: var(--text-primary) !important;
+                border-top: 1px solid var(--border-color) !important;
+            }
+
+            .tabulator .tabulator-footer .tabulator-calcs-holder {
+                background: var(--table-footer-bg) !important;
+            }
+
+            .tabulator .tabulator-footer .tabulator-calcs-holder .tabulator-row {
+                background: var(--table-footer-bg) !important;
+                color: var(--text-primary) !important;
+            }
         }
 
-        .list-group-item {
-            background-color: var(--bg-secondary);
-            color: var(--text-primary);
-            border-color: var(--border-color);
-        }
-
-        .alert-info {
-            background-color: rgba(74, 158, 255, 0.1);
-            color: var(--text-primary);
-            border-color: rgba(74, 158, 255, 0.3);
-        }
-
-        .alert-light {
-            background-color: var(--bg-secondary);
-            color: var(--text-primary);
-            border-color: var(--border-color);
-        }
-
-        .nav-link {
-            color: var(--text-secondary);
-        }
-
-        .nav-link.active {
-            color: var(--primary-color);
-        }
-
-        .nav-pills .nav-link {
-            color: var(--text-secondary);
-        }
-
-        .nav-pills .nav-link.active {
-            background-color: var(--primary-color);
-            color: white;
-        }
-
-        .bg-primary-subtle {
-            background-color: rgba(74, 158, 255, 0.1) !important;
-        }
-
-        .bg-body-tertiary {
-            background-color: var(--bg-main) !important;
-        }
-
-        .card {
-            background-color: var(--bg-secondary) !important;
-            border-color: var(--border-color) !important;
-            color: var(--text-primary) !important;
-        }
-
-        .modal-content {
-            background-color: var(--bg-secondary);
-            color: var(--text-primary);
-        }
-
-        .btn-close {
-            filter: invert(1);
-        }
-
-        .text-muted {
-            color: var(--text-secondary) !important;
-        }
-
-        .border {
-            border-color: var(--border-color) !important;
-        }
-
-        .border-top {
-            border-color: var(--border-color) !important;
-        }
-
-        /* תיקון עבור תחתית הטבלה ושורות סיכום */
-    
-    .tabulator .tabulator-footer {
-        background-color: var(--table-footer-bg) !important;
-        color: var(--text-primary) !important;
-        border-top: 1px solid var(--border-color) !important;
-    }
-
-    .tabulator .tabulator-footer .tabulator-calcs-holder {
-        background: var(--table-footer-bg) !important;
-    }
-
-    .tabulator .tabulator-footer .tabulator-calcs-holder .tabulator-row {
-        background: var(--table-footer-bg) !important;
-        color: var(--text-primary) !important;
-    }
-    }
         /* Readonly indicator */
         .readonly-banner {
             background: rgba(44, 95, 125, 0.1);
@@ -1250,73 +1272,73 @@
 
 
         .member-header-card {
-    background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
-    color: white;
-    border-radius: 12px;
-    padding: 1.5rem 2rem;
-    margin-bottom: 1.5rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 1rem;
-}
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+            border-radius: 12px;
+            padding: 1.5rem 2rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
 
-.member-header-card h2 {
-    margin: 0;
-    font-size: 1.6rem;
-}
+        .member-header-card h2 {
+            margin: 0;
+            font-size: 1.6rem;
+        }
 
-.member-header-card .member-balance-badge {
-    font-size: 1.1rem;
-    font-weight: 700;
-    padding: .5rem 1.25rem;
-    border-radius: 20px;
-    background: rgba(255, 255, 255, .2);
-    backdrop-filter: blur(5px);
-}
+        .member-header-card .member-balance-badge {
+            font-size: 1.1rem;
+            font-weight: 700;
+            padding: .5rem 1.25rem;
+            border-radius: 20px;
+            background: rgba(255, 255, 255, .2);
+            backdrop-filter: blur(5px);
+        }
 
-.member-balance-badge.balance-debt-badge {
-    background: rgba(220, 53, 69, .8);
-}
+        .member-balance-badge.balance-debt-badge {
+            background: rgba(220, 53, 69, .8);
+        }
 
-.member-balance-badge.balance-credit-badge {
-    background: rgba(25, 135, 84, .8);
-}
+        .member-balance-badge.balance-credit-badge {
+            background: rgba(25, 135, 84, .8);
+        }
 
-.share-btn {
-    width: 42px;
-    height: 42px;
-    border-radius: 50%;
-    border: none;
-    background: rgba(255,255,255,0.18);
-    backdrop-filter: blur(6px);
-    color: white;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: all .25s ease;
-}
+        .share-btn {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            border: none;
+            background: rgba(255, 255, 255, 0.18);
+            backdrop-filter: blur(6px);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all .25s ease;
+        }
 
-.share-btn:hover {
-    background: white;
-    color: var(--primary-color);
-    transform: scale(1.08);
-}
+        .share-btn:hover {
+            background: white;
+            color: var(--primary-color);
+            transform: scale(1.08);
+        }
 
-.share-btn i {
-    font-size: 0.95rem;
-}
+        .share-btn i {
+            font-size: 0.95rem;
+        }
 
-    #btn-exit{
-        color: var(--font-header);
-        background-color: red;
-    }
+        #btn-exit {
+            color: var(--font-header);
+            background-color: red;
+        }
 
-    #batchTxArea{
-        background-color: #999 !important;
-    }
+        #batchTxArea {
+            background-color: #999 !important;
+        }
     </style>
 </head>
 
@@ -1330,7 +1352,7 @@
                     <i class="fas fa-synagogue"></i>
                     ניהול קהילה PRO
                 </h1>
-                <input type="text" x-model="loginForm.user" class="login-input" placeholder="משתמש"
+                <input type="email" x-model="loginForm.user" class="login-input" placeholder="אימייל"
                     @keydown.enter="$refs.passInput.focus()">
                 <input type="password" x-ref="passInput" x-model="loginForm.pass" class="login-input"
                     placeholder="סיסמה" @keydown.enter="login()">
@@ -1338,9 +1360,6 @@
                     style="font-size:1rem; padding: 0.75rem;">
                     <i class="fas fa-sign-in-alt"></i> כניסה למערכת
                 </button>
-                <div style="text-align: center;">
-                    <a href="#" @click.prevent="resetPassword()">שכחתי סיסמה</a>
-                </div>
             </div>
         </div>
     </div>
@@ -1367,7 +1386,8 @@
             </div>
 
             <div class="app-header-context d-none d-md-block">
-                <span x-text="(selectedMember && view === 'account') ? '← ' + (selectedMember.name || selectedMember.nickname) : ''"></span>
+                <span
+                    x-text="(selectedMember && view === 'account') ? '← ' + (selectedMember.name || selectedMember.nickname) : ''"></span>
             </div>
 
             <div class="header-actions">
@@ -1375,7 +1395,8 @@
                     <i class="fas" :class="darkMode ? 'fa-sun' : 'fa-moon'"></i>
                     <span class="d-none d-sm-inline" x-text="darkMode ? 'בהיר' : 'לילה'"></span>
                 </button>
-                <button id="btn-exit" class="btn btn-sm theme-toggle btn-outline-danger" @click="logout()" x-show="!readOnlyMode">
+                <button id="btn-exit" class="btn btn-sm theme-toggle btn-outline-danger" @click="logout()"
+                    x-show="!readOnlyMode">
                     <i class="fas fa-sign-out-alt"></i>
                     <span class="d-none d-sm-inline">יציאה</span>
                 </button>
@@ -1406,9 +1427,7 @@
                 </div>
                 <div class="d-flex gap-2 mb-2">
                     <input type="text" id="memberSearch" x-model="memberSearch" class="search-input"
-                        placeholder="חיפוש (ESC)"
-                        @keydown.escape="memberSearch = ''"
-                        @keydown.enter="if(filteredMembers.length === 0 && memberSearch.trim() !== '') {
+                        placeholder="חיפוש (ESC)" @keydown.escape="memberSearch = ''" @keydown.enter="if(filteredMembers.length === 0 && memberSearch.trim() !== '') {
                             nm.name = memberSearch; memberSearch = ''; quickAdd = true;
                             $nextTick(() => $refs.quickAddName.focus());
                         } else if(filteredMembers.length > 0) {
@@ -1456,7 +1475,8 @@
                 </div>
                 <div class="worshippers-list" id="worshippersListBox">
                     <template x-for="m in filteredMembers" :key="m.memberUniqueId">
-                        <div class="worshipper-item" :class="selectedMember?.memberUniqueId === m.memberUniqueId ? 'active' : ''"
+                        <div class="worshipper-item"
+                            :class="selectedMember?.memberUniqueId === m.memberUniqueId ? 'active' : ''"
                             @click="selectMember(m); mobileMenuOpen = false">
                             <div style="min-width:0; flex:1;">
                                 <div class="fw-medium" x-text="m.name" style="font-size: 0.9rem;"></div>
@@ -1529,7 +1549,7 @@
                 <strong>מצב קריאה בלבד</strong> — אתה יכול לצפות בנתונים אך לא לערוך אותם
             </div>
 
-            
+
 
             <!-- ══════════════════════════ דף הבית ══════════════════════════ -->
             <div x-show="view === 'home'" x-cloak>
@@ -1783,52 +1803,49 @@
             <!-- ══════════════════════════ דף חשבון מתפלל ══════════════════════════ -->
             <div x-show="view === 'account' && selectedMember" x-cloak>
                 <!-- Member Header (Upgraded from v15) -->
-<div class="member-header-card">
-    <div>
-        <h2 x-text="selectedMember?.name"></h2>
-        <!-- <div x-show="selectedMember?.nickname && selectedMember?.nickname !== selectedMember?.name" style="opacity:.75;font-size:.85rem;" x-text="selectedMember?.name"></div> -->
+                <div class="member-header-card">
+                    <div>
+                        <h2 x-text="selectedMember?.name"></h2>
+                        <!-- <div x-show="selectedMember?.nickname && selectedMember?.nickname !== selectedMember?.name" style="opacity:.75;font-size:.85rem;" x-text="selectedMember?.name"></div> -->
 
-        <div style="opacity:.85;font-size:.9rem;">
-            <i class="fa-solid fa-id-card"></i>
-            <span style="margin-right:.5rem;opacity:.7;"
-                  x-text="selectedMember?.memberUniqueId"></span>
+                        <div style="opacity:.85;font-size:.9rem;">
+                            <i class="fa-solid fa-id-card"></i>
+                            <span style="margin-right:.5rem;opacity:.7;" x-text="selectedMember?.memberUniqueId"></span>
 
-            <div x-show="selectedMember?.phone">
-                <i class="fa fa-phone"></i>
-                <a :href="selectedMember ? 'tel:' + selectedMember.phone : '#'"
-                   style="color: white; text-decoration: none;">
-                    <span x-text="selectedMember?.phone"
-                          style="margin-right:.5rem;"></span>
-                </a>
-            </div>
-        </div>
-    </div>
+                            <div x-show="selectedMember?.phone">
+                                <i class="fa fa-phone"></i>
+                                <a :href="selectedMember ? 'tel:' + selectedMember.phone : '#'"
+                                    style="color: white; text-decoration: none;">
+                                    <span x-text="selectedMember?.phone" style="margin-right:.5rem;"></span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
 
-    <div class="d-flex align-items-center gap-2 flex-wrap">
+                    <div class="d-flex align-items-center gap-2 flex-wrap">
 
-        <!-- Balance -->
-        <div class="member-balance-badge"
-             :class="getMemberBalance(selectedMember?.memberUniqueId) < 0 
+                        <!-- Balance -->
+                        <div class="member-balance-badge" :class="getMemberBalance(selectedMember?.memberUniqueId) < 0 
                 ? 'balance-debt-badge' 
                 : 'balance-credit-badge'">
 
-            <span x-text="getMemberBalance(selectedMember?.memberUniqueId) < 0 
+                            <span x-text="getMemberBalance(selectedMember?.memberUniqueId) < 0 
                 ? 'חובה: ' 
                 : 'זכות: '"></span>
 
-            <span x-text="'₪' + Math.abs(
+                            <span x-text="'₪' + Math.abs(
                 getMemberBalance(selectedMember?.memberUniqueId)
             ).toLocaleString()"></span>
-        </div>
+                        </div>
 
-        <!-- Share Button -->
-        <button @click="shareReadOnlyLink()" class="share-btn" title="שתף קישור">
-            <i class="fas fa-share-alt"></i>
-        </button>
+                        <!-- Share Button -->
+                        <button @click="shareReadOnlyLink()" class="share-btn" title="שתף קישור">
+                            <i class="fas fa-share-alt"></i>
+                        </button>
 
-    </div>
-</div>
-                        <!-- <div class="d-flex gap-2 flex-wrap no-print">
+                    </div>
+                </div>
+                <!-- <div class="d-flex gap-2 flex-wrap no-print">
                             <button @click="shareReadOnlyLink()" class="btn btn-sm btn-info" title="שלח קישור למתפלל">
                                 <i class="fas fa-share-alt"></i> שתף
                             </button>
@@ -1910,7 +1927,9 @@
                         <!-- memberUniqueId: read-only -->
                         <div class="col-md-6">
                             <label class="small fw-bold mb-1">מזהה ייחודי</label>
-                            <div class="form-control" style="background: var(--bg-main); color: var(--text-secondary); font-family: monospace;" x-text="selectedMember?.memberUniqueId"></div>
+                            <div class="form-control"
+                                style="background: var(--bg-main); color: var(--text-secondary); font-family: monospace;"
+                                x-text="selectedMember?.memberUniqueId"></div>
                         </div>
                         <!-- nickname: editable -->
                         <div class="col-md-6">
@@ -1919,7 +1938,8 @@
                                 @input="if(selectedMember) { selectedMember.nickname = $event.target.value; saveMembersData(); }"
                                 class="form-control" placeholder="כינוי...">
                         </div>
-                        <template x-for="field in config.memberFields.filter(f => f.key !== 'memberUniqueId')" :key="field.fieldId">
+                        <template x-for="field in config.memberFields.filter(f => f.key !== 'memberUniqueId')"
+                            :key="field.fieldId">
                             <div class="col-md-6">
                                 <label class="small fw-bold mb-1" x-text="field.name"></label>
                                 <input type="text" :value="selectedMember?.[field.key] || ''"
@@ -2135,16 +2155,17 @@
                                     <div class="col-md-6">
                                         <label class="small fw-bold mb-1">שם בית הכנסת</label>
                                         <input type="text" x-model="config.synagogueName" class="form-control"
-                                            placeholder="ניהול קהילה PRO"
-                                            @input="updatePageTitle()">
+                                            placeholder="ניהול קהילה PRO" @input="updatePageTitle()">
                                     </div>
                                     <div class="col-md-6">
                                         <label class="small fw-bold mb-1">תמונה / לוגו</label>
                                         <input type="file" accept="image/*" class="form-control form-control-sm"
                                             @change="loadSynagogueImage($event)">
                                         <div x-show="config.synagogueLogo" class="mt-2 d-flex align-items-center gap-2">
-                                            <img :src="config.synagogueLogo" style="height:40px;width:40px;border-radius:50%;object-fit:cover;border:2px solid var(--border-color);">
-                                            <button class="btn btn-sm btn-outline-danger" @click="config.synagogueLogo = ''; saveConfigData();">
+                                            <img :src="config.synagogueLogo"
+                                                style="height:40px;width:40px;border-radius:50%;object-fit:cover;border:2px solid var(--border-color);">
+                                            <button class="btn btn-sm btn-outline-danger"
+                                                @click="config.synagogueLogo = ''; saveConfigData();">
                                                 <i class="fas fa-trash"></i> הסר תמונה
                                             </button>
                                         </div>
@@ -2157,13 +2178,15 @@
                         <div class="content-card">
                             <div class="section-header" @click="ui.colorsOpen = !ui.colorsOpen">
                                 <h6 class="mb-0 fw-bold">🎨 הגדרת צבעים מותאמת</h6>
-                                    <i class="fas" :class="ui.colorsOpen ? 'fa-chevron-up' : 'fa-chevron-down'" style="color: var(--text-secondary);"></i>
+                                <i class="fas" :class="ui.colorsOpen ? 'fa-chevron-up' : 'fa-chevron-down'"
+                                    style="color: var(--text-secondary);"></i>
                             </div>
                             <div class="section-body"
                                 :style="ui.colorsOpen ? 'max-height: 400px; opacity: 1;' : 'max-height: 0; opacity: 0;'">
-                                    <button type="button" class="btn btn-outline-secondary btn-sm mt-2" @click="resetColors()">
-                                        איפוס לצבעי ברירת מחדל
-                                    </button>
+                                <button type="button" class="btn btn-outline-secondary btn-sm mt-2"
+                                    @click="resetColors()">
+                                    איפוס לצבעי ברירת מחדל
+                                </button>
                                 <div class="row g-3 mt-1">
                                     <div class="col-md-6"><label class="small fw-bold">צבע ראשי (Light)</label><input
                                             type="color" x-model="config.theme.primary"
@@ -2368,16 +2391,19 @@
                             <!-- memberUniqueId - read only display -->
                             <div class="mb-2">
                                 <label class="small fw-bold mb-1">מזהה ייחודי (לא ניתן לשינוי)</label>
-                                <div class="form-control form-control-sm" style="background: var(--bg-main); color: var(--text-secondary); font-family: monospace;" x-text="editingMember?.memberUniqueId"></div>
+                                <div class="form-control form-control-sm"
+                                    style="background: var(--bg-main); color: var(--text-secondary); font-family: monospace;"
+                                    x-text="editingMember?.memberUniqueId"></div>
                             </div>
                             <!-- nickname - editable -->
                             <div class="mb-2">
                                 <label class="small fw-bold mb-1">כינוי (עברית/אנגלית/רווחים)</label>
-                                
-                                <input type="text" x-model="editingMember.nickname"
-                                    class="form-control form-control-sm" placeholder="כינוי...">
+
+                                <input type="text" x-model="editingMember.nickname" class="form-control form-control-sm"
+                                    placeholder="כינוי...">
                             </div>
-                            <template x-for="field in config.memberFields.filter(f => f.key !== 'memberUniqueId')" :key="field.fieldId">
+                            <template x-for="field in config.memberFields.filter(f => f.key !== 'memberUniqueId')"
+                                :key="field.fieldId">
                                 <div class="mb-2">
                                     <label class="small fw-bold mb-1" x-text="field.name"></label>
                                     <input type="text" :value="editingMember?.[field.key] || ''"
@@ -2423,8 +2449,10 @@
                                         <div class="list-group-item d-flex justify-content-between align-items-center p-2"
                                             style="background: transparent; border-color: var(--border-color); color: var(--text-primary);">
                                             <div>
-                                                <div class="fw-medium" x-text="m.nickname || m.name" style="font-size: 0.9rem;"></div>
-                                                <small style="color: var(--text-secondary);" x-text="'#' + m.memberUniqueId + (m.name !== (m.nickname||m.name) ? ' · ' + m.name : '')"></small>
+                                                <div class="fw-medium" x-text="m.nickname || m.name"
+                                                    style="font-size: 0.9rem;"></div>
+                                                <small style="color: var(--text-secondary);"
+                                                    x-text="'#' + m.memberUniqueId + (m.name !== (m.nickname||m.name) ? ' · ' + m.name : '')"></small>
                                             </div>
                                             <div class="d-flex gap-1">
                                                 <button @click="editingMember = {...m}"
@@ -2472,12 +2500,14 @@
                         <!-- Preview area -->
                         <div x-show="backupPreviewText !== null">
                             <div class="d-flex justify-content-between align-items-center mb-1">
-                                <small class="fw-bold" style="color: var(--text-secondary);">תצוגה מקדימה — ניתן לערוך לפני הורדה</small>
+                                <small class="fw-bold" style="color: var(--text-secondary);">תצוגה מקדימה — ניתן לערוך
+                                    לפני הורדה</small>
                                 <div class="d-flex gap-2">
                                     <button @click="downloadBackupPreview()" class="btn btn-sm btn-primary">
                                         <i class="fas fa-download me-1"></i>הורד
                                     </button>
-                                    <button @click="backupPreviewText = null; backupPreviewFilename = ''" class="btn btn-sm btn-outline-secondary">
+                                    <button @click="backupPreviewText = null; backupPreviewFilename = ''"
+                                        class="btn btn-sm btn-outline-secondary">
                                         <i class="fas fa-times"></i>
                                     </button>
                                 </div>
@@ -2624,9 +2654,9 @@
             </div>
 
         </main>
-        <div class="fullpage-table-overlay no-print" :class="[fullPageTableOpen ? 'active' : '', fullPageTableVisible ? 'fp-visible' : '', fullPageTableClosing ? 'fp-closing' : '']"
-            x-show="fullPageTableOpen" x-cloak
-            @keydown.escape.window="closeFullPageTable()">
+        <div class="fullpage-table-overlay no-print"
+            :class="[fullPageTableOpen ? 'active' : '', fullPageTableVisible ? 'fp-visible' : '', fullPageTableClosing ? 'fp-closing' : '']"
+            x-show="fullPageTableOpen" x-cloak @keydown.escape.window="closeFullPageTable()">
             <div class="fullpage-table-header">
                 <h5 class="mb-0 fw-bold" x-text="fullPageTableTitle"></h5>
                 <div class="d-flex gap-2 align-items-center flex-wrap">
@@ -2665,43 +2695,11 @@
     <script src="https://unpkg.com/tabulator-tables@5.5.0/dist/js/tabulator.min.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
-
-<script type="module">
-    // ייבוא הספריות הנחוצות משרתי גוגל
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-    import { getAuth, signInWithEmailAndPassword, sendPasswordResetEmail, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-
-    // הנתונים שקיבלת מהקונסול
-    const firebaseConfig = {
-        apiKey: "AIzaSyCTthCVxz18zIXT9Fpnzq_SgusBpINM-z8",
-        authDomain: "betkneset-001.firebaseapp.com",
-        projectId: "betkneset-001",
-        storageBucket: "betkneset-001.firebasestorage.app",
-        messagingSenderId: "300451630668",
-        appId: "1:300451630668:web:baca3d9e40c06b79b86ee9",
-        measurementId: "G-2XHKHB4PPR"
-    };
-
-    // אתחול האפליקציה
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-    const auth = getAuth(app);
-
-    // חשיפת אובייקטים לחלון הגלובלי כדי ש-Alpine.js יוכל לגשת אליהם
-    window.db = db;
-    window.auth = auth;
-    window.fsMethods = { doc, setDoc, getDoc, signInWithEmailAndPassword, sendPasswordResetEmail };
-
-    console.log("Firebase initialized successfully");
-</script>
-
-
     <script>
         function synagogueApp() {
             return {
                 // Authentication
-                isLoggedIn: localStorage.getItem('synagogue_auth') === 'true',
+                isLoggedIn: false,
                 loginForm: { user: '', pass: '' },
                 readOnlyMode: false,
 
@@ -2785,7 +2783,7 @@
                 printSessions: JSON.parse(localStorage.getItem('synagogue_print_sessions')) || [],
 
                 // Configuration
-                config: JSON.parse(localStorage.getItem('synagogue_config')) || 
+                config: JSON.parse(localStorage.getItem('synagogue_config')) ||
                 {
                     commitmentColumns: [
                         { columnId: 'ob_date', title: 'תאריך', field: 'commitmentDate', type: 'date', fixed: true },
@@ -2854,6 +2852,7 @@
                         --bg-main: ${isDark ? this.config.theme.bgDark : this.config.theme.bg};
                         --bg-secondary: ${isDark ? this.config.theme.cardBgDark : this.config.theme.cardBg};
                         --sidebar-bg: ${isDark ? this.config.theme.sidebarBgDark : this.config.theme.sidebarBg};
+                        --sidebar-bg: ${colors.theme.sidebarBgDark};
                         --text-primary: ${isDark ? this.config.theme.cardFontDark : this.config.theme.cardFont};
                         --card-bg: ${isDark ? this.config.theme.cardBgDark : this.config.theme.cardBg};
                         --card-font: ${isDark ? this.config.theme.cardFontDark : this.config.theme.cardFont};
@@ -2864,24 +2863,6 @@
                 },
 
                 init() {
-                    // בדיקה אוטומטית אם המשתמש כבר מחובר כשפותחים את האתר
-                    const checkAuth = setInterval(() => {
-                        if (window.auth) {
-                            clearInterval(checkAuth);
-                            window.auth.onAuthStateChanged((user) => {
-                                if (user) {
-                                    this.isLoggedIn = true;
-                                    this.loadFromFirebase(user.uid);
-                                }
-                            });
-                        }
-                    }, 500);
-
-                    // שאר הקוד המקורי שלך...
-                    this.worshippers = JSON.parse(localStorage.getItem('worshippers') || '[]');
-
-
-
                     const params = new URLSearchParams(window.location.hash.substring(1));
                     if (params.get('readonly') === 'true') {
                         this.readOnlyMode = true;
@@ -2935,6 +2916,25 @@
                     });
 
                     window.addEventListener('hashchange', () => this.handleRouting());
+
+                    // Wait for Firebase to be ready, then listen to auth state
+                    const waitForFirebase = (attempts = 0) => {
+                        if (window.auth && window.fsMethods) {
+                            window.fsMethods.onAuthStateChanged(window.auth, async (user) => {
+                                if (user) {
+                                    await this._loadFromFirestore();
+                                    this.isLoggedIn = true;
+                                    this.extractAvailablePurposes();
+                                    setTimeout(() => this.renderTable(), 100);
+                                } else {
+                                    this.isLoggedIn = false;
+                                }
+                            });
+                        } else if (attempts < 20) {
+                            setTimeout(() => waitForFirebase(attempts + 1), 150);
+                        }
+                    };
+                    waitForFirebase();
                 },
 
                 getMovementColumns() {
@@ -2952,7 +2952,7 @@
                     });
 
                     return Object.values(map);
-                }, 
+                },
                 movementColumnVisibility: {},
                 isMovementColumnVisible(field) {
                     return this.movementColumnVisibility[field] !== false;
@@ -3103,15 +3103,13 @@
                         columns,
                         height: "calc(100vh - 140px)",
                         cellEdited: (cell) => {
-                            if (!this.readOnlyMode)
-                             this.saveTransactionsData();
-                            this.saveToFirebase();
+                            if (!this.readOnlyMode) this.saveTransactionsData();
                             const el = cell.getRow().getElement();
                             el.classList.remove('row-saved-flash');
                             void el.offsetWidth;
                             el.classList.add('row-saved-flash');
                             setTimeout(() => el.classList.remove('row-saved-flash'), 2400);
-                        },
+                        }
                     });
                 },
 
@@ -3121,28 +3119,32 @@
                     }
                 },
 
-                // // Authentication
-                // login() {
-                //     if (this.loginForm.user === 'admin' && this.loginForm.pass === '1234') {
-                //         this.isLoggedIn = true;
-                //         localStorage.setItem('synagogue_auth', 'true');
-                //         this.navigate('home');
-                //     } else {
-                //         Swal.fire({ icon: 'error', title: 'שגיאה', text: 'שם משתמש או סיסמה שגויים', timer: 2000, showConfirmButton: false });
-                //     }
-                // },
-                // פונקציית כניסה למערכת
-                // בתוך ה-return של synagogueApp()
-                // login() {
-                //     window.fsMethods.signInWithEmailAndPassword(window.auth, this.loginEmail, this.loginPassword)
-                //         .then((userCredential) => {
-                //             this.isLoggedIn = true;
-                //             this.loadUserData(userCredential.user.uid); // טעינת נתונים מהענן
-                //         })
-                //         .catch((error) => {
-                //             Swal.fire('שגיאה', 'פרטי התחברות שגויים', 'error');
-                //         });
-                // },
+                // Authentication
+                async login() {
+                    if (!window.auth || !window.fsMethods) {
+                        Swal.fire({ icon: 'error', title: 'שגיאה', text: 'Firebase לא מוכן, נסה שוב בעוד שנייה', timer: 2500, showConfirmButton: false });
+                        return;
+                    }
+                    try {
+                        await window.fsMethods.signInWithEmailAndPassword(window.auth, this.loginForm.user, this.loginForm.pass);
+                        // onAuthStateChanged will handle setting isLoggedIn and loading data
+                    } catch (err) {
+                        const msgs = {
+                            'auth/invalid-email': 'כתובת האימייל אינה תקינה',
+                            'auth/user-not-found': 'משתמש לא נמצא',
+                            'auth/wrong-password': 'סיסמה שגויה',
+                            'auth/invalid-credential': 'שם משתמש או סיסמה שגויים',
+                            'auth/too-many-requests': 'יותר מדי ניסיונות, נסה שוב מאוחר יותר'
+                        };
+                        Swal.fire({ icon: 'error', title: 'שגיאת כניסה', text: msgs[err.code] || err.message, timer: 3000, showConfirmButton: false });
+                    }
+                },
+
+                async logout() {
+                    if (window.auth) await window.auth.signOut();
+                    this.isLoggedIn = false;
+                    window.location.hash = '';
+                },
 
                 toggleDarkMode() {
                     this.darkMode = !this.darkMode;
@@ -3162,12 +3164,20 @@
                         inputValue: 0,
                         inputPlaceholder: 'אני מבין שפעולה זו בלתי הפיכה'
                     });
-                    
+
                     if (result.isConfirmed && result.value) {
                         localStorage.removeItem('synagogue_members');
                         localStorage.removeItem('synagogue_transactions');
                         localStorage.removeItem('synagogue_config');
                         localStorage.removeItem('synagogue_favorite_reports');
+                        // Clear Firestore data too
+                        if (window.db && window.fsMethods && window.auth && window.auth.currentUser) {
+                            const uid = window.auth.currentUser.uid;
+                            await Promise.all([
+                                window.fsMethods.setDoc(window.fsMethods.doc(window.db, 'users', uid, 'data', 'members'), { list: [] }),
+                                window.fsMethods.setDoc(window.fsMethods.doc(window.db, 'users', uid, 'data', 'transactions'), { list: [] }),
+                            ]);
+                        }
                         await Swal.fire('הושלם!', 'כל הנתונים נמחקו', 'success');
                         location.reload();
                     }
@@ -3455,10 +3465,48 @@
                     }
                 },
 
-                // Data persistence
-                saveConfigData() { localStorage.setItem('synagogue_config', JSON.stringify(this.config)); },
-                saveMembersData() { localStorage.setItem('synagogue_members', JSON.stringify(this.members)); },
-                saveTransactionsData() { localStorage.setItem('synagogue_transactions', JSON.stringify(this.transactions)); },
+                // Data persistence — saves to localStorage AND Firestore
+                saveConfigData() {
+                    localStorage.setItem('synagogue_config', JSON.stringify(this.config));
+                    this._saveToFirestore('config', this.config);
+                },
+                saveMembersData() {
+                    localStorage.setItem('synagogue_members', JSON.stringify(this.members));
+                    this._saveToFirestore('members', { list: this.members });
+                },
+                saveTransactionsData() {
+                    localStorage.setItem('synagogue_transactions', JSON.stringify(this.transactions));
+                    this._saveToFirestore('transactions', { list: this.transactions });
+                },
+                async _saveToFirestore(collection, data) {
+                    if (!window.db || !window.fsMethods || !window.auth || !window.auth.currentUser) return;
+                    try {
+                        const uid = window.auth.currentUser.uid;
+                        await window.fsMethods.setDoc(window.fsMethods.doc(window.db, 'users', uid, 'data', collection), data);
+                    } catch (e) {
+                        console.warn('Firestore save error:', e);
+                    }
+                },
+                async _loadFromFirestore() {
+                    if (!window.db || !window.fsMethods || !window.auth || !window.auth.currentUser) return;
+                    try {
+                        const uid = window.auth.currentUser.uid;
+                        const [membersSnap, txSnap, configSnap] = await Promise.all([
+                            window.fsMethods.getDoc(window.fsMethods.doc(window.db, 'users', uid, 'data', 'members')),
+                            window.fsMethods.getDoc(window.fsMethods.doc(window.db, 'users', uid, 'data', 'transactions')),
+                            window.fsMethods.getDoc(window.fsMethods.doc(window.db, 'users', uid, 'data', 'config')),
+                        ]);
+                        if (membersSnap.exists()) this.members = membersSnap.data().list || [];
+                        if (txSnap.exists()) this.transactions = txSnap.data().list || [];
+                        if (configSnap.exists()) this.config = { ...this.config, ...configSnap.data() };
+                        // Sync to localStorage
+                        localStorage.setItem('synagogue_members', JSON.stringify(this.members));
+                        localStorage.setItem('synagogue_transactions', JSON.stringify(this.transactions));
+                        localStorage.setItem('synagogue_config', JSON.stringify(this.config));
+                    } catch (e) {
+                        console.warn('Firestore load error:', e);
+                    }
+                },
 
                 // Synagogue name/logo helpers
                 updatePageTitle() {
@@ -3512,13 +3560,13 @@
                 openPrintDialog(tableId) {
                     if (!this.currentTable) { window.print(); return; }
                     const allCols = this.currentTable.getColumns()
-                        .filter(c => c.getField() && !['edit_btn','delete','mov_edit','mov_delete','mov_goto','_orphan'].includes(c.getField()))
+                        .filter(c => c.getField() && !['edit_btn', 'delete', 'mov_edit', 'mov_delete', 'mov_goto', '_orphan'].includes(c.getField()))
                         .map(c => ({ field: c.getField(), title: c.getDefinition().title || c.getField(), visible: true }));
 
                     // Build member+table label for print header
                     const tableLabel = tableId === 'movementsTable' ? 'ריכוז תנועות'
                         : tableId === 'mainTable' ? (this.activeTab === 'commitments' ? 'התחייבויות' : 'תשלומים')
-                        : tableId;
+                            : tableId;
                     const memberLabel = this.selectedMember ? (this.selectedMember.nickname || this.selectedMember.name) : '';
                     const printTitle = memberLabel ? `${memberLabel} — ${tableLabel}` : tableLabel;
 
@@ -3536,10 +3584,10 @@
                     const savedSessionsHtml = this.printSessions.length > 0
                         ? `<div style="margin-top:12px;"><div class="small fw-bold mb-1" style="color:var(--text-secondary)"><i class="fas fa-print" style="margin-left:4px;"></i>הגדרות שמורות:</div>
                            <div class="print-sessions-row">${this.printSessions.map(s =>
-                               `<span class="print-session-tag" data-session-key="${s.key}" title="${s.fields.join(', ')}">
+                            `<span class="print-session-tag" data-session-key="${s.key}" title="${s.fields.join(', ')}">
                                    <i class="fas fa-print"></i>${s.label}
                                </span>`
-                           ).join('')}</div></div>` : '';
+                        ).join('')}</div></div>` : '';
 
                     Swal.fire({
                         title: `<i class="fas fa-print me-2"></i>הדפסה — ${printTitle}`,
@@ -4536,107 +4584,39 @@
                         }
                     });
                 },
-
-
-
-                // --- פונקציות Firebase (להדבקה בתוך synagogueApp) ---
-
-                // 1. כניסה למערכת
-                async login() {
-                    if (!this.loginEmail || !this.loginPassword) {
-                        Swal.fire('שגיאה', 'נא להזין אימייל וסיסמה', 'warning');
-                        return;
-                    }
-                    try {
-                        const userCredential = await window.fsMethods.signInWithEmailAndPassword(
-                            window.auth,
-                            this.loginEmail.trim(),
-                            this.loginPassword
-                        );
-                        this.isLoggedIn = true;
-                        await this.loadFromFirebase(userCredential.user.uid);
-
-                        Swal.fire({
-                            title: 'התחברת בהצלחה!',
-                            icon: 'success',
-                            timer: 2000,
-                            showConfirmButton: false
-                        });
-                    } catch (error) {
-                        console.error("Login error:", error.code);
-                        let msg = "שגיאה בהתחברות";
-                        if (error.code === 'auth/user-not-found') msg = "משתמש לא קיים";
-                        if (error.code === 'auth/wrong-password') msg = "סיסמה שגויה";
-                        if (error.code === 'auth/operation-not-allowed') msg = "כניסה עם סיסמה לא מופעלת ב-Console";
-
-                        Swal.fire('שגיאה', msg, 'error');
-                    }
-                },
-
-                // 2. טעינת נתונים מהענן
-                async loadFromFirebase(uid) {
-                    try {
-                        const docRef = window.fsMethods.doc(window.db, "users", uid);
-                        const docSnap = await window.fsMethods.getDoc(docRef);
-
-                        if (docSnap.exists()) {
-                            const data = docSnap.data();
-                            this.worshippers = data.worshippers || [];
-                            this.transactions = data.transactions || [];
-                            this.settings = data.settings || this.settings;
-
-                            // עדכון הטבלאות (Tabulator) אם הן קיימות
-                            if (this.worshippersTable) this.worshippersTable.setData(this.worshippers);
-                            if (this.transactionsTable) this.transactionsTable.setData(this.transactions);
-                        }
-                    } catch (e) {
-                        console.error("Load error:", e);
-                    }
-                },
-
-                // 3. שמירת נתונים לענן (קרא לפונקציה זו במקום saveSettings/localStorage)
-                async saveToFirebase() {
-                    const user = window.auth.currentUser;
-                    if (!user) return;
-
-                    try {
-                        await window.fsMethods.setDoc(window.fsMethods.doc(window.db, "users", user.uid), {
-                            worshippers: this.worshippers,
-                            transactions: this.transactions,
-                            settings: this.settings,
-                            lastSave: new Date().toISOString()
-                        });
-                        console.log("סונכרן לענן בהצלחה");
-                    } catch (e) {
-                        console.error("Save error:", e);
-                    }
-                },
-
-                // 4. שחזור סיסמה
-                async resetPassword() {
-                    if (!this.loginEmail) {
-                        Swal.fire('מידע חסר', 'נא להזין את כתובת המייל שלך בשדה האימייל', 'info');
-                        return;
-                    }
-                    try {
-                        await window.fsMethods.sendPasswordResetEmail(window.auth, this.loginEmail.trim());
-                        Swal.fire('נשלח!', 'מייל לאיפוס סיסמה נשלח לתיבת הדואר שלך', 'success');
-                    } catch (error) {
-                        Swal.fire('שגיאה', 'לא ניתן לשלוח מייל שחזור: ' + error.message, 'error');
-                    }
-                },
-
-                // 5. התנתקות
-                logout() {
-                    window.auth.signOut().then(() => {
-                        this.isLoggedIn = false;
-                        location.reload(); // רענון הדף לניקוי זיכרון
-                    });
-                }
             }
         }
     </script>
 
+    <script type="module">
+        // ייבוא הספריות הנחוצות משרתי גוגל
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getAuth, signInWithEmailAndPassword, sendPasswordResetEmail, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+        // הנתונים שקיבלת מהקונסול
+        const firebaseConfig = {
+            apiKey: "AIzaSyCTthCVxz18zIXT9Fpnzq_SgusBpINM-z8",
+            authDomain: "betkneset-001.firebaseapp.com",
+            projectId: "betkneset-001",
+            storageBucket: "betkneset-001.firebasestorage.app",
+            messagingSenderId: "300451630668",
+            appId: "1:300451630668:web:baca3d9e40c06b79b86ee9",
+            measurementId: "G-2XHKHB4PPR"
+        };
+
+        // אתחול האפליקציה
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        // חשיפת אובייקטים לחלון הגלובלי כדי ש-Alpine.js יוכל לגשת אליהם
+        window.db = db;
+        window.auth = auth;
+        window.fsMethods = { doc, setDoc, getDoc, signInWithEmailAndPassword, sendPasswordResetEmail, onAuthStateChanged, signOut };
+
+        console.log("snir - Firebase initialized successfully");
+    </script>
 </body>
 
 </html>
