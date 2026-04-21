@@ -35,11 +35,15 @@
             --secondary-color: #7d4e2c;
             --accent-color: #d4af37;
             --bg-main: #f8f9fa;
+            --bg-header: #0d6efd;
+            --font-header: #fff;
             --bg-secondary: #ffffff;
             --text-primary: #212529;
-            --text-secondary: #6c757d;
+            --text-secondary: #666;
+            --custom-tab-text: #333;
+            --app-header-context-text: #fff;
             --border-color: #dee2e6;
-            --sidebar-bg: #ffffff;
+            --sidebar-bg: #fff;
             --sidebar-width: 280px;
             --header-height: 65px;
             --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.08);
@@ -50,6 +54,8 @@
             --table-bg: #ffffff;
             --table-header-bg: #f8f9fa;
             --table-font: #212529;
+    --table-footer-bg: #1a1d23;/*bg color for darkmode*/
+
         }
 
         [data-theme="dark"] {
@@ -60,6 +66,7 @@
             --bg-secondary: #25292f;
             --text-primary: #e4e6eb;
             --text-secondary: #b0b3b8;
+            --custom-tab-text: #ddd;
             --border-color: #3a3f47;
             --sidebar-bg: #25292f;
             --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
@@ -157,7 +164,7 @@
         /* ═══ HEADER ═══ */
         .app-header {
             height: var(--header-height);
-            background: var(--bg-secondary);
+            background: var(--bg-header);
             border-bottom: 1px solid var(--border-color);
             box-shadow: var(--shadow-sm);
             position: fixed;
@@ -175,7 +182,7 @@
         .app-logo {
             font-size: 1.25rem;
             font-weight: 700;
-            color: var(--primary-color);
+            color: var(--font-header);
             display: flex;
             align-items: center;
             gap: 0.5rem;
@@ -183,7 +190,7 @@
         }
 
         .app-header-context {
-            color: var(--text-secondary);
+            color: var(--app-header-context-text);
             font-size: 0.9rem;
             flex: 1;
         }
@@ -447,7 +454,7 @@
             padding: 0.65rem 1.25rem;
             background: transparent;
             border: none;
-            color: var(--text-secondary);
+            color: var(--custom-tab-text);
             cursor: pointer;
             transition: all 0.25s;
             font-weight: 500;
@@ -809,6 +816,10 @@
 
         @media (max-width: 992px) {
             .sidebar {
+                background-color: var(--sidebar-bg) !important;
+                box-shadow: -5px 0 15px rgba(0, 0, 0, 0.2);
+                opacity: 1 !important;
+                z-index: 1050; /* וודא שהוא מעל ה-overlay */
                 transform: translateX(100%);
                 width: 85%;
                 max-width: 300px;
@@ -1128,85 +1139,102 @@
                 background-color: transparent;
             }
         }
-
+[data-theme="dark"]{
         /* Bootstrap overrides for dark mode */
-        [data-theme="dark"] .form-control,
-        [data-theme="dark"] .form-select {
+        .form-control,
+        .form-select {
             background-color: var(--bg-secondary) !important;
             color: var(--text-primary) !important;
             border-color: var(--border-color) !important;
         }
 
-        [data-theme="dark"] .list-group-item {
+        .list-group-item {
             background-color: var(--bg-secondary);
             color: var(--text-primary);
             border-color: var(--border-color);
         }
 
-        [data-theme="dark"] .alert-info {
+        .alert-info {
             background-color: rgba(74, 158, 255, 0.1);
             color: var(--text-primary);
             border-color: rgba(74, 158, 255, 0.3);
         }
 
-        [data-theme="dark"] .alert-light {
+        .alert-light {
             background-color: var(--bg-secondary);
             color: var(--text-primary);
             border-color: var(--border-color);
         }
 
-        [data-theme="dark"] .nav-link {
+        .nav-link {
             color: var(--text-secondary);
         }
 
-        [data-theme="dark"] .nav-link.active {
+        .nav-link.active {
             color: var(--primary-color);
         }
 
-        [data-theme="dark"] .nav-pills .nav-link {
+        .nav-pills .nav-link {
             color: var(--text-secondary);
         }
 
-        [data-theme="dark"] .nav-pills .nav-link.active {
+        .nav-pills .nav-link.active {
             background-color: var(--primary-color);
             color: white;
         }
 
-        [data-theme="dark"] .bg-primary-subtle {
+        .bg-primary-subtle {
             background-color: rgba(74, 158, 255, 0.1) !important;
         }
 
-        [data-theme="dark"] .bg-body-tertiary {
+        .bg-body-tertiary {
             background-color: var(--bg-main) !important;
         }
 
-        [data-theme="dark"] .card {
+        .card {
             background-color: var(--bg-secondary) !important;
             border-color: var(--border-color) !important;
             color: var(--text-primary) !important;
         }
 
-        [data-theme="dark"] .modal-content {
+        .modal-content {
             background-color: var(--bg-secondary);
             color: var(--text-primary);
         }
 
-        [data-theme="dark"] .btn-close {
+        .btn-close {
             filter: invert(1);
         }
 
-        [data-theme="dark"] .text-muted {
+        .text-muted {
             color: var(--text-secondary) !important;
         }
 
-        [data-theme="dark"] .border {
+        .border {
             border-color: var(--border-color) !important;
         }
 
-        [data-theme="dark"] .border-top {
+        .border-top {
             border-color: var(--border-color) !important;
         }
 
+        /* תיקון עבור תחתית הטבלה ושורות סיכום */
+    
+    .tabulator .tabulator-footer {
+        background-color: var(--table-footer-bg) !important;
+        color: var(--text-primary) !important;
+        border-top: 1px solid var(--border-color) !important;
+    }
+
+    .tabulator .tabulator-footer .tabulator-calcs-holder {
+        background: var(--table-footer-bg) !important;
+    }
+
+    .tabulator .tabulator-footer .tabulator-calcs-holder .tabulator-row {
+        background: var(--table-footer-bg) !important;
+        color: var(--text-primary) !important;
+    }
+    }
         /* Readonly indicator */
         .readonly-banner {
             background: rgba(44, 95, 125, 0.1);
@@ -1280,6 +1308,15 @@
 .share-btn i {
     font-size: 0.95rem;
 }
+
+    #btn-exit{
+        color: var(--font-header);
+        background-color: red;
+    }
+
+    #batchTxArea{
+        background-color: #999 !important;
+    }
     </style>
 </head>
 
@@ -1327,7 +1364,7 @@
             </div>
 
             <div class="app-header-context d-none d-md-block">
-                <span x-text="(selectedMember && view === 'account') ? '← ' + (selectedMember.nickname || selectedMember.name) : ''"></span>
+                <span x-text="(selectedMember && view === 'account') ? '← ' + (selectedMember.name || selectedMember.nickname) : ''"></span>
             </div>
 
             <div class="header-actions">
@@ -1335,7 +1372,7 @@
                     <i class="fas" :class="darkMode ? 'fa-sun' : 'fa-moon'"></i>
                     <span class="d-none d-sm-inline" x-text="darkMode ? 'בהיר' : 'לילה'"></span>
                 </button>
-                <button class="btn btn-sm btn-outline-danger" @click="logout()" x-show="!readOnlyMode">
+                <button id="btn-exit" class="btn btn-sm theme-toggle btn-outline-danger" @click="logout()" x-show="!readOnlyMode">
                     <i class="fas fa-sign-out-alt"></i>
                     <span class="d-none d-sm-inline">יציאה</span>
                 </button>
@@ -1466,9 +1503,9 @@
                 </button>
 
                 <button @click="navigate('importexport'); mobileMenuOpen = false" class="sidebar-btn"
-                    data-tooltip="ייצוא/ייבוא"
+                    data-tooltip="גיבוי/שחזור"
                     :style="view === 'importexport' ? 'background: var(--primary-color); color: white; border-color: var(--primary-color);' : ''">
-                    <i class="fas fa-exchange-alt"></i> <span>ייצוא / ייבוא</span>
+                    <i class="fas fa-exchange-alt"></i> <span>גיבוי/שחזור</span>
                 </button>
                 <button @click="navigate('management'); mobileMenuOpen = false" class="sidebar-btn"
                     data-tooltip="הגדרות"
@@ -1489,12 +1526,7 @@
                 <strong>מצב קריאה בלבד</strong> — אתה יכול לצפות בנתונים אך לא לערוך אותם
             </div>
 
-            <!-- Mobile Menu Button -->
-            <button class="btn btn-sm mb-3 no-print d-lg-none"
-                style="background: var(--primary-color); color: white; border-radius: 7px;"
-                @click.stop="mobileMenuOpen = true" x-show="!readOnlyMode">
-                <i class="fas fa-bars me-1"></i> תפריט
-            </button>
+            
 
             <!-- ══════════════════════════ דף הבית ══════════════════════════ -->
             <div x-show="view === 'home'" x-cloak>
@@ -1503,7 +1535,6 @@
                         <i class="fas fa-home"></i> דף הבית — תנועות אחרונות
                     </h1>
                 </div>
-
 
                 <!-- Stats -->
                 <div class="stats-grid">
@@ -1514,7 +1545,7 @@
                     <div class="stat-card">
                         <div class="stat-label">סה"כ התחייבויות</div>
                         <div class="stat-value"
-                            x-text="'₪' + transactions.filter(t=>t.transactionType==='obligations').reduce((s,t)=>s+Number(t.obligationAmount||0),0).toLocaleString()">
+                            x-text="'₪' + transactions.filter(t=>t.transactionType==='commitments').reduce((s,t)=>s+Number(t.commitmentAmount||0),0).toLocaleString()">
                         </div>
                     </div>
                     <div class="stat-card">
@@ -1526,15 +1557,10 @@
                     <div class="stat-card">
                         <div class="stat-label">יתרת חובות</div>
                         <div class="stat-value"
-                            x-text="'₪' + Math.abs(transactions.reduce((s,t)=>s+(t.transactionType==='payments'?Number(t.paymentAmount||0):-Number(t.obligationAmount||0)),0)).toLocaleString()">
+                            x-text="'₪' + Math.abs(transactions.reduce((s,t)=>s+(t.transactionType==='payments'?Number(t.paymentAmount||0):-Number(t.commitmentAmount||0)),0)).toLocaleString()">
                         </div>
                     </div>
                 </div>
-
-
-
-
-
 
                 <!-- הוספת תנועה מהירה -->
                 <div class="content-card no-print" x-show="!readOnlyMode">
@@ -1549,8 +1575,8 @@
                         x-init="$watch('ui.homeAddOpen', v => { if(v) $nextTick(() => _attachHomeEntryEnterNav()) })">
                         <div class="mt-3">
                             <div class="custom-tabs">
-                                <button class="custom-tab" :class="homeActiveTab === 'obligations' ? 'active' : ''"
-                                    @click="homeActiveTab = 'obligations'; resetHomeEntry()">התחייבות</button>
+                                <button class="custom-tab" :class="homeActiveTab === 'commitments' ? 'active' : ''"
+                                    @click="homeActiveTab = 'commitments'; resetHomeEntry()">התחייבות</button>
                                 <button class="custom-tab" :class="homeActiveTab === 'payments' ? 'active' : ''"
                                     @click="homeActiveTab = 'payments'; resetHomeEntry()">תשלום</button>
                             </div>
@@ -1566,7 +1592,7 @@
                                     </select>
                                 </div>
                                 <template
-                                    x-for="col in (homeActiveTab === 'obligations' ? config.obligationColumns : config.paymentColumns)"
+                                    x-for="col in (homeActiveTab === 'commitments' ? config.commitmentColumns : config.paymentColumns)"
                                     :key="col.columnId">
                                     <div class="col-md">
                                         <label class="small fw-bold mb-1" x-text="col.title"></label>
@@ -1598,7 +1624,7 @@
                                 </template>
                                 <div class="col-md-auto">
                                     <button @click="addHomeEntry()" class="btn btn-sm px-4"
-                                        :class="homeActiveTab === 'obligations' ? 'btn-primary' : 'btn-success'">
+                                        :class="homeActiveTab === 'commitments' ? 'btn-primary' : 'btn-success'">
                                         <i class="fas fa-plus me-1"></i>הוסף
                                     </button>
                                 </div>
@@ -1620,8 +1646,8 @@
                         <div class="mt-3">
                             <div class="d-flex gap-2 mb-2">
                                 <button class="btn btn-sm"
-                                    :class="batchTxType==='obligations' ? 'btn-primary' : 'btn-outline-primary'"
-                                    @click="batchTxType='obligations'; batchTxString=''">התחייבויות</button>
+                                    :class="batchTxType==='commitments' ? 'btn-primary' : 'btn-outline-primary'"
+                                    @click="batchTxType='commitments'; batchTxString=''">התחייבויות</button>
                                 <button class="btn btn-sm"
                                     :class="batchTxType==='payments' ? 'btn-success' : 'btn-outline-success'"
                                     @click="batchTxType='payments'; batchTxString=''">תשלומים</button>
@@ -1630,7 +1656,7 @@
                                 style="background: var(--bg-main); border-color: var(--border-color); color: var(--text-primary);">
                                 <strong>פורמט:</strong> שורה אחת לכל תנועה — <code>שם מתפלל,</code>
                                 <template
-                                    x-for="col in (batchTxType==='obligations' ? config.obligationColumns : config.paymentColumns)"
+                                    x-for="col in (batchTxType==='commitments' ? config.commitmentColumns : config.paymentColumns)"
                                     :key="col.columnId">
                                     <code x-text="col.title + ', '"></code>
                                 </template>
@@ -1655,7 +1681,7 @@
                             </div>
                             <div class="d-flex gap-2 mt-2 align-items-center">
                                 <button @click="processBatchTransactions()" class="btn btn-sm px-4"
-                                    :class="batchTxType==='obligations' ? 'btn-primary' : 'btn-success'"
+                                    :class="batchTxType==='commitments' ? 'btn-primary' : 'btn-success'"
                                     :disabled="!batchTxString.trim()">
                                     <i class="fas fa-cloud-upload-alt me-1"></i> ייבא תנועות
                                 </button>
@@ -1697,8 +1723,8 @@
                                     <span class="filter-badge" :class="homeFilters.type === 'all' ? 'active' : ''"
                                         @click="homeFilters.type = 'all'; filterHomeTransactions()">הכל</span>
                                     <span class="filter-badge"
-                                        :class="homeFilters.type === 'obligations' ? 'active' : ''"
-                                        @click="homeFilters.type = 'obligations'; filterHomeTransactions()">התחייבויות</span>
+                                        :class="homeFilters.type === 'commitments' ? 'active' : ''"
+                                        @click="homeFilters.type = 'commitments'; filterHomeTransactions()">התחייבויות</span>
                                     <span class="filter-badge" :class="homeFilters.type === 'payments' ? 'active' : ''"
                                         @click="homeFilters.type = 'payments'; filterHomeTransactions()">תשלומים</span>
                                 </div>
@@ -1766,9 +1792,9 @@
 
             <div x-show="selectedMember?.phone">
                 <i class="fa fa-phone"></i>
-                <a :href="'tel:' + selectedMember.phone"
+                <a :href="selectedMember ? 'tel:' + selectedMember.phone : '#'"
                    style="color: white; text-decoration: none;">
-                    <span x-text="selectedMember.phone"
+                    <span x-text="selectedMember?.phone"
                           style="margin-right:.5rem;"></span>
                 </a>
             </div>
@@ -1814,8 +1840,8 @@
                             @click="setTab('movements')">
                             <i class="fas fa-list-ul me-1"></i> ריכוז תנועות <span class="keyboard-shortcut">(1)</span>
                         </button>
-                        <button class="custom-tab" :class="activeTab === 'obligations' ? 'active' : ''"
-                            @click="setTab('obligations')">
+                        <button class="custom-tab" :class="activeTab === 'commitments' ? 'active' : ''"
+                            @click="setTab('commitments')">
                             <i class="fas fa-clipboard-check me-1"></i> התחייבויות <span
                                 class="keyboard-shortcut">(2)</span>
                         </button>
@@ -1831,17 +1857,17 @@
                 </div>
 
                 <!-- Add Form - inline first-row style -->
-                <div x-show="['obligations', 'payments'].includes(activeTab) && !readOnlyMode"
+                <div x-show="['commitments', 'payments'].includes(activeTab) && !readOnlyMode"
                     class="content-card no-print"
                     style="border: 2px dashed var(--primary-color); background: rgba(44,95,125,0.03);">
                     <div class="d-flex align-items-center gap-2 mb-2">
                         <i class="fas fa-plus-circle" style="color: var(--primary-color);"></i>
                         <span class="fw-bold small" style="color: var(--primary-color);">שורה חדשה — הוסף <span
-                                x-text="activeTab === 'obligations' ? 'התחייבות' : 'תשלום'"></span></span>
+                                x-text="activeTab === 'commitments' ? 'התחייבות' : 'תשלום'"></span></span>
                     </div>
                     <div class="row g-2 align-items-end" id="newEntryForm">
                         <template
-                            x-for="(col, colIdx) in (activeTab === 'obligations' ? config.obligationColumns : config.paymentColumns)"
+                            x-for="(col, colIdx) in (activeTab === 'commitments' ? config.commitmentColumns : config.paymentColumns)"
                             :key="col.columnId">
                             <div class="col-md">
                                 <label class="small fw-bold mb-1" x-text="col.title"></label>
@@ -2128,11 +2154,13 @@
                         <div class="content-card">
                             <div class="section-header" @click="ui.colorsOpen = !ui.colorsOpen">
                                 <h6 class="mb-0 fw-bold">🎨 הגדרת צבעים מותאמת</h6>
-                                <i class="fas" :class="ui.colorsOpen ? 'fa-chevron-up' : 'fa-chevron-down'"
-                                    style="color: var(--text-secondary);"></i>
+                                    <i class="fas" :class="ui.colorsOpen ? 'fa-chevron-up' : 'fa-chevron-down'" style="color: var(--text-secondary);"></i>
                             </div>
                             <div class="section-body"
                                 :style="ui.colorsOpen ? 'max-height: 400px; opacity: 1;' : 'max-height: 0; opacity: 0;'">
+                                    <button type="button" class="btn btn-outline-secondary btn-sm mt-2" @click="resetColors()">
+                                        איפוס לצבעי ברירת מחדל
+                                    </button>
                                 <div class="row g-3 mt-1">
                                     <div class="col-md-6"><label class="small fw-bold">צבע ראשי (Light)</label><input
                                             type="color" x-model="config.theme.primary"
@@ -2172,15 +2200,15 @@
                             <div class="section-body"
                                 :style="ui.obOpen ? 'max-height: 600px; opacity: 1;' : 'max-height: 0; opacity: 0;'">
                                 <div class="list-group mb-2 mt-3">
-                                    <template x-for="(col, index) in config.obligationColumns" :key="col.columnId">
+                                    <template x-for="(col, index) in config.commitmentColumns" :key="col.columnId">
                                         <div class="list-group-item d-flex gap-2 p-2 align-items-center"
                                             style="background: var(--bg-main); border-color: var(--border-color); color: var(--text-primary);">
                                             <div class="d-flex flex-column">
-                                                <span class="move-btn" @click="moveColumn('obligation', index, -1)"
+                                                <span class="move-btn" @click="moveColumn('commitment', index, -1)"
                                                     :class="index === 0 ? 'invisible' : ''"><i
                                                         class="fas fa-chevron-up"></i></span>
-                                                <span class="move-btn" @click="moveColumn('obligation', index, 1)"
-                                                    :class="index === config.obligationColumns.length - 1 ? 'invisible' : ''"><i
+                                                <span class="move-btn" @click="moveColumn('commitment', index, 1)"
+                                                    :class="index === config.commitmentColumns.length - 1 ? 'invisible' : ''"><i
                                                         class="fas fa-chevron-down"></i></span>
                                             </div>
                                             <input type="text" x-model="col.title" class="form-control form-control-sm"
@@ -2195,13 +2223,13 @@
                                             <input x-show="col.type === 'list'" type="text" x-model="col.options"
                                                 class="form-control form-control-sm" placeholder="ערכים מופרדים בפסיק"
                                                 @change="saveConfigData()">
-                                            <button @click="deleteColumn('obligation', index)" class="btn btn-sm"
+                                            <button @click="deleteColumn('commitment', index)" class="btn btn-sm"
                                                 :class="col.fixed ? 'text-secondary' : 'text-danger'"
                                                 :disabled="col.fixed"><i class="fas fa-trash"></i></button>
                                         </div>
                                     </template>
                                 </div>
-                                <button @click="addColumn('obligation')" class="btn btn-sm btn-outline-primary"><i
+                                <button @click="addColumn('commitment')" class="btn btn-sm btn-outline-primary"><i
                                         class="fas fa-plus me-1"></i>הוסף עמודה</button>
                             </div>
                         </div>
@@ -2342,6 +2370,7 @@
                             <!-- nickname - editable -->
                             <div class="mb-2">
                                 <label class="small fw-bold mb-1">כינוי (עברית/אנגלית/רווחים)</label>
+                                
                                 <input type="text" x-model="editingMember.nickname"
                                     class="form-control form-control-sm" placeholder="כינוי...">
                             </div>
@@ -2498,7 +2527,7 @@
                                 <label class="small fw-bold mb-1">סוג תנועה</label>
                                 <select x-model="ieFilters.type" class="form-select form-select-sm">
                                     <option value="all">הכל</option>
-                                    <option value="obligations">התחייבויות</option>
+                                    <option value="commitments">התחייבויות</option>
                                     <option value="payments">תשלומים</option>
                                 </select>
                             </div>
@@ -2570,19 +2599,19 @@
                                             class="fas fa-plus me-1"></i>ייבא תנועות</button>
                                 </div>
                                 <small class="text-muted d-block mt-1">קובץ Excel עם עמודות: type
-                                    (obligations/payments), memberId/memberName, ושאר שדות</small>
+                                    (commitments/payments), memberId/memberName, ושאר שדות</small>
                             </div>
                             <!-- Batch -->
                             <div x-show="ieImportTab==='batch'" class="mt-2">
                                 <div class="alert alert-light small mb-2"
                                     style="background:var(--bg-main);border-color:var(--border-color);color:var(--text-primary);">
-                                    <strong>פורמט Batch:</strong> שורת כותרת <code>obligations</code> או
+                                    <strong>פורמט Batch:</strong> שורת כותרת <code>commitments</code> או
                                     <code>payments</code>, ואז שורות נתונים עם פסיק<br>
-                                    דוגמה: <code>obligations</code><br><code>ישראל כהן,2024-01-15,תרומה,500</code>
+                                    דוגמה: <code>commitments</code><br><code>ישראל כהן,2024-01-15,תרומה,500</code>
                                 </div>
                                 <textarea x-model="ieBatchText" class="form-control form-control-sm batch-textarea mb-2"
                                     rows="6"
-                                    placeholder="obligations&#10;שם מתפלל,תאריך,מטרה,סכום&#10;&#10;payments&#10;שם מתפלל,תאריך,מטרה,אופן תשלום,אסמכתא,סכום"></textarea>
+                                    placeholder="commitments&#10;שם מתפלל,תאריך,מטרה,סכום&#10;&#10;payments&#10;שם מתפלל,תאריך,מטרה,אופן תשלום,אסמכתא,סכום"></textarea>
                                 <button @click="importFromBatch()" class="btn btn-success btn-sm"><i
                                         class="fas fa-upload me-1"></i>ייבא</button>
                             </div>
@@ -2643,7 +2672,7 @@
 
                 // Navigation
                 view: 'home',
-                activeTab: 'obligations',
+                activeTab: 'commitments',
                 mobileMenuOpen: false,
                 sidebarCollapsed: false,
 
@@ -2657,14 +2686,14 @@
                 fullPageTable: null,
 
                 // Members
-                selectedMember: null,
-                editingMember: null,
+                selectedMember: {},
+                editingMember: false,
                 memberSearch: '',
                 quickAdd: false,
                 nm: { name: '', nickname: '' },
 
                 // Home page
-                homeActiveTab: 'obligations',
+                homeActiveTab: 'commitments',
                 homeEntry: {},
                 homeFilters: {
                     search: '',
@@ -2713,7 +2742,7 @@
                 tableScrollMode: false,
                 batchString: '',
                 batchTxString: '',
-                batchTxType: 'obligations',
+                batchTxType: 'commitments',
                 batchActiveToken: 0,
                 backupPreviewText: null,
                 backupPreviewFilename: '',
@@ -2721,11 +2750,12 @@
                 printSessions: JSON.parse(localStorage.getItem('synagogue_print_sessions')) || [],
 
                 // Configuration
-                config: JSON.parse(localStorage.getItem('synagogue_config')) || {
-                    obligationColumns: [
-                        { columnId: 'ob_date', title: 'תאריך', field: 'obligationDate', type: 'date', fixed: true },
+                config: JSON.parse(localStorage.getItem('synagogue_config')) || 
+                {
+                    commitmentColumns: [
+                        { columnId: 'ob_date', title: 'תאריך', field: 'commitmentDate', type: 'date', fixed: true },
                         { columnId: 'ob_purpose', title: 'מטרת תשלום', field: 'purpose', type: 'text', fixed: false },
-                        { columnId: 'ob_amount', title: 'סכום', field: 'obligationAmount', type: 'money', fixed: true }
+                        { columnId: 'ob_amount', title: 'סכום', field: 'commitmentAmount', type: 'money', fixed: true }
                     ],
                     paymentColumns: [
                         { columnId: 'pay_date', title: 'תאריך', field: 'paymentDate', type: 'date', fixed: true },
@@ -2739,7 +2769,7 @@
                         { columnId: 'mov_purpose', title: 'מטרת התשלום', field: 'purpose', type: 'text', fixed: true },
                         { columnId: 'mov_paymentType', title: 'סוג תשלום', field: 'paymentType', type: 'text', fixed: false },
                         { columnId: 'mov_reference', title: 'אסמכתא', field: 'reference', type: 'text', fixed: false },
-                        { columnId: 'mov_obligationAmount', title: 'סכום התחייבות', field: 'obligationAmount', type: 'money', fixed: true },
+                        { columnId: 'mov_commitmentAmount', title: 'סכום התחייבות', field: 'commitmentAmount', type: 'money', fixed: true },
                         { columnId: 'mov_paymentAmount', title: 'תשלום בפועל', field: 'paymentAmount', type: 'money', fixed: true },
                         { columnId: 'mov_difference', title: 'הפרש', field: 'difference', type: 'money', fixed: true }
                     ],
@@ -2777,7 +2807,7 @@
                 batchPopupY: 0,
 
                 get batchPlaceholder() {
-                    const cols = this.batchTxType === 'obligations' ? this.config.obligationColumns : this.config.paymentColumns;
+                    const cols = this.batchTxType === 'commitments' ? this.config.commitmentColumns : this.config.paymentColumns;
                     const names = cols.map(c => c.title).join(', ');
                     return `ישראל ישראלי, ${names}\nיעקב כהן, ${names}`;
                 },
@@ -2789,6 +2819,7 @@
                         --bg-main: ${isDark ? this.config.theme.bgDark : this.config.theme.bg};
                         --bg-secondary: ${isDark ? this.config.theme.cardBgDark : this.config.theme.cardBg};
                         --sidebar-bg: ${isDark ? this.config.theme.sidebarBgDark : this.config.theme.sidebarBg};
+                        --sidebar-bg: ${colors.theme.sidebarBgDark};
                         --text-primary: ${isDark ? this.config.theme.cardFontDark : this.config.theme.cardFont};
                         --card-bg: ${isDark ? this.config.theme.cardBgDark : this.config.theme.cardBg};
                         --card-font: ${isDark ? this.config.theme.cardFontDark : this.config.theme.cardFont};
@@ -2818,7 +2849,7 @@
                             { columnId: 'mov_purpose', title: 'מטרת התשלום', field: 'purpose', type: 'text', fixed: true },
                             { columnId: 'mov_paymentType', title: 'סוג תשלום', field: 'paymentType', type: 'text', fixed: false },
                             { columnId: 'mov_reference', title: 'אסמכתא', field: 'reference', type: 'text', fixed: false },
-                            { columnId: 'mov_obligationAmount', title: 'סכום התחייבות', field: 'obligationAmount', type: 'money', fixed: true },
+                            { columnId: 'mov_commitmentAmount', title: 'סכום התחייבות', field: 'commitmentAmount', type: 'money', fixed: true },
                             { columnId: 'mov_paymentAmount', title: 'תשלום בפועל', field: 'paymentAmount', type: 'money', fixed: true },
                             { columnId: 'mov_difference', title: 'הפרש', field: 'difference', type: 'money', fixed: true }
                         ];
@@ -2846,13 +2877,35 @@
                         if (e.altKey && (e.key === 'r' || e.key === 'ר')) { e.preventDefault(); this.navigate('reports'); }
                         if (e.altKey && (e.key === 's' || e.key === 'ד')) { e.preventDefault(); this.navigate('summary'); }
                         if (e.altKey && e.key === '1') { e.preventDefault(); this.setTab('movements'); }
-                        if (e.altKey && e.key === '2') { e.preventDefault(); this.setTab('obligations'); }
+                        if (e.altKey && e.key === '2') { e.preventDefault(); this.setTab('commitments'); }
                         if (e.altKey && e.key === '3') { e.preventDefault(); this.setTab('payments'); }
                         if (e.altKey && e.key === '4') { e.preventDefault(); this.setTab('edit'); }
                     });
 
                     window.addEventListener('hashchange', () => this.handleRouting());
                 },
+
+                getMovementColumns() {
+                    const allCols = [
+                        ...this.config.commitmentColumns.map(c => ({ ...c, source: 'commitments' })),
+                        ...this.config.paymentColumns.map(c => ({ ...c, source: 'payments' }))
+                    ];
+
+                    // הסרת כפילויות לפי field
+                    const map = {};
+                    allCols.forEach(col => {
+                        if (!map[col.field]) {
+                            map[col.field] = col;
+                        }
+                    });
+
+                    return Object.values(map);
+                }, 
+                movementColumnVisibility: {},
+                isMovementColumnVisible(field) {
+                    return this.movementColumnVisibility[field] !== false;
+                },
+
 
                 getTodayDate() { return new Date().toISOString().split('T')[0]; },
 
@@ -2892,7 +2945,7 @@
                     this.updateURL();
                     setTimeout(() => {
                         this.renderTable();
-                        if (['obligations', 'payments'].includes(t)) {
+                        if (['commitments', 'payments'].includes(t)) {
                             setTimeout(() => { this._attachNewEntryEnterNav(); }, 150);
                         }
                     }, 50);
@@ -2911,7 +2964,7 @@
                     this.selectedMember = member;
                     this.view = 'account';
                     const transaction = this.transactions.find(t => t.transactionId === transactionId);
-                    this.activeTab = transaction ? transaction.transactionType : 'obligations';
+                    this.activeTab = transaction ? transaction.transactionType : 'commitments';
                     this.highlightedRowId = transactionId;
                     let params = new URLSearchParams();
                     params.set('view', 'account');
@@ -3049,6 +3102,7 @@
                         inputValue: 0,
                         inputPlaceholder: 'אני מבין שפעולה זו בלתי הפיכה'
                     });
+                    
                     if (result.isConfirmed && result.value) {
                         localStorage.removeItem('synagogue_members');
                         localStorage.removeItem('synagogue_transactions');
@@ -3076,7 +3130,7 @@
                     return this.transactions
                         .filter(t => t.memberId === memberId)
                         .reduce((sum, t) => {
-                            if (t.transactionType === 'obligations') return sum + (Number(t.obligationAmount) || 0);
+                            if (t.transactionType === 'commitments') return sum + (Number(t.commitmentAmount) || 0);
                             if (t.transactionType === 'payments') return sum - (Number(t.paymentAmount) || 0);
                             return sum;
                         }, 0);
@@ -3164,20 +3218,20 @@
                 addColumn(type) {
                     const ts = Date.now();
                     const col = { columnId: `col_${ts}`, title: 'עמודה חדשה', field: `field_${ts}`, type: 'text', fixed: false };
-                    if (type === 'obligation') this.config.obligationColumns.push(col);
+                    if (type === 'commitment') this.config.commitmentColumns.push(col);
                     else if (type === 'payment') this.config.paymentColumns.push(col);
                     else if (type === 'movement') this.config.movementColumns.push(col);
                     this.saveConfigData();
                 },
 
                 async deleteColumn(type, index) {
-                    const col = type === 'obligation' ? this.config.obligationColumns[index]
+                    const col = type === 'commitment' ? this.config.commitmentColumns[index]
                         : type === 'payment' ? this.config.paymentColumns[index]
                             : this.config.movementColumns[index];
                     if (col.fixed) return;
                     const result = await Swal.fire({ title: 'האם למחוק עמודה?', text: 'הנתונים בעמודה יימחקו', icon: 'warning', showCancelButton: true, confirmButtonText: 'כן, מחק', cancelButtonText: 'ביטול', confirmButtonColor: '#dc3545' });
                     if (result.isConfirmed) {
-                        if (type === 'obligation') this.config.obligationColumns.splice(index, 1);
+                        if (type === 'commitment') this.config.commitmentColumns.splice(index, 1);
                         else if (type === 'payment') this.config.paymentColumns.splice(index, 1);
                         else if (type === 'movement') this.config.movementColumns.splice(index, 1);
                         this.saveConfigData();
@@ -3185,7 +3239,7 @@
                 },
 
                 moveColumn(type, index, direction) {
-                    const cols = type === 'obligation' ? this.config.obligationColumns
+                    const cols = type === 'commitment' ? this.config.commitmentColumns
                         : type === 'payment' ? this.config.paymentColumns : this.config.movementColumns;
                     const ni = index + direction;
                     if (ni < 0 || ni >= cols.length) return;
@@ -3215,17 +3269,17 @@
 
                 // Home page transactions
                 resetHomeEntry() {
-                    const cols = this.homeActiveTab === 'obligations' ? this.config.obligationColumns : this.config.paymentColumns;
+                    const cols = this.homeActiveTab === 'commitments' ? this.config.commitmentColumns : this.config.paymentColumns;
                     this.homeEntry = { memberId: '' };
                     cols.forEach(c => { this.homeEntry[c.field] = (c.type === 'date' ? this.getTodayDate() : ''); });
                 },
 
                 addHomeEntry() {
                     if (!this.homeEntry.memberId) { Swal.fire('שגיאה', 'נא לבחור מתפלל', 'error'); return; }
-                    const amountField = this.homeActiveTab === 'obligations' ? 'obligationAmount' : 'paymentAmount';
+                    const amountField = this.homeActiveTab === 'commitments' ? 'commitmentAmount' : 'paymentAmount';
                     if (!this.homeEntry[amountField]) { Swal.fire('שגיאה', 'נא להזין סכום', 'error'); return; }
                     // Prevent empty dates
-                    const cols2 = this.homeActiveTab === 'obligations' ? this.config.obligationColumns : this.config.paymentColumns;
+                    const cols2 = this.homeActiveTab === 'commitments' ? this.config.commitmentColumns : this.config.paymentColumns;
                     cols2.forEach(c => { if (c.type === 'date' && !this.homeEntry[c.field]) this.homeEntry[c.field] = this.getTodayDate(); });
                     const transaction = { transactionId: Date.now(), memberId: this.homeEntry.memberId, transactionType: this.homeActiveTab, ...this.homeEntry };
                     this.transactions.unshift(transaction);
@@ -3257,19 +3311,19 @@
                     const today = new Date(); today.setHours(0, 0, 0, 0);
                     switch (this.homeFilters.period) {
                         case 'today':
-                            filtered = filtered.filter(t => { const d = new Date(t.obligationDate || t.paymentDate); d.setHours(0, 0, 0, 0); return d.getTime() === today.getTime(); });
+                            filtered = filtered.filter(t => { const d = new Date(t.commitmentDate || t.paymentDate); d.setHours(0, 0, 0, 0); return d.getTime() === today.getTime(); });
                             break;
                         case 'week':
                             const wa = new Date(today); wa.setDate(wa.getDate() - 7);
-                            filtered = filtered.filter(t => new Date(t.obligationDate || t.paymentDate) >= wa);
+                            filtered = filtered.filter(t => new Date(t.commitmentDate || t.paymentDate) >= wa);
                             break;
                         case 'month':
                             const ma = new Date(today); ma.setMonth(ma.getMonth() - 1);
-                            filtered = filtered.filter(t => new Date(t.obligationDate || t.paymentDate) >= ma);
+                            filtered = filtered.filter(t => new Date(t.commitmentDate || t.paymentDate) >= ma);
                             break;
                         case 'custom':
-                            if (this.homeFilters.fromDate) filtered = filtered.filter(t => (t.obligationDate || t.paymentDate) >= this.homeFilters.fromDate);
-                            if (this.homeFilters.toDate) filtered = filtered.filter(t => (t.obligationDate || t.paymentDate) <= this.homeFilters.toDate);
+                            if (this.homeFilters.fromDate) filtered = filtered.filter(t => (t.commitmentDate || t.paymentDate) >= this.homeFilters.fromDate);
+                            if (this.homeFilters.toDate) filtered = filtered.filter(t => (t.commitmentDate || t.paymentDate) <= this.homeFilters.toDate);
                             break;
                     }
                     if (this.homeFilters.search) {
@@ -3277,7 +3331,7 @@
                         filtered = filtered.filter(t => {
                             const member = this.members.find(m => m.memberUniqueId === t.memberId);
                             const mn = member ? member.name.toLowerCase() : '';
-                            return mn.includes(s) || (t.purpose || '').toLowerCase().includes(s) || String(t.obligationAmount || t.paymentAmount || '').includes(s);
+                            return mn.includes(s) || (t.purpose || '').toLowerCase().includes(s) || String(t.commitmentAmount || t.paymentAmount || '').includes(s);
                         });
                     }
                     this.filteredHomeTransactions = filtered;
@@ -3285,16 +3339,16 @@
 
                 // Transactions
                 resetEntry() {
-                    const cols = this.activeTab === 'obligations' ? this.config.obligationColumns : this.config.paymentColumns;
+                    const cols = this.activeTab === 'commitments' ? this.config.commitmentColumns : this.config.paymentColumns;
                     this.newEntry = {};
                     cols.forEach(c => { this.newEntry[c.field] = (c.type === 'date' ? this.getTodayDate() : ''); });
                 },
 
                 addNewEntry() {
-                    const amountField = this.activeTab === 'obligations' ? 'obligationAmount' : 'paymentAmount';
+                    const amountField = this.activeTab === 'commitments' ? 'commitmentAmount' : 'paymentAmount';
                     if (!this.newEntry[amountField]) { Swal.fire('שגיאה', 'נא להזין סכום', 'error'); return; }
                     // Prevent empty dates
-                    const cols = this.activeTab === 'obligations' ? this.config.obligationColumns : this.config.paymentColumns;
+                    const cols = this.activeTab === 'commitments' ? this.config.commitmentColumns : this.config.paymentColumns;
                     cols.forEach(c => { if (c.type === 'date' && !this.newEntry[c.field]) this.newEntry[c.field] = this.getTodayDate(); });
                     const transaction = { transactionId: Date.now(), memberId: this.selectedMember.memberUniqueId, transactionType: this.activeTab, ...this.newEntry };
                     this.transactions.unshift(transaction);
@@ -3403,7 +3457,7 @@
 
                     // Build member+table label for print header
                     const tableLabel = tableId === 'movementsTable' ? 'ריכוז תנועות'
-                        : tableId === 'mainTable' ? (this.activeTab === 'obligations' ? 'התחייבויות' : 'תשלומים')
+                        : tableId === 'mainTable' ? (this.activeTab === 'commitments' ? 'התחייבויות' : 'תשלומים')
                         : tableId;
                     const memberLabel = this.selectedMember ? (this.selectedMember.nickname || this.selectedMember.name) : '';
                     const printTitle = memberLabel ? `${memberLabel} — ${tableLabel}` : tableLabel;
@@ -3561,13 +3615,13 @@
                             : this.reportParams.purpose.split(',').map(p => p.trim()).filter(p => p);
                         filtered = filtered.filter(t => purposes.some(p => t.purpose && t.purpose.toLowerCase().includes(p.toLowerCase())));
                     }
-                    if (this.reportParams.fromDate) filtered = filtered.filter(t => (t.obligationDate || t.paymentDate || '') >= this.reportParams.fromDate);
-                    if (this.reportParams.toDate) filtered = filtered.filter(t => (t.obligationDate || t.paymentDate || '') <= this.reportParams.toDate);
+                    if (this.reportParams.fromDate) filtered = filtered.filter(t => (t.commitmentDate || t.paymentDate || '') >= this.reportParams.fromDate);
+                    if (this.reportParams.toDate) filtered = filtered.filter(t => (t.commitmentDate || t.paymentDate || '') <= this.reportParams.toDate);
                     if (this.reportParams.selectedMembers.length > 0) filtered = filtered.filter(t => this.reportParams.selectedMembers.includes(t.memberId));
 
                     const reportData = filtered.map(t => {
                         const member = this.members.find(m => m.memberUniqueId === t.memberId);
-                        return { ...t, memberName: member ? member.name : 'לא ידוע', date: t.obligationDate || t.paymentDate || '', amount: t.obligationAmount || t.paymentAmount || 0, typeLabel: t.transactionType === 'obligations' ? 'התחייבות' : 'תשלום' };
+                        return { ...t, memberName: member ? member.name : 'לא ידוע', date: t.commitmentDate || t.paymentDate || '', amount: t.commitmentAmount || t.paymentAmount || 0, typeLabel: t.transactionType === 'commitments' ? 'התחייבות' : 'תשלום' };
                     });
 
                     if (this.currentTable) { try { this.currentTable.destroy(); } catch (e) { } this.currentTable = null; }
@@ -3725,7 +3779,7 @@
                     if (!ta) return;
                     const { tokenIdx, currentToken } = this._batchCursorToken(ta);
                     this.batchActiveToken = tokenIdx;
-                    const cols = this.batchTxType === 'obligations' ? this.config.obligationColumns : this.config.paymentColumns;
+                    const cols = this.batchTxType === 'commitments' ? this.config.commitmentColumns : this.config.paymentColumns;
                     let suggestions = [];
                     if (tokenIdx === 0) {
                         const q = currentToken.toLowerCase();
@@ -3795,7 +3849,7 @@
 
                 processBatchTransactions() {
                     if (!this.batchTxString.trim()) return;
-                    const cols = this.batchTxType === 'obligations' ? this.config.obligationColumns : this.config.paymentColumns;
+                    const cols = this.batchTxType === 'commitments' ? this.config.commitmentColumns : this.config.paymentColumns;
                     const lines = this.batchTxString.split('\n').filter(line => line.trim() !== '');
                     let addedCount = 0;
                     const errors = [];
@@ -3809,7 +3863,7 @@
                             const val = (values[i + 1] || '').trim();
                             transaction[col.field] = val || (col.type === 'date' ? this.getTodayDate() : '');
                         });
-                        const amountField = this.batchTxType === 'obligations' ? 'obligationAmount' : 'paymentAmount';
+                        const amountField = this.batchTxType === 'commitments' ? 'commitmentAmount' : 'paymentAmount';
                         if (!transaction[amountField]) { errors.push(`שורה ${li + 1}: חסר סכום`); return; }
                         this.transactions.unshift(transaction);
                         addedCount++;
@@ -3831,7 +3885,7 @@
                     if (!this.selectedMember || this.view !== 'account' || this.activeTab === 'edit') return;
                     if (this.activeTab === 'movements') { this.renderMovementsTable(); return; }
 
-                    const curCols = this.activeTab === 'obligations' ? this.config.obligationColumns : this.config.paymentColumns;
+                    const curCols = this.activeTab === 'commitments' ? this.config.commitmentColumns : this.config.paymentColumns;
                     let cols = curCols.map(c => ({
                         title: c.title, field: c.field,
                         editor: this.readOnlyMode ? false : (c.type === 'list' ? 'list' : c.type === 'date' ? 'input' : 'input'),
@@ -3995,21 +4049,21 @@
                     const memberTransactions = this.transactions.filter(t => t.memberId === this.selectedMember.memberUniqueId);
                     // Show each transaction as a separate row (no aggregation)
                     const movementsData = memberTransactions.map(t => {
-                        const oblAmt = Number(t.obligationAmount) || 0;
+                        const oblAmt = Number(t.commitmentAmount) || 0;
                         const payAmt = Number(t.paymentAmount) || 0;
                         return {
                             transactionId: t.transactionId,
                             transactionType: t.transactionType,
-                            date: t.obligationDate || t.paymentDate || '',
+                            date: t.commitmentDate || t.paymentDate || '',
                             purpose: t.purpose || '',
                             paymentType: t.paymentMethod || '',
                             reference: t.reference || '',
-                            obligationAmount: oblAmt,
+                            commitmentAmount: oblAmt,
                             paymentAmount: payAmt,
                             difference: oblAmt - payAmt
                         };
                     });
-                    const allMovFields = ['date', 'purpose', 'paymentType', 'reference', 'obligationAmount', 'paymentAmount', 'difference'];
+                    const allMovFields = ['date', 'purpose', 'paymentType', 'reference', 'commitmentAmount', 'paymentAmount', 'difference'];
                     const activeFields = (this.config.movementColumns || []).map(c => c.field);
                     const deletedFields = allMovFields.filter(f => !activeFields.includes(f));
                     const cols = (this.config.movementColumns || []).map(c => {
@@ -4054,7 +4108,7 @@
                                 box.className = 'orphan-box';
                                 box.setAttribute('data-row', row.transactionId);
                                 box.style.cssText = 'max-height:200px;overflow:hidden;transition:max-height 0.3s ease,opacity 0.3s ease;opacity:1;background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:6px;padding:10px 16px;margin:4px 0;display:flex;gap:16px;flex-wrap:wrap;';
-                                const fieldLabels = { date: 'תאריך', purpose: 'מטרת התשלום', paymentType: 'סוג תשלום', reference: 'אסמכתא', obligationAmount: 'סכום התחייבות', paymentAmount: 'תשלום בפועל', difference: 'הפרש' };
+                                const fieldLabels = { date: 'תאריך', purpose: 'מטרת התשלום', paymentType: 'סוג תשלום', reference: 'אסמכתא', commitmentAmount: 'סכום התחייבות', paymentAmount: 'תשלום בפועל', difference: 'הפרש' };
                                 deletedFields.forEach(f => {
                                     const val = row[f];
                                     if (val === undefined || val === '' || val === 0) return;
@@ -4084,12 +4138,12 @@
                             title: 'עבור אל', field: 'mov_goto', width: 65, headerSort: false, responsive: 0,
                             formatter: (cell) => {
                                 const type = cell.getRow().getData().transactionType;
-                                if (type === 'obligations') return '<span title="עבור להתחייבות" style="cursor:pointer;color:#2c5f7d;font-size:0.9rem;font-weight:600;">ח</span>';
+                                if (type === 'commitments') return '<span title="עבור להתחייבות" style="cursor:pointer;color:#2c5f7d;font-size:0.9rem;font-weight:600;">ח</span>';
                                 return '<span title="עבור לתשלום" style="cursor:pointer;color:#28a745;font-size:0.9rem;font-weight:600;">ת</span>';
                             },
                             cellClick: (e, cell) => {
                                 const data = cell.getRow().getData();
-                                const tab = data.transactionType === 'obligations' ? 'obligations' : 'payments';
+                                const tab = data.transactionType === 'commitments' ? 'commitments' : 'payments';
                                 this.goToMemberTransactionInTab(data.transactionId, tab);
                             }
                         });
@@ -4140,8 +4194,8 @@
                     let txs = [...this.transactions];
                     if (this.ieFilters.type !== 'all') txs = txs.filter(t => t.transactionType === this.ieFilters.type);
                     if (this.ieFilters.memberId) txs = txs.filter(t => t.memberId === this.ieFilters.memberId);
-                    if (this.ieFilters.fromDate) txs = txs.filter(t => (t.obligationDate || t.paymentDate || '') >= this.ieFilters.fromDate);
-                    if (this.ieFilters.toDate) txs = txs.filter(t => (t.obligationDate || t.paymentDate || '') <= this.ieFilters.toDate);
+                    if (this.ieFilters.fromDate) txs = txs.filter(t => (t.commitmentDate || t.paymentDate || '') >= this.ieFilters.fromDate);
+                    if (this.ieFilters.toDate) txs = txs.filter(t => (t.commitmentDate || t.paymentDate || '') <= this.ieFilters.toDate);
                     return txs;
                 },
 
@@ -4154,12 +4208,12 @@
                 },
 
                 _toBatchText(transactions) {
-                    const obls = transactions.filter(t => t.transactionType === 'obligations');
+                    const obls = transactions.filter(t => t.transactionType === 'commitments');
                     const pays = transactions.filter(t => t.transactionType === 'payments');
                     let out = '';
                     if (obls.length) {
-                        out += 'obligations\n';
-                        const cols = this.config.obligationColumns;
+                        out += 'commitments\n';
+                        const cols = this.config.commitmentColumns;
                         obls.forEach(t => {
                             const member = this.members.find(m => m.memberUniqueId === t.memberId);
                             const name = member ? member.name : t.memberId;
@@ -4188,7 +4242,7 @@
                         const wb = XLSX.utils.book_new();
                         const membersWs = XLSX.utils.json_to_sheet(this.members);
                         XLSX.utils.book_append_sheet(wb, membersWs, 'מתפללים');
-                        const oblWs = XLSX.utils.json_to_sheet(this.transactions.filter(t => t.transactionType === 'obligations'));
+                        const oblWs = XLSX.utils.json_to_sheet(this.transactions.filter(t => t.transactionType === 'commitments'));
                         XLSX.utils.book_append_sheet(wb, oblWs, 'התחייבויות');
                         const payWs = XLSX.utils.json_to_sheet(this.transactions.filter(t => t.transactionType === 'payments'));
                         XLSX.utils.book_append_sheet(wb, payWs, 'תשלומים');
@@ -4286,7 +4340,7 @@
                             wb.SheetNames.forEach(sheetName => {
                                 const rows = XLSX.utils.sheet_to_json(wb.Sheets[sheetName]);
                                 rows.forEach((row, idx) => {
-                                    const type = row.transactionType || (sheetName.includes('התחייב') ? 'obligations' : sheetName.includes('תשלום') ? 'payments' : null);
+                                    const type = row.transactionType || (sheetName.includes('התחייב') ? 'commitments' : sheetName.includes('תשלום') ? 'payments' : null);
                                     if (!type) return;
                                     const memberId = row.memberId || (row.memberName ? (this.members.find(m => m.name === row.memberName) || {}).memberUniqueId : null);
                                     if (!memberId) return;
@@ -4313,16 +4367,16 @@
                     lines.forEach((line, li) => {
                         const trimmed = line.trim();
                         if (!trimmed) return;
-                        if (trimmed === 'obligations' || trimmed === 'payments') { currentType = trimmed; return; }
-                        if (!currentType) { errors.push(`שורה ${li + 1}: חסר כותרת (obligations/payments)`); return; }
-                        const cols = currentType === 'obligations' ? this.config.obligationColumns : this.config.paymentColumns;
+                        if (trimmed === 'commitments' || trimmed === 'payments') { currentType = trimmed; return; }
+                        if (!currentType) { errors.push(`שורה ${li + 1}: חסר כותרת (commitments/payments)`); return; }
+                        const cols = currentType === 'commitments' ? this.config.commitmentColumns : this.config.paymentColumns;
                         const values = trimmed.split(',').map(v => v.trim());
                         if (!values[0]) return;
                         const member = this.members.find(m => m.memberUniqueId === values[0] || m.name === values[0] || m.name.toLowerCase() === values[0].toLowerCase());
                         if (!member) { errors.push(`שורה ${li + 1}: מתפלל "${values[0]}" לא נמצא`); return; }
                         const transaction = { transactionId: Date.now() + li + Math.random(), memberId: member.memberUniqueId, transactionType: currentType };
                         cols.forEach((col, i) => { transaction[col.field] = (values[i + 1] || '').trim() || (col.type === 'date' ? this.getTodayDate() : ''); });
-                        const amountField = currentType === 'obligations' ? 'obligationAmount' : 'paymentAmount';
+                        const amountField = currentType === 'commitments' ? 'commitmentAmount' : 'paymentAmount';
                         if (!transaction[amountField]) { errors.push(`שורה ${li + 1}: חסר סכום`); return; }
                         this.transactions.unshift(transaction);
                         addedCount++;
@@ -4337,7 +4391,7 @@
                     this.filterHomeTransactions();
                     const displayData = this.filteredHomeTransactions.slice(0, 50).map(t => {
                         const member = this.members.find(m => m.memberUniqueId === t.memberId);
-                        return { ...t, memberName: member ? member.name : 'לא ידוע', date: t.obligationDate || t.paymentDate || '', amount: t.obligationAmount || t.paymentAmount || 0, typeLabel: t.transactionType === 'obligations' ? 'התחייבות' : 'תשלום' };
+                        return { ...t, memberName: member ? member.name : 'לא ידוע', date: t.commitmentDate || t.paymentDate || '', amount: t.commitmentAmount || t.paymentAmount || 0, typeLabel: t.transactionType === 'commitments' ? 'התחייבות' : 'תשלום' };
                     });
                     const columns = [
                         { title: "תאריך", field: "date", responsive: 0, width: 120 },
@@ -4365,7 +4419,7 @@
                     const summaryData = this.members.map(m => {
                         const memberTransactions = this.transactions.filter(t => t.memberId === m.memberUniqueId);
                         const balance = memberTransactions.reduce((sum, t) => {
-                            const amount = Number(t.obligationAmount || t.paymentAmount || 0);
+                            const amount = Number(t.commitmentAmount || t.paymentAmount || 0);
                             return sum + (t.transactionType === 'payments' ? amount : -amount);
                         }, 0);
                         return { name: m.name, memberUniqueId: m.memberUniqueId, balance };
@@ -4387,9 +4441,67 @@
                         const wrapper = document.getElementById('summaryTable');
                         if (wrapper) wrapper.classList.toggle('scrollable', this.tableScrollMode);
                     }, 50);
-                }
+                },
+                resetColors() {
+                    Swal.fire({
+                        title: 'איפוס צבעים',
+                        text: "האם להחזיר את כל הצבעים לברירת המחדל?",
+                        icon: 'question',
+                        showCancelButton: true,
+                        confirmButtonColor: '#2c5f7d',
+                        cancelButtonColor: '#6c757d',
+                        confirmButtonText: 'כן, אפס',
+                        cancelButtonText: 'ביטול'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            // הגדרת ערכי ברירת המחדל המדויקים לפי ה-CSS המקורי שלך
+                            this.settings.customColors = {
+                                primary: '#2c5f7d',
+                                secondary: '#7d4e2c',
+                                accent: '#d4af37',
+                                bgHeader: '#0d6efd'
+                            };
+
+                            // שמירה ועדכון מיידי
+                            //this.saveSettings();
+
+                            // הודעת הצלחה
+                            Swal.fire({
+                                title: 'אופס!',
+                                text: 'הצבעים הוחזרו לברירת המחדל.',
+                                icon: 'success',
+                                timer: 1500,
+                                showConfirmButton: false
+                            });
+                        }
+                    });
+                },
             }
         }
+    </script>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT.firebaseapp.com",
+            projectId: "YOUR_PROJECT",
+            storageBucket: "YOUR_PROJECT.appspot.com",
+            messagingSenderId: "...",
+            appId: "..."
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        // הפיכתם לנגישים ל-Alpine.js
+        window.db = db;
+        window.auth = auth;
+        window.fsMethods = { doc, setDoc, getDoc, signInWithEmailAndPassword, sendPasswordResetEmail };
     </script>
 </body>
 
